@@ -150,8 +150,67 @@ public class Query {
 
 
     public void findChainQueryAnswer(){
+        //first find triple pattern that has po fixed
+        TriplePattern triplePattern1 = null , triplePattern2 = null;
+        for(int i= triplePatterns.size()-1 ; i>=0 ; i --){
+            triplePattern1 = triplePatterns.get(i);
+            if(!TriplePattern.isVariable(triplePattern1.triples[1]) && !TriplePattern.isVariable(triplePattern1.triples[2]) && TriplePattern.isVariable(triplePattern1.triples[0]) )
+                break;
+            triplePattern1 = null;
+        }
+        if(triplePattern1 == null){
+            System.err.println("Error finding po fixed in chain query");
+            return;
+        }
+
+        //now look for the other p
+        for(int i= triplePatterns.size()-1 ; i>=0 ; i --){
+            triplePattern2 = triplePatterns.get(i);
+            if(triplePattern1.triples[0] == triplePattern2.triples[2])
+                break;
+            triplePattern2 = null;
+        }
+        //now build the index key OPP
+       // String key =
 
     }
+
+
+    public void parseSparqlChain(String spaql, HashMap<String , Long> dictionary){
+        /*" select  ?x1 ?x3 ?x5 ?x7 where " +
+                "{?x1 <http://mpii.de/yago/resource/describes> ?x3.?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x5." +
+                "?x5 <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?x7." +
+                "?x7 <http://mpii.de/yago/resource/isPartOf> <http://mpii.de/yago/resource/wordnet_transportation_system_104473432>} ";*/
+        triplePatterns = new ArrayList<>();
+        String s = spaql.split("\\{")[1];
+        s = s.replace("}" , "");
+        String [] patterns  = s.split(".");
+        for(int j =0 ; j< patterns.length ; j++){
+            String[] x = patterns[j].split(" ");
+
+            long ss,pp,oo;
+            try {
+                if (x[0].startsWith("?"))
+                    ss = TriplePattern.thisIsVariable;
+                else
+                    ss = dictionary.get(x[0]);
+                if (x[1].startsWith("?"))
+                    pp = TriplePattern.thisIsVariable;
+                else
+                    pp = dictionary.get(x[1]);
+                if (x[2].startsWith("?"))
+                    oo = TriplePattern.thisIsVariable;
+                else
+                    oo = dictionary.get(x[2]);
+                TriplePattern triplePattern = new TriplePattern(ss, pp, oo);
+                triplePatterns.add(triplePattern);
+            }catch (Exception e){
+                System.err.println("error parsing query");
+                System.exit(1);
+            }
+        }
+    }
+
 
 
     /*public void parseSparqlChain(String spaql){
