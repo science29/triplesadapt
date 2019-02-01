@@ -6,6 +6,8 @@ public class Query {
     public int queryFrquency;
     public ArrayList<TriplePattern> simpleAnswer;
     public ArrayList<ArrayList<TriplePattern>> fullAnswer;
+
+    private HashMap<Integer , ArrayList<TriplePattern>> answerMap ;
     public  String SPARQL;
 
     public String partitionString = "";
@@ -152,7 +154,8 @@ public class Query {
 
     public void findChainQueryAnswer(HashMap<String,ArrayList<Triple>> OPxP , HashMap<String,ArrayList<Triple>> opS){
         fullAnswer = new ArrayList<>();
-        HashMap<TriplePattern,Triple> answer = new ArrayList<>();
+        HashMap<TriplePattern,Triple> answer =  new HashMap<>();
+        answerMap = new HashMap<>();
         //first find triple pattern that has po fixed
         TriplePattern triplePattern1 = null , triplePattern2 = null;
         for(int i= triplePatterns.size()-1 ; i>=0 ; i --){
@@ -189,12 +192,14 @@ public class Query {
            key = next_o+""+next_p;
             ArrayList<Triple> list2 = opS.get(key);
             findDeepAnswer(nextTripelPatern , triple2,opS);
+            answer.put(nextTripelPatern , triple2);
+
         }
 
 
     }
 
-    private boolean findDeepAnswer(TriplePattern triplePattern , Triple triple, HashMap<String,ArrayList<Triple>> opS){
+    private boolean findDeepAnswer(TriplePattern triplePattern , Triple triple, HashMap<String,ArrayList<Triple>> opS , int answerID){
         long next_o = triple.triples[0];
         TriplePattern  nextTripelPatern= getNextTriplePattern(triplePattern , 0) ;
         if(nextTripelPatern == null)
@@ -206,7 +211,18 @@ public class Query {
         ArrayList<Triple> list = opS.get(key);
         for(int i= 0; i< list.size() ; i++){
             Triple triple2 = list.get(i);
-            findDeepAnswer(nextTripelPatern,triple2,opS);
+            boolean res = findDeepAnswer(nextTripelPatern,triple2,opS,answerID);
+            if(res){
+                ArrayList<TriplePattern> answerItem = answerMap.get(answerID);
+                if(answerItem == null){
+                    answerItem = new ArrayList();
+                    answerMap.put(answerID, answerItem);
+                }
+
+
+            }
+
+
         }
     }
 
