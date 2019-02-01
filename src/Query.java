@@ -152,7 +152,7 @@ public class Query {
 
     public void findChainQueryAnswer(HashMap<String,ArrayList<Triple>> OPxP , HashMap<String,ArrayList<Triple>> opS){
         fullAnswer = new ArrayList<>();
-        HashMap<TriplePattern, ArrayList<Triple>>
+        HashMap<TriplePattern,Triple> answer = new ArrayList<>();
         //first find triple pattern that has po fixed
         TriplePattern triplePattern1 = null , triplePattern2 = null;
         for(int i= triplePatterns.size()-1 ; i>=0 ; i --){
@@ -178,18 +178,39 @@ public class Query {
         ArrayList<Triple> list = OPxP.get(key);
         //now move to all triples in list
         for(int i= 0; i< list.size()+1 ; i+=2){
+
             Triple triple1 = list.get(i);
+            answer.put(triplePattern1 , triple1);
             Triple triple2 = list.get(i+1);
-            long next_o = triple1.triples[0];
+            answer.put(triplePattern2 , triple2);
+            long next_o = triple2.triples[0];
            TriplePattern  nextTripelPatern= getNextTriplePattern(triplePattern2 , 0) ;
            long next_p = nextTripelPatern.triples[1];
            key = next_o+""+next_p;
             ArrayList<Triple> list2 = opS.get(key);
-
+            findDeepAnswer(nextTripelPatern , triple2,opS);
         }
 
 
     }
+
+    private boolean findDeepAnswer(TriplePattern triplePattern , Triple triple, HashMap<String,ArrayList<Triple>> opS){
+        long next_o = triple.triples[0];
+        TriplePattern  nextTripelPatern= getNextTriplePattern(triplePattern , 0) ;
+        if(nextTripelPatern == null)
+            return true;
+        if(!triplePattern.matches(triple))
+            return false;
+        long next_p = nextTripelPatern.triples[1];
+        String key = next_o+""+next_p;
+        ArrayList<Triple> list = opS.get(key);
+        for(int i= 0; i< list.size() ; i++){
+            Triple triple2 = list.get(i);
+            findDeepAnswer(nextTripelPatern,triple2,opS);
+        }
+    }
+
+    private
 
 
     public void parseSparqlChain(String spaql, HashMap<String , Long> dictionary){

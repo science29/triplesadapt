@@ -31,4 +31,14 @@ public class TriplePattern {
             return true;
         return  false;
     }
+
+    public boolean matches(Triple triple) {
+        if(triple.triples[0] != triples[0] && !isVariable(triples[0])  )
+            return false;
+        if(triple.triples[1] != triples[1] && !isVariable(triples[1])  )
+            return false;
+        if(triple.triples[2] != triples[2] && !isVariable(triples[2])  )
+            return false;
+        return true;
+    }
 }
