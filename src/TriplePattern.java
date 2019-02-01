@@ -25,4 +25,10 @@ public class TriplePattern {
         this.stringTriple[1] = reverseDictionary.get(triples[1]);
         this.stringTriple[2] = reverseDictionary.get(triples[2]);
     }
+
+    public static boolean isVariable(long code) {
+        if(code < 0)
+            return true;
+        return  false;
+    }
 }
