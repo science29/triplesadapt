@@ -149,7 +149,7 @@ public class Query {
 
 
 
-    public void findChainQueryAnswer(){
+    public void findChainQueryAnswer(HashMap<String,ArrayList<Triple>> index){
         //first find triple pattern that has po fixed
         TriplePattern triplePattern1 = null , triplePattern2 = null;
         for(int i= triplePatterns.size()-1 ; i>=0 ; i --){
@@ -171,7 +171,11 @@ public class Query {
             triplePattern2 = null;
         }
         //now build the index key OPP
-       // String key =
+       String key = triplePattern1.triples[2]+""+triplePattern1.triples[1]+""+triplePattern2.triples[1];
+        ArrayList<Triple> list = index.get(key);
+        //now move to all triples in list
+        for(int i= 0; i< )
+
 
     }
 
