@@ -5,6 +5,7 @@ public class Query {
     public ArrayList<TriplePattern> triplePatterns;
     public int queryFrquency;
     public ArrayList<TriplePattern> simpleAnswer;
+    public ArrayList<ArrayList<TriplePattern>> fullAnswer;
     public  String SPARQL;
 
     public String partitionString = "";
@@ -149,7 +150,9 @@ public class Query {
 
 
 
-    public void findChainQueryAnswer(HashMap<String,ArrayList<Triple>> index){
+    public void findChainQueryAnswer(HashMap<String,ArrayList<Triple>> OPxP , HashMap<String,ArrayList<Triple>> opS){
+        fullAnswer = new ArrayList<>();
+        HashMap<TriplePattern, ArrayList<Triple>>
         //first find triple pattern that has po fixed
         TriplePattern triplePattern1 = null , triplePattern2 = null;
         for(int i= triplePatterns.size()-1 ; i>=0 ; i --){
@@ -172,9 +175,18 @@ public class Query {
         }
         //now build the index key OPP
        String key = triplePattern1.triples[2]+""+triplePattern1.triples[1]+""+triplePattern2.triples[1];
-        ArrayList<Triple> list = index.get(key);
+        ArrayList<Triple> list = OPxP.get(key);
         //now move to all triples in list
-        for(int i= 0; i< )
+        for(int i= 0; i< list.size()+1 ; i+=2){
+            Triple triple1 = list.get(i);
+            Triple triple2 = list.get(i+1);
+            long next_o = triple1.triples[0];
+           TriplePattern  nextTripelPatern= getNextTriplePattern(triplePattern2 , 0) ;
+           long next_p = nextTripelPatern.triples[1];
+           key = next_o+""+next_p;
+            ArrayList<Triple> list2 = opS.get(key);
+
+        }
 
 
     }
