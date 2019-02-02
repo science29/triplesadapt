@@ -18,6 +18,9 @@ public class TriplePattern {
         fixedTriples[2] = o;
     }
 
+    public static long thisIsVariable(long varCode) {
+        return -varCode;
+    }
 
 
     public void findStringTriple(HashMap<Long,String> reverseDictionary) {

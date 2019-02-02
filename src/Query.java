@@ -13,17 +13,23 @@ public class Query {
     public String partitionString = "";
     public String answerString = "";
 
+    private HashMap<String,Long> varNameMap = new HashMap<>();
+
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.triplePatterns = triplePattern;
         this.queryFrquency = queryFrquency;
         this.simpleAnswer = simpleAnswer;
     }
 
+
+
     public void findStringTriple(HashMap<Long, String> reverseDictionary) {
         for (int i = 0; i < triplePatterns.size(); i++) {
             triplePatterns.get(i).findStringTriple(reverseDictionary);
         }
     }
+
+
 
     public void setQuerySPARQL(HashMap<Long, String> reverseDictionary, HashMap<String, String> prefixIndex, HashMap<Long, VertexGraph> verticies) {
         SPARQL = "";
@@ -256,15 +262,15 @@ public class Query {
             long ss, pp, oo;
             try {
                 if (x[0].startsWith("?"))
-                    ss = TriplePattern.thisIsVariable;
+                    ss = TriplePattern.thisIsVariable(getNunqieVarID(x[0]));
                 else
                     ss = dictionary.get(x[0]);
                 if (x[1].startsWith("?"))
-                    pp = TriplePattern.thisIsVariable;
+                    pp = TriplePattern.thisIsVariable(getNunqieVarID(x[1]));
                 else
                     pp = dictionary.get(x[1]);
                 if (x[2].startsWith("?"))
-                    oo = TriplePattern.thisIsVariable;
+                    oo = TriplePattern.thisIsVariable(getNunqieVarID(x[2]));
                 else
                     oo = dictionary.get(x[2]);
                 TriplePattern triplePattern = new TriplePattern(ss, pp, oo);
@@ -274,6 +280,16 @@ public class Query {
                 System.exit(1);
             }
         }
+    }
+
+    long nextVarcode = 1;
+    private long getNunqieVarID(String x) {
+        Long n = varNameMap.get(x);
+        if(n == null) {
+            n = nextVarcode++;
+            varNameMap.put(x,nextVarcode);
+        }
+        return n;
     }
 
 
