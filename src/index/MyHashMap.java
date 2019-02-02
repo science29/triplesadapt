@@ -1,6 +1,8 @@
 package index;
 
+import triple.Triple;
 import util.FileHashMap;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,9 +23,12 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private final long fac = 8;
     private final long MAX_SIZE_GB =  fac*1000000000;
 
-    //   private int avgElemSize = 1 ;
+    public final IndexType indexType ;
 
-    public MyHashMap(String fileName) {
+    public static final int [] noKeyType = {0,0,0};
+
+    //   private int avgElemSize = 1 ;
+    public MyHashMap(String fileName){
         super();
         try {
             fileHashMap = new FileHashMap(fileName);
@@ -32,6 +37,19 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         }
         hashMap = new HashMap<>();
         this.fileName = fileName;
+        this.indexType = new IndexType();
+    }
+
+    public MyHashMap(String fileName, IndexType indexType) {
+        super();
+        try {
+            fileHashMap = new FileHashMap(fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        hashMap = new HashMap<>();
+        this.fileName = fileName;
+        this.indexType = indexType;
     }
 
 
@@ -148,6 +166,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
 
     }
+
+
+
 
 }
 

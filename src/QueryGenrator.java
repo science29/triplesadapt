@@ -1,3 +1,6 @@
+import triple.Triple;
+import triple.TriplePattern;
+
 import java.util.*;
 
 public class QueryGenrator {
@@ -137,7 +140,7 @@ public class QueryGenrator {
     }
 
 /*
-    private ArrayList<TriplePattern> buildQuery(){
+    private ArrayList<triple.TriplePattern> buildQuery(){
         int processedNode = 0;
         Queue<Long> toProcess = new ArrayDeque<>();
         ArrayList<Long> resultedVertices = new ArrayList<>();

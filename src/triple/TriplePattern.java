@@ -1,8 +1,9 @@
-import java.util.ArrayList;
+package triple;
+
 import java.util.HashMap;
 
 public class TriplePattern {
-    final static int thisIsVariable = -1;
+    public final static int thisIsVariable = -1;
     public long triples[]= new long[3];
     public String stringTriple[] = new String[3] ;
     public long fixedTriples[] = new long[3];

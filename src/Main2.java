@@ -1,7 +1,7 @@
+import triple.Triple;
 import index.MyHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
-import util.FileHashMap;
 
 import java.io.*;
 import java.util.*;
@@ -1016,7 +1016,7 @@ public class Main2 {
     private void addToPOSIndex(Triple triple) {
         if (POS == null)
             POS = new MyHashMap<>("pos");
-        //Triple triple = new Triple(code[0], code[1], code[2]);
+        //triple.triple triple = new triple.triple(code[0], code[1], code[2]);
         if (POS.containsKey(triple.triples[1])) {
             POS.get(triple.triples[1]).add(triple);
         } else {
