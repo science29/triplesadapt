@@ -1,3 +1,5 @@
+import triple.Triple;
+
 import java.util.ArrayList;
 
 public class Minterm {

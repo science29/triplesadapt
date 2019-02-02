@@ -1,3 +1,5 @@
+package triple;
+
 public class Triple {
     final static int Subject = 77;
     final static int Object = 88;

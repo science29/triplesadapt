@@ -58,7 +58,7 @@ public class Fragment {
         for(int i = 0 ; i< predicates.size() ; i++) {
             Prediacte prediacte = predicates.get(i);
             if(prediacte.variablePos == 1) {
-                ArrayList<Triple> triples1 = POS.get(prediacte.constPredicate);
+                ArrayList<triple.triple> triples1 = POS.get(prediacte.constPredicate);
             }
         }*/
     }

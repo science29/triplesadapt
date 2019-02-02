@@ -1,3 +1,6 @@
+import triple.Triple;
+import triple.TriplePattern;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -151,7 +154,6 @@ public class Query {
 
 
     public void findChainQueryAnswer(HashMap<String, ArrayList<Triple>> OPxP, HashMap<String, ArrayList<Triple>> opS) {
-        fullAnswer = new ArrayList<>();
         HashMap<TriplePattern, Triple> answer = new HashMap<>();
         answerMap = new HashMap<>();
         //first find triple pattern that has po fixed
@@ -227,7 +229,12 @@ public class Query {
     }
 
 
-    private HashMap<TriplePattern , TriplePattern> seenPatterns = new HashMap<>();
+    private void findNextTripleAnswer(Triple currentTriple , TriplePattern currTriplePattern ,TriplePattern nextTriplePattern){
+
+    }
+
+
+    private HashMap<TriplePattern, TriplePattern> seenPatterns = new HashMap<>();
     private TriplePattern getNextTriplePattern(TriplePattern triplePattern, int index) {
         //find the triple pattern that is connecte to triplePattern from index i
         TriplePattern firstNotSeen = null;

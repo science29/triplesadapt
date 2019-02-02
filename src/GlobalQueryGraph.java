@@ -1,3 +1,6 @@
+import triple.Triple;
+import triple.TriplePattern;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
