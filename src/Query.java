@@ -3,6 +3,8 @@ import triple.TriplePattern;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class Query {
     public ArrayList<TriplePattern> triplePatterns;
@@ -22,6 +24,10 @@ public class Query {
         this.triplePatterns = triplePattern;
         this.queryFrquency = queryFrquency;
         this.simpleAnswer = simpleAnswer;
+    }
+
+    public Query(HashMap<String,Long> dictionary , String SPARQL){
+        parseSparqlChain(SPARQL,dictionary);
     }
 
 
@@ -181,19 +187,19 @@ public class Query {
         ArrayList<Triple> list = OPxP.get(key);
         //now move to all triples in list
         for (int i = 0; i < list.size() + 1; i += 2) {
-
             Triple triple1 = list.get(i);
             answer.put(triplePattern1, triple1);
             Triple triple2 = list.get(i + 1);
             answer.put(triplePattern2, triple2);
             long next_o = triple2.triples[0];
+            addToAnswerMap(triplePattern1,triple1);
+            addToAnswerMap(triplePattern1,triple2);
             TriplePattern nextTripelPatern = getNextTriplePattern(triplePattern2, 0);
             long next_p = nextTripelPatern.triples[1];
             key = next_o + "" + next_p;
             ArrayList<Triple> list2 = opS.get(key);
             findDeepAnswer(nextTripelPatern, triple2, opS);
             answer.put(nextTripelPatern, triple2);
-
         }
 
 
@@ -217,15 +223,22 @@ public class Query {
             boolean res = findDeepAnswer(nextTripelPatern, triple2, opS);
             if (res) {
                 found = true;
-                ArrayList<Triple> answerList = answerMap.get(triplePattern);
-                if (answerList == null) {
-                    answerList = new ArrayList<>();
-                    answerMap.put(triplePattern, answerList);
-                }
-                answerList.add(triple);//xx
+                if(triplePattern.matches(triple))
+                    addToAnswerMap(triplePattern,triple);
             }
         }
         return found;
+    }
+
+    private void addToAnswerMap(TriplePattern triplePattern , Triple triple){
+        if(answerMap == null)
+            answerMap = new HashMap<>();
+        ArrayList<Triple> answerList = answerMap.get(triplePattern);
+        if (answerList == null) {
+            answerList = new ArrayList<>();
+            answerMap.put(triplePattern, answerList);
+        }
+        answerList.add(triple);
     }
 
 
@@ -289,6 +302,7 @@ public class Query {
         }
     }
 
+
     long nextVarcode = 1;
     private long getNunqieVarID(String x) {
         Long n = varNameMap.get(x);
@@ -297,6 +311,35 @@ public class Query {
             varNameMap.put(x,nextVarcode);
         }
         return n;
+    }
+
+
+    public void printAnswers(HashMap<Long, String> reverseDictionary){
+        if(answerMap == null) {
+            System.err.println("No answer to print ..");
+            return;
+        }
+        int i = 0;
+        //TODO this is not effceint enough
+        while (true) {
+            Iterator it = answerMap.entrySet().iterator();
+            boolean found = false;
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry) it.next();
+                ArrayList<Triple> answer = (ArrayList<Triple>) pair.getValue();
+                Triple triple = answer.get(i);
+                if (triple != null) {
+                    found = true;
+                    String tripleStr = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]) + ".";
+                    System.out.println(tripleStr);
+                }
+                System.out.println(pair.getKey() + " = " + pair.getValue());
+
+            }
+            if(!found)
+                return;
+            i++;
+        }
     }
 
 

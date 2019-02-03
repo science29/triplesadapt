@@ -26,6 +26,11 @@ public class Main2 {
     private MyHashMap<Long, ArrayList<Triple>> POS;
     private MyHashMap<Long, ArrayList<Triple>> SPO;
     private MyHashMap<Long, ArrayList<Triple>> OPS;
+    private MyHashMap<String, ArrayList<Triple>> sp_O;
+    private MyHashMap<String, ArrayList<Triple>> op_S;
+    private MyHashMap<String,ArrayList<Triple>> SPxP = new MyHashMap<>("SPxP");
+    private MyHashMap<String, ArrayList<Triple>> OPxP = new MyHashMap<>("SPxP");
+
     private HashMap<String, Integer> tripleToPartutPartitionMap;
     private GlobalQueryGraph queryGraph;
 
@@ -41,6 +46,7 @@ public class Main2 {
     final static String dataSetPath =  "btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
    // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
+
 
 
     public static void main(String[] args) {
@@ -63,8 +69,13 @@ public class Main2 {
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
 
         o.porcess(dataSetPath, quad);
-        System.out.println("building extra indexes .. ");
-        o.buildSppIndex();
+        //System.out.println("building extra indexes .. ");
+        //o.buildSppIndex();
+        System.out.println("building extra indexes OPxPs .. ");
+        o.buildOppIndex();
+        o.listenToQuery();
+        System.exit(0);
+
 
         System.out.println("generating queries .. ");
         ArrayList<Query> queries = o.generateQueries();
@@ -981,7 +992,7 @@ public class Main2 {
     }
 
 
-    private MyHashMap<String, ArrayList<Triple>> sp_O;
+
     private void addTosp_OIndex(Triple triple){
         if (sp_O == null)
             sp_O = new MyHashMap<>("sp_O");
@@ -992,7 +1003,7 @@ public class Main2 {
     }
 
 
-    private MyHashMap<String, ArrayList<Triple>> op_S;
+
     private void addToOp_SIndex(Triple triple){
         if (op_S == null)
             op_S = new MyHashMap<>("op_S");
@@ -1102,9 +1113,9 @@ public class Main2 {
     }
 
 
-    HashMap<String,ArrayList<Triple>> SPxP = new HashMap<>();
+
     private void buildSppIndex(){
-        SPxP = new HashMap<>();
+        SPxP = new MyHashMap<>("SPxP");
         for(int i = 0 ; i < vertecesID.size() ; i++){
             long s = vertecesID.get(i);
             ArrayList<Triple> connectedTriples = SPO.get(s);
@@ -1121,13 +1132,43 @@ public class Main2 {
                         Triple triple2 = connectedTriples2.get(k);
                         long p2 = triple2.triples[1];
                         String key = s+""+p1+""+p2;
+                        addToIndex(SPxP,triple1,key);
+                        addToIndex(SPxP,triple2,key);
+                        /*
                         ArrayList<Triple> tripleList = SPxP.get(key);
                         if(tripleList == null)
                             tripleList = new ArrayList<>();
                         tripleList.add(triple1);
                         tripleList.add(triple2);
-                        SPxP.put(key , tripleList);
+                        SPxP.put(key , tripleList);*/
                     }
+            }
+        }
+    }
+
+    private void buildOppIndex(){
+        //iterate over the OPS index
+        Iterator it = OPS.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            Long O = (Long) pair.getKey();
+            ArrayList<Triple> list1 = (ArrayList<Triple>) pair.getValue();
+            for(int i = 0 ; i < list1.size() ; i++){
+                Triple triple1 = list1.get(i);
+                long P1 = triple1.triples[2];
+                long s = triple1.triples[0];
+                //check each s as o in the OPS
+                ArrayList<Triple> list2 = OPS.get(s);
+                if(list2 == null)
+                    continue;
+                for(int j = 0 ; j < list2.size() ; j++){
+                    Triple triple2 = list2.get(j);
+                    long P2 = triple2.triples[1];
+                    String key = O+""+P1+""+P2;
+                    addToIndex(OPxP , triple1, key);
+                    addToIndex(OPxP , triple2, key);
+                }
+
             }
         }
     }
@@ -1400,6 +1441,25 @@ public class Main2 {
         }
         System.out.println("convertion Done .. errors:"+err);
 
+    }
+
+
+
+
+    private void listenToQuery(){
+        System.out.println("Please enter Sparql Query:");
+        Scanner scanner = new Scanner(System.in);
+        while (true){
+            String query = scanner.nextLine();
+            if(query.matches("e")) {
+                System.out.println("Exiting query system..");
+                return;
+            }
+
+            Query spQuery= new Query(dictionary  , query);
+            spQuery.findChainQueryAnswer(OPxP ,op_S );
+            spQuery.printAnswers(reverseDictionary);
+        }
     }
 
 
