@@ -63,7 +63,6 @@ public class Main2 {
             e.printStackTrace();
         }
 */
-        o.listenToQuery();
         //""
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
@@ -74,6 +73,7 @@ public class Main2 {
         System.out.println("building extra indexes OPxPs .. ");
         o.buildOppIndex();
         System.out.println("generating queries .. ");
+        QueryGenrator.buildFastHeavyQuery(o.OPxP,o.OPS,o.vertecesID.size());
         ArrayList<Query> queries = o.generateQueries();
 
         System.out.println("Writting queries to file");
@@ -1079,7 +1079,6 @@ public class Main2 {
         QueryGenrator queryGenrator = new QueryGenrator(5, 4, verticies, 4, tripleGraph, 40);
         //ArrayList<Query> queries = queryGenrator.buildQueries(10);
         ArrayList<Query> queries = queryGenrator.buildHeavyQueries(10);
-
         return queries;
     }
 
@@ -1459,13 +1458,14 @@ public class Main2 {
 
 
     private void listenToQuery(){
+        /*
         long a = 2;
         dictionary = new HashMap<>();
             dictionary.put("<http://mpii.de/yago/resource/describes>",a++);
             dictionary.put("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>",a++);
             dictionary.put("<http://www.w3.org/2000/01/rdf-schema#subClassOf>",a++);
             dictionary.put("<http://mpii.de/yago/resource/isPartOf>",a++);
-            dictionary.put("<http://mpii.de/yago/resource/wordnet_transportation_system_104473432>",a++);
+            dictionary.put("<http://mpii.de/yago/resource/wordnet_transportation_system_104473432>",a++);*/
 
 
         System.out.println("Please enter Sparql Query:");
