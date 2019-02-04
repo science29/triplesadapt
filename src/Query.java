@@ -286,6 +286,8 @@ public class Query {
             char c = s.charAt(i);
             switch (c) {
                 case ' ':
+                    if(last.equals("") )
+                        break;
                     if (varStart)
                         code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
                     varStart = false;
@@ -309,12 +311,16 @@ public class Query {
                     code[index++] = dictionary.get(last);
                     break;
                 case '.':
+                    if(build)
+                        last = last + c;
                     if (!varStart)
                         break;
                     code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
                     varStart = false;
                     last = "";
                     boolean res = addToTriplePatterns(code);
+                    index = 0;
+                    code[0] = (long)0;code[1] = (long)0;code[2] = (long)0;
                     if(!res)
                         return false;
                     break;
@@ -372,7 +378,7 @@ public class Query {
         Long n = varNameMap.get(x);
         if (n == null) {
             n = nextVarcode++;
-            varNameMap.put(x, nextVarcode);
+            varNameMap.put(x, n);
         }
         return n;
     }
