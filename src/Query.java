@@ -18,7 +18,9 @@ public class Query {
     public String partitionString = "";
     public String answerString = "";
 
-    private HashMap<String,Long> varNameMap = new HashMap<>();
+    boolean knownEmpty = false;
+
+    private HashMap<String, Long> varNameMap = new HashMap<>();
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.triplePatterns = triplePattern;
@@ -26,10 +28,9 @@ public class Query {
         this.simpleAnswer = simpleAnswer;
     }
 
-    public Query(HashMap<String,Long> dictionary , String SPARQL){
-        parseSparqlChain(SPARQL,dictionary);
+    public Query(HashMap<String, Long> dictionary, String SPARQL) {
+        knownEmpty = parseSparqlChain(SPARQL, dictionary);
     }
-
 
 
     public void findStringTriple(HashMap<Long, String> reverseDictionary) {
@@ -37,7 +38,6 @@ public class Query {
             triplePatterns.get(i).findStringTriple(reverseDictionary);
         }
     }
-
 
 
     public void setQuerySPARQL(HashMap<Long, String> reverseDictionary, HashMap<String, String> prefixIndex, HashMap<Long, VertexGraph> verticies) {
@@ -160,6 +160,8 @@ public class Query {
 
 
     public void findChainQueryAnswer(HashMap<String, ArrayList<Triple>> OPxP, HashMap<String, ArrayList<Triple>> opS) {
+        if(knownEmpty)
+            return;
         HashMap<TriplePattern, Triple> answer = new HashMap<>();
         answerMap = new HashMap<>();
         //first find triple pattern that has po fixed
@@ -192,8 +194,8 @@ public class Query {
             Triple triple2 = list.get(i + 1);
             answer.put(triplePattern2, triple2);
             long next_o = triple2.triples[0];
-            addToAnswerMap(triplePattern1,triple1);
-            addToAnswerMap(triplePattern1,triple2);
+            addToAnswerMap(triplePattern1, triple1);
+            addToAnswerMap(triplePattern1, triple2);
             TriplePattern nextTripelPatern = getNextTriplePattern(triplePattern2, 0);
             long next_p = nextTripelPatern.triples[1];
             key = next_o + "" + next_p;
@@ -215,7 +217,7 @@ public class Query {
         long next_p = nextTripelPatern.triples[1];
         String key = next_o + "" + next_p;
         ArrayList<Triple> list = opS.get(key);
-        if(list == null)
+        if (list == null)
             return false;
         boolean found = false;
         for (int i = 0; i < list.size(); i++) {
@@ -223,15 +225,15 @@ public class Query {
             boolean res = findDeepAnswer(nextTripelPatern, triple2, opS);
             if (res) {
                 found = true;
-                if(triplePattern.matches(triple))
-                    addToAnswerMap(triplePattern,triple);
+                if (triplePattern.matches(triple))
+                    addToAnswerMap(triplePattern, triple);
             }
         }
         return found;
     }
 
-    private void addToAnswerMap(TriplePattern triplePattern , Triple triple){
-        if(answerMap == null)
+    private void addToAnswerMap(TriplePattern triplePattern, Triple triple) {
+        if (answerMap == null)
             answerMap = new HashMap<>();
         ArrayList<Triple> answerList = answerMap.get(triplePattern);
         if (answerList == null) {
@@ -242,19 +244,20 @@ public class Query {
     }
 
 
-    private void findNextTripleAnswer(Triple currentTriple , TriplePattern currTriplePattern ,TriplePattern nextTriplePattern){
+    private void findNextTripleAnswer(Triple currentTriple, TriplePattern currTriplePattern, TriplePattern nextTriplePattern) {
 
     }
 
 
     private HashMap<TriplePattern, TriplePattern> seenPatterns = new HashMap<>();
+
     private TriplePattern getNextTriplePattern(TriplePattern triplePattern, int index) {
         //find the triple pattern that is connecte to triplePattern from index i
         TriplePattern firstNotSeen = null;
-        for(int i=0; i < triplePatterns.size() ; i++){
+        for (int i = 0; i < triplePatterns.size(); i++) {
             TriplePattern candiatePattern = triplePatterns.get(i);
-            if(!seenPatterns.containsKey(candiatePattern)) {
-                if(firstNotSeen == null)
+            if (!seenPatterns.containsKey(candiatePattern)) {
+                if (firstNotSeen == null)
                     firstNotSeen = candiatePattern;
                 if (candiatePattern.triples[index] == triplePattern.triples[index]) {
                     seenPatterns.put(candiatePattern, candiatePattern);
@@ -267,15 +270,64 @@ public class Query {
     }
 
 
-    public void parseSparqlChain(String spaql, HashMap<String, Long> dictionary) {
+    public boolean parseSparqlChain(String spaql, HashMap<String, Long> dictionary) {
         /*" select  ?x1 ?x3 ?x5 ?x7 where " +
                 "{?x1 <http://mpii.de/yago/resource/describes> ?x3.?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x5." +
                 "?x5 <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?x7." +
                 "?x7 <http://mpii.de/yago/resource/isPartOf> <http://mpii.de/yago/resource/wordnet_transportation_system_104473432>} ";*/
         triplePatterns = new ArrayList<>();
         String s = spaql.split("\\{")[1];
-        s = s.replace("}", "");
-        String[] patterns = s.split(".");
+        // s = s.replace("}", "");
+        boolean build = false, varStart = false;
+        String last = "";
+        Long[] code = new Long[3];
+        int index = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case ' ':
+                    if (varStart)
+                        code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
+                    varStart = false;
+                    last = "";
+                    break;
+                case '}':
+                    if (varStart)
+                        code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
+                    return addToTriplePatterns(code);
+                case '?':
+                    varStart = true;
+                    last = "?";
+                    break;
+                case '<':
+                    build = true;
+                    last = "<";
+                    break;
+                case '>':
+                    build = false;
+                    last += ">";
+                    code[index++] = dictionary.get(last);
+                    break;
+                case '.':
+                    if (!varStart)
+                        break;
+                    code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
+                    varStart = false;
+                    last = "";
+                    boolean res = addToTriplePatterns(code);
+                    if(!res)
+                        return false;
+                    break;
+
+                default:
+                    if (build || varStart)
+                        last = last + c;
+            }
+        }
+        System.err.println("error parsing query");
+        return false;
+        /*
+        String[] patterns = s.split("\\.");
         for (int j = 0; j < patterns.length; j++) {
             String[] x = patterns[j].split(" ");
 
@@ -296,26 +348,40 @@ public class Query {
                 TriplePattern triplePattern = new TriplePattern(ss, pp, oo);
                 triplePatterns.add(triplePattern);
             } catch (Exception e) {
+                e.printStackTrace();
                 System.err.println("error parsing query");
-                System.exit(1);
+                // System.exit(1);
             }
-        }
+        }*/
     }
 
 
+    private boolean addToTriplePatterns(Long[] code){
+        if (code[0] == null || code[1] == null || code[2] == null) {
+            System.err.println("query answer is empty");
+            return false;
+        }
+        TriplePattern triplePattern = new TriplePattern(code[0], code[1], code[2]);
+        triplePatterns.add(triplePattern);
+        return true;
+    }
+
     long nextVarcode = 1;
+
     private long getNunqieVarID(String x) {
         Long n = varNameMap.get(x);
-        if(n == null) {
+        if (n == null) {
             n = nextVarcode++;
-            varNameMap.put(x,nextVarcode);
+            varNameMap.put(x, nextVarcode);
         }
         return n;
     }
 
 
-    public void printAnswers(HashMap<Long, String> reverseDictionary){
-        if(answerMap == null) {
+    public void printAnswers(HashMap<Long, String> reverseDictionary) {
+        if(knownEmpty)
+            return;
+        if (answerMap == null) {
             System.err.println("No answer to print ..");
             return;
         }
@@ -336,7 +402,7 @@ public class Query {
                 System.out.println(pair.getKey() + " = " + pair.getValue());
 
             }
-            if(!found)
+            if (!found)
                 return;
             i++;
         }
