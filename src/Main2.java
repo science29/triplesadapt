@@ -73,12 +73,13 @@ public class Main2 {
         System.out.println("building extra indexes OPxPs .. ");
         o.buildOppIndex();
         System.out.println("generating queries .. ");
-        QueryGenrator.buildFastHeavyQuery(o.OPxP,o.OPS,o.vertecesID.size());
+        ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP,o.OPS,o.vertecesID.size(),o.reverseDictionary);
         ArrayList<Query> queries = o.generateQueries();
 
         System.out.println("Writting queries to file");
         o.putStringTripleInQueries(queries);
         o.writeQueriesToFile(queries);
+        o.writePalinQueriesToFile(HeaveyQueries);
         try {
             o.listenToQuery();
         }catch (Exception e){
@@ -1088,6 +1089,34 @@ public class Main2 {
             queries.get(i).setQuerySPARQL(reverseDictionary, prefix, verticies);
         }
         //  writeQueriesToFile(queries);
+    }
+
+
+    private void writePalinQueriesToFile(ArrayList<String> queries) {
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter("queriesFile");
+            bw = new BufferedWriter(fw);
+            for (int i = 0; i < queries.size(); i++) {
+                bw.write(queries.get(i));
+                bw.newLine();
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (bw != null)
+                    bw.close();
+                if (fw != null)
+                    fw.close();
+            } catch (IOException ex) {
+
+                ex.printStackTrace();
+
+            }
+        }
     }
 
     private void writeQueriesToFile(ArrayList<Query> queries) {

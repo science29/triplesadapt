@@ -151,8 +151,8 @@ public class QueryGenrator {
             for(int i=0 ; i < list.size() ; i+=2){
                 Triple triple1 = list.get(i);
                 Triple triple2 = list.get(i+1);
-                long o = triple2.triples[2];
-                ArrayList<Triple> list2 = OPS.get(o);
+                long s = triple2.triples[0];
+                ArrayList<Triple> list2 = OPS.get(s);
                 if(list2!=null){
                     Triple triple3 = list2.get(0);
                     TriplePattern triplePattern3 = new TriplePattern(-3,triple3.triples[1],-2);
@@ -162,6 +162,7 @@ public class QueryGenrator {
                     locTriplePatterns.add(triplePattern2);
                     locTriplePatterns.add(triplePattern3);
                     quereis.add(locTriplePatterns);
+                    break;
                 }
             }
         }
@@ -169,39 +170,15 @@ public class QueryGenrator {
         for(int jj = 0 ; jj<10 ; jj++) {
             int ch = new Random().nextInt(quereis.size()) + 1;
             ArrayList<TriplePattern> triplePatterns = quereis.get(ch);
-            String vars = "?x1,?x2,?x3,?x4 ";
-            String predicates = "?x1" + reverseDicitionary.get(triplePatterns.get(2).triples[1]) + "?x2.";
-            predicates += "?x2" + reverseDicitionary.get(triplePatterns.get(1).triples[1]) + "?x3.";
-            predicates += "?x3" + reverseDicitionary.get(triplePatterns.get(0).triples[1]) + triplePatterns.get(0).triples[2];
+            String vars = "?x1 ?x2 ?x3 ?x4 ";
+            String predicates = "?x1 " + reverseDicitionary.get(triplePatterns.get(2).triples[1]) + " ?x2.";
+            predicates += "?x2 " + reverseDicitionary.get(triplePatterns.get(1).triples[1]) + " ?x3.";
+            predicates += "?x3 " + reverseDicitionary.get(triplePatterns.get(0).triples[1]) + " " + reverseDicitionary.get(triplePatterns.get(0).triples[2]);
             String SPARQL = "select " + vars + " where {" + predicates + "}";
             quereisStrList.add(SPARQL);
         }
         return quereisStrList;
-       /*
-        //get a random one in the
-        long leftLimit = 0;
-        long rightLimit = max_id;
-        Long generatedLong = new Long(-1);
-        do {
-            generatedLong = leftLimit + (long) (Math.random() * (rightLimit - leftLimit));
-        } while(!OPxP.containsKey(generatedLong));
-        ArrayList<Triple> list = OPxP.get(generatedLong);
-        for(int i=0 ; i < list.size() ; i+=2){
-            Triple triple1 = list.get(i);
-            Triple triple2 = list.get(i+1);
-            long o = triple2.triples[2];
-            ArrayList<Triple> list2 = OPS.get(o);
-            if(list2!=null){
-                Triple triple3 = list2.get(0);
-                TriplePattern triplePattern3 = new TriplePattern(triple3.triples[2],triple3.triples[1],-3);
-                TriplePattern triplePattern2 = new TriplePattern(-3,triple2.triples[1],-2);
-                TriplePattern triplePattern1 = new TriplePattern(-2,triple1.triples[1],-1);
-                locTriplePatterns.add(triplePattern1);
-                locTriplePatterns.add(triplePattern2);
-                locTriplePatterns.add(triplePattern3);
-                return locTriplePatterns;
-            }
-        }*/
+
 
     }
 
