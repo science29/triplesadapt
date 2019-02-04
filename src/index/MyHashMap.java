@@ -4,11 +4,7 @@ import triple.Triple;
 import util.FileHashMap;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
+import java.util.*;
 
 
 //TODO solve the  creation of the filehashmap
@@ -165,6 +161,24 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         return fileHashMap.put(key, value);
 
 
+    }
+
+
+
+    @Override
+    public Set<Entry<K,V>> entrySet() {
+        return hashMap.entrySet();
+    }
+
+    public Set<Entry<K,V>> fileEntrySet(){
+        return fileHashMap.entrySet();
+    }
+
+
+
+    @Override
+    public int size() {
+        return hashMap.size()+fileHashMap.size();
     }
 
 

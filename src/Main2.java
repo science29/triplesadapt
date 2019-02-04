@@ -43,7 +43,7 @@ public class Main2 {
     final static boolean includeFragments = true;
     final static boolean quad = false;
     //final static String dataSetPath = "/home/ahmed/download/btc-data-3.nq";
-    final static String dataSetPath =  "btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
+    final static String dataSetPath =  "../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
    // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
 
@@ -73,12 +73,21 @@ public class Main2 {
         //o.buildSppIndex();
         System.out.println("building extra indexes OPxPs .. ");
         o.buildOppIndex();
-        o.listenToQuery();
+        System.out.println("generating queries .. ");
+        ArrayList<Query> queries = o.generateQueries();
+
+        System.out.println("Writting queries to file");
+        o.putStringTripleInQueries(queries);
+        o.writeQueriesToFile(queries);
+        try {
+            o.listenToQuery();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         System.exit(0);
 
 
-        System.out.println("generating queries .. ");
-        ArrayList<Query> queries = o.generateQueries();
+
 
 
         // System.out.println("setting dynamic weigths .. ");
@@ -111,9 +120,7 @@ public class Main2 {
         else
             o.writePartutPartitions(PARTITION_COUNT);
 
-        System.out.println("Writting queries to file");
-        o.putStringTripleInQueries(queries);
-        o.writeQueriesToFile(queries);
+
 
     }
 
@@ -717,6 +724,9 @@ public class Main2 {
                             code[i] = nextPredicateCode;
                             nextPredicateCode++;
                             dictionary.put(triple[i], code[i]);
+                            if(triple[i].matches("<http://dbpedia-live.openlinksw.com/property/rd4Team>")) {
+                                System.out.println("dd");
+                            }
                             reverseDictionary.put(code[i], triple[i]);
                         }
                     }
@@ -1146,6 +1156,8 @@ public class Main2 {
         }
     }
 
+
+    //TODo iterate over file set also?
     private void buildOppIndex(){
         //iterate over the OPS index
         Iterator it = OPS.entrySet().iterator();
