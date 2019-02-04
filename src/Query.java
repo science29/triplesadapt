@@ -29,7 +29,7 @@ public class Query {
     }
 
     public Query(HashMap<String, Long> dictionary, String SPARQL) {
-        knownEmpty = parseSparqlChain(SPARQL, dictionary);
+        knownEmpty = !parseSparqlChain(SPARQL, dictionary);
     }
 
 
