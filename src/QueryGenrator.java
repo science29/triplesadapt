@@ -158,6 +158,8 @@ public class QueryGenrator {
                     TriplePattern triplePattern3 = new TriplePattern(-3,triple3.triples[1],-2);
                     TriplePattern triplePattern2 = new TriplePattern(-2,triple2.triples[1],-1);
                     TriplePattern triplePattern1 = new TriplePattern(-1,triple1.triples[1],triple1.triples[2]);
+                    String tkey = triple1.triples[2]+""+triple1.triples[1]+""+triple2.triples[1];
+                    ArrayList<Triple> listtt = OPxP.get(tkey);
                     locTriplePatterns.add(triplePattern1);
                     locTriplePatterns.add(triplePattern2);
                     locTriplePatterns.add(triplePattern3);

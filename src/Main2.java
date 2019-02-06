@@ -10,7 +10,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class Main2 {
 
-    private static final long BASE_PREDICATE_CODE =  1000000000;
+    private static final long BASE_PREDICATE_CODE = 1000000000;
     private HashMap<Long, ArrayList<Vertex>> graph = new HashMap<>();
 
     private HashMap<Long, ArrayList<Triple>> tripleGraph = new HashMap<>();//duplicate with graph , remove one!
@@ -19,7 +19,7 @@ public class Main2 {
     private HashMap<String, Long> dictionary = new HashMap<>();
     private HashMap<Long, String> reverseDictionary = new HashMap<>();
     private HashMap<Integer, ArrayList<VertexGraph>> distanceVertex;
-    private HashMap<Long,Long> PredicatesAsSubject;
+    private HashMap<Long, Long> PredicatesAsSubject;
     private long edgesCount = 0;
     private static final int PARTITION_COUNT = 2;
 
@@ -28,7 +28,7 @@ public class Main2 {
     private MyHashMap<Long, ArrayList<Triple>> OPS;
     private MyHashMap<String, ArrayList<Triple>> sp_O;
     private MyHashMap<String, ArrayList<Triple>> op_S;
-    private MyHashMap<String,ArrayList<Triple>> SPxP = new MyHashMap<>("SPxP");
+    private MyHashMap<String, ArrayList<Triple>> SPxP = new MyHashMap<>("SPxP");
     private MyHashMap<String, ArrayList<Triple>> OPxP = new MyHashMap<>("SPxP");
 
     private HashMap<String, Integer> tripleToPartutPartitionMap;
@@ -43,10 +43,9 @@ public class Main2 {
     final static boolean includeFragments = true;
     final static boolean quad = false;
     //final static String dataSetPath = "/home/ahmed/download/btc-data-3.nq";
-    final static String dataSetPath =  "../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
-   // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
+    final static String dataSetPath = "../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
+    // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
-
 
 
     public static void main(String[] args) {
@@ -54,7 +53,7 @@ public class Main2 {
 
         System.out.println("starting ..");
         Main2 o = new Main2();
-  /*      o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-20", "btc-2009-small.n3");
+        o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-20", "btc-2009-filtered.n3");
         System.out.println("done converting..");
         byte[] a = new byte[1000];
         try {
@@ -62,7 +61,7 @@ public class Main2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-*/
+
         //""
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
@@ -73,19 +72,22 @@ public class Main2 {
         System.out.println("building extra indexes OPxPs .. ");
         o.buildOppIndex();
         System.out.println("generating queries .. ");
-        ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP,o.OPS,o.vertecesID.size(),o.reverseDictionary);
+        ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary);
         ArrayList<Query> queries = o.generateQueries();
 
         System.out.println("Writting queries to file");
         o.putStringTripleInQueries(queries);
         o.writeQueriesToFile(queries);
         o.writePalinQueriesToFile(HeaveyQueries);
-        try {
-            o.listenToQuery();
-        }catch (Exception e){
-            e.printStackTrace();
+        while (true) {
+            try {
+                o.listenToQuery();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
         }
-        System.exit(0);
+      /*  System.exit(0);
 
 
 
@@ -121,7 +123,7 @@ public class Main2 {
         else
             o.writePartutPartitions(PARTITION_COUNT);
 
-
+*/
 
     }
 
@@ -527,7 +529,7 @@ public class Main2 {
             System.err.println("error: not all edges or vertices were written to file");
             //System.exit(2);
         }
-        System.err.println(toBigListDetected +" big vertices list was detected.");
+        System.err.println(toBigListDetected + " big vertices list was detected.");
         System.out.println("done writing...");
     }
 
@@ -536,6 +538,7 @@ public class Main2 {
     private HashMap<Long, String> tempIntToStringMap = new HashMap<>();
     double progressRatio = 0;
     long toBigListDetected = 0;
+
     private String buildVertixString(ArrayList<Vertex> vees, long currentVertexID, boolean weighting) {
         if (vees.size() == 0)
             return "";
@@ -551,7 +554,7 @@ public class Main2 {
             if (!weighting) {
                 if (vees.get(i).e == -1) {
                     ArrayList<Vertex> other = this.graph.get(vees.get(i).v);
-                    if(other == null) {
+                    if (other == null) {
                         System.err.println("error getting other Vertex list");
                         System.exit(0);
                     }
@@ -606,7 +609,7 @@ public class Main2 {
             if (progressRatioN > progressRatio + 0.005) {
                 System.out.flush();
 
-                System.out.print(String.format("\033[%dA",1)); // Move up
+                System.out.print(String.format("\033[%dA", 1)); // Move up
                 System.out.print("\033[2K"); // Erase line content
 
                 System.out.println("writing progress:" + (100 * progressRatioN));
@@ -644,16 +647,16 @@ public class Main2 {
             int count = 0;
             while (it.hasNext()) {
                 String lineTemp;
-                if (count % 100000 == 0 || count ==2082) {
-                    if(count == 0)
-                        printBuffer(0,"processing line " + count);
+                if (count % 100000 == 0 || count == 2082) {
+                    if (count == 0)
+                        printBuffer(0, "processing line " + count);
                     else
-                        printBuffer(1,"processing line " + count);
+                        printBuffer(1, "processing line " + count);
 
                 }
                 count++;
-                //     if(count == 100000)
-                //      break;
+                if (count == 543464)
+                    count++;
                 String line = it.nextLine();
                 if (line.startsWith("@")) {
                     if (line.startsWith("@base"))
@@ -669,7 +672,7 @@ public class Main2 {
                     if (triple == null)
                         continue;
                 } else {
-                    if(line.contains("<http://yago-knowledge.org/resource/Tuttle,_Oklahoma>"))
+                    if (line.contains("<http://yago-knowledge.org/resource/Tuttle,_Oklahoma>"))
                         line.contains("");
                     triple = getTripleFromTripleLine(line, errCount, errSolved);
 
@@ -678,17 +681,17 @@ public class Main2 {
                 if (triple == null || triple.length < 3) {
                     continue;
                 }
-                if(triple[0].equals(triple[1]) )
+                if (triple[0].equals(triple[1]))
                     continue;
                 ArrayList<Vertex> v = null;
                 boolean ignoreFlag = false;
                 for (int i = 0; i < 3; i++) {
                     if (dictionary.containsKey(triple[i])) {
                         code[i] = dictionary.get(triple[i]);
-                        if( i != 1 && code[i] >= BASE_PREDICATE_CODE) {
+                        if (i != 1 && code[i] >= BASE_PREDICATE_CODE) {
                             //ignoreFlag = true; //just ignore the predicate which came as subj or obj
-                            if(!PredicatesAsSubject.containsKey(code[i])){
-                                PredicatesAsSubject.put(code[i],nextCode);
+                            if (!PredicatesAsSubject.containsKey(code[i])) {
+                                PredicatesAsSubject.put(code[i], nextCode);
                                 v = new ArrayList<>();
                                 vertecesID.add(nextCode);
                                 graph.put(nextCode, v);
@@ -698,22 +701,22 @@ public class Main2 {
                                 nextCode++;
                             }
                         }
-                        if(i == 1 && code[i] < BASE_PREDICATE_CODE) {
+                        if (i == 1 && code[i] < BASE_PREDICATE_CODE) {
                             //wrong value was added fix it!
                             //dictionary.remove(triple[i]);
                             //reverseDictionary.remove(code[i]);
-                           // vertecesID.remove(code[i]);
-                           // graph.remove(code[i]);
+                            // vertecesID.remove(code[i]);
+                            // graph.remove(code[i]);
 
-                        //    code[i] = nextPredicateCode;
-                         //   nextPredicateCode++;
-                          //  dictionary.put(triple[i], code[i]);
-                           // reverseDictionary.put(code[i], triple[i]);
+                            //    code[i] = nextPredicateCode;
+                            //   nextPredicateCode++;
+                            //  dictionary.put(triple[i], code[i]);
+                            // reverseDictionary.put(code[i], triple[i]);
                         }
 
                         // v = graph.get(code[i]);
                     } else {
-                        if (i != 1 ) {
+                        if (i != 1) {
                             code[i] = nextCode;
                             nextCode++;
                             dictionary.put(triple[i], code[i]);
@@ -725,14 +728,14 @@ public class Main2 {
                             code[i] = nextPredicateCode;
                             nextPredicateCode++;
                             dictionary.put(triple[i], code[i]);
-                            if(triple[i].matches("<http://dbpedia-live.openlinksw.com/property/rd4Team>")) {
+                            if (triple[i].matches("<http://dbpedia-live.openlinksw.com/property/rd4Team>")) {
                                 System.out.println("dd");
                             }
                             reverseDictionary.put(code[i], triple[i]);
                         }
                     }
                 }
-                if(ignoreFlag)
+                if (ignoreFlag)
                     continue;
                 try {
                     //this code to create an extra graph vertex which should be used in the graph algo, obviously this is redenednt situ to the created vertext in the latter code block
@@ -747,7 +750,7 @@ public class Main2 {
                     //end of grpah vertex creation
 
 
-                    if(verticies.get(code[2]).edgesVertex.size() > 0)
+                    if (verticies.get(code[2]).edgesVertex.size() > 0)
                         savedVertex.edgesVertex.size();
 
 
@@ -795,20 +798,19 @@ public class Main2 {
     }
 
 
+    static ArrayList<String> printBuffer;
 
-
-    static ArrayList<String> printBuffer ;
     static public void printBuffer(int countToDelete, String s) {
-        if(printBuffer == null)
+        if (printBuffer == null)
             printBuffer = new ArrayList<>();
-        for(int i=0; i < countToDelete ; i++ ){
-            if(printBuffer.size() > 0)
-                printBuffer.remove(printBuffer.size()-1);
+        for (int i = 0; i < countToDelete; i++) {
+            if (printBuffer.size() > 0)
+                printBuffer.remove(printBuffer.size() - 1);
             else
                 break;
         }
         printBuffer.add(s);
-        for(int i = 0; i<50;i++){
+        for (int i = 0; i < 50; i++) {
             System.out.println();
         }
        /* try {
@@ -816,7 +818,7 @@ public class Main2 {
         } catch (IOException e) {
             e.printStackTrace();
         }*/
-        for(int i=0; i < printBuffer.size() ; i++ ){
+        for (int i = 0; i < printBuffer.size(); i++) {
             System.out.println(printBuffer.get(i));
         }
 
@@ -891,11 +893,11 @@ public class Main2 {
             }
             try {
                 int from, to;
-                if(line.contains("\"")){
+                if (line.contains("\"")) {
                     from = line.indexOf('\"');
                     to = line.lastIndexOf('.');
                     triple[2] = line.substring(from, to + 1);
-                }else{
+                } else {
                     from = line.lastIndexOf("<");
                     to = line.lastIndexOf(">") + 1;
                     triple[2] = line.substring(from, to);
@@ -922,9 +924,9 @@ public class Main2 {
             //continue;
             errSolved++;
         }
-        String [] arr = triple[2].split(">");
+        String[] arr = triple[2].split(">");
         //arr[1] = arr[1].replace(".","");
-        triple[2] = arr[0] +">";
+        triple[2] = arr[0] + ">";
         return triple;
 
     }
@@ -969,18 +971,24 @@ public class Main2 {
                     return null;
                 }
 
-
-                from = line.indexOf('\"');
-                to = line.lastIndexOf('\"');
-                if (from >= 0 && to >= 0) {
-                    triple[2] = line.substring(from, to + 1);
-                    line = line.replace(triple[2], "");
+                line = line.trim();
+                if (line.startsWith("<")) {
+                    triple[2] = line.substring(0, line.indexOf(">")+1);
                 } else {
+                    from = line.indexOf('\"');
+                    to = line.lastIndexOf('\"');
+                    if (from >= 0 && to >= 0) {
+                        triple[2] = line.substring(from, to + 1);
+                        line = line.replace(triple[2], "");
+                    }
+                }
+
+                /*else {
                     from = line.indexOf("<");
                     to = line.indexOf(">");
                     triple[2] = line.substring(from, to + 1);
                     line = line.replace(triple[2], "");
-                }
+                }*/
                 triple[2] = triple[2] + '.';
 
             } catch (StringIndexOutOfBoundsException e) {
@@ -1003,27 +1011,25 @@ public class Main2 {
     }
 
 
-
-    private void addTosp_OIndex(Triple triple){
+    private void addTosp_OIndex(Triple triple) {
         if (sp_O == null)
             sp_O = new MyHashMap<>("sp_O");
         long code[] = triple.triples;
-        String key = code[0]+""+code[1];
-        addToIndex(sp_O,triple,key);
+        String key = code[0] + "" + code[1];
+        addToIndex(sp_O, triple, key);
 
     }
 
 
-
-    private void addToOp_SIndex(Triple triple){
+    private void addToOp_SIndex(Triple triple) {
         if (op_S == null)
             op_S = new MyHashMap<>("op_S");
         long code[] = triple.triples;
-        String key = code[2]+""+code[1];
-        addToIndex(op_S,triple,key);
+        String key = code[2] + "" + code[1];
+        addToIndex(op_S, triple, key);
     }
 
-    private void addToIndex(MyHashMap<String, ArrayList<Triple>> index , Triple triple , String key){
+    private void addToIndex(MyHashMap<String, ArrayList<Triple>> index, Triple triple, String key) {
         if (index.containsKey(key)) {
             index.get(key).add(triple);
         } else {
@@ -1032,7 +1038,6 @@ public class Main2 {
             index.put(key, list);
         }
     }
-
 
 
     private void addToPOSIndex(Triple triple) {
@@ -1073,7 +1078,6 @@ public class Main2 {
             OPS.put(code[2], list);
         }
     }
-
 
 
     private ArrayList<Query> generateQueries() {
@@ -1151,27 +1155,26 @@ public class Main2 {
     }
 
 
-
-    private void buildSppIndex(){
+    private void buildSppIndex() {
         SPxP = new MyHashMap<>("SPxP");
-        for(int i = 0 ; i < vertecesID.size() ; i++){
+        for (int i = 0; i < vertecesID.size(); i++) {
             long s = vertecesID.get(i);
             ArrayList<Triple> connectedTriples = SPO.get(s);
-            if(connectedTriples == null)
+            if (connectedTriples == null)
                 continue;
-            for(int j = 0; j< connectedTriples.size() ; j++){
+            for (int j = 0; j < connectedTriples.size(); j++) {
                 Triple triple1 = connectedTriples.get(j);
-                    long o = triple1.triples[2];
-                    long p1 = triple1.triples[1];
-                    if(!SPO.containsKey(o))
-                        continue;
-                    ArrayList<Triple> connectedTriples2 = SPO.get(o);
-                    for(int k = 0; k< connectedTriples2.size() ; k++){
-                        Triple triple2 = connectedTriples2.get(k);
-                        long p2 = triple2.triples[1];
-                        String key = s+""+p1+""+p2;
-                        addToIndex(SPxP,triple1,key);
-                        addToIndex(SPxP,triple2,key);
+                long o = triple1.triples[2];
+                long p1 = triple1.triples[1];
+                if (!SPO.containsKey(o))
+                    continue;
+                ArrayList<Triple> connectedTriples2 = SPO.get(o);
+                for (int k = 0; k < connectedTriples2.size(); k++) {
+                    Triple triple2 = connectedTriples2.get(k);
+                    long p2 = triple2.triples[1];
+                    String key = s + "" + p1 + "" + p2;
+                    addToIndex(SPxP, triple1, key);
+                    addToIndex(SPxP, triple2, key);
                         /*
                         ArrayList<Triple> tripleList = SPxP.get(key);
                         if(tripleList == null)
@@ -1179,34 +1182,34 @@ public class Main2 {
                         tripleList.add(triple1);
                         tripleList.add(triple2);
                         SPxP.put(key , tripleList);*/
-                    }
+                }
             }
         }
     }
 
 
     //TODo iterate over file set also?
-    private void buildOppIndex(){
+    private void buildOppIndex() {
         //iterate over the OPS index
         Iterator it = OPS.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
+            Map.Entry pair = (Map.Entry) it.next();
             Long O = (Long) pair.getKey();
             ArrayList<Triple> list1 = (ArrayList<Triple>) pair.getValue();
-            for(int i = 0 ; i < list1.size() ; i++){
+            for (int i = 0; i < list1.size(); i++) {
                 Triple triple1 = list1.get(i);
-                long P1 = triple1.triples[2];
+                long P1 = triple1.triples[1];
                 long s = triple1.triples[0];
                 //check each s as o in the OPS
                 ArrayList<Triple> list2 = OPS.get(s);
-                if(list2 == null)
+                if (list2 == null)
                     continue;
-                for(int j = 0 ; j < list2.size() ; j++){
+                for (int j = 0; j < list2.size(); j++) {
                     Triple triple2 = list2.get(j);
                     long P2 = triple2.triples[1];
-                    String key = O+""+P1+""+P2;
-                    addToIndex(OPxP , triple1, key);
-                    addToIndex(OPxP , triple2, key);
+                    String key = O + "" + P1 + "" + P2;
+                    addToIndex(OPxP, triple1, key);
+                    addToIndex(OPxP, triple2, key);
                 }
 
             }
@@ -1414,6 +1417,7 @@ public class Main2 {
     public void convertNqToN3(String sourceFile, String destFile) {
         boolean quad = true;
         int err = 0;
+        int longTextErr = 0;
         int linesWrittenCount = 0;
         File file = new File(sourceFile);
         LineIterator it = null;
@@ -1429,21 +1433,17 @@ public class Main2 {
         }
         int duplicateCount = 0;
         int count = 0;
-        while (it.hasNext()) {
+        while (it.hasNext()  && count <1000) {
             try {
                 String lineTemp;
                 if (count % 10000 == 0) {
                     System.out.println("processing line " + count);
                 }
                 count++;
-                //     if(count == 100000)
-                //      break;
+                if (count == 495)
+                    count += 0;
                 String line = it.nextLine();
                 String[] triple = null;
-
-
-                if(line.contains("<http://yago-knowledge.org/resource/Tuttle,_Oklahoma>"))
-                    line.contains(" ");
 
 
                 if (quad) {
@@ -1459,9 +1459,19 @@ public class Main2 {
 
                 //write the triple to bufferfile
                 String tripleStr = triple[0] + " " + triple[1] + " " + triple[2];
+                if (triple[0].length() > 150) {
+                    longTextErr++;
+                    continue;
+                }
+                int t = 0;
+               // if (tripleStr.contains("http://yago-knowledge.org/resource/Uncle_Jam_Wants_You") && tripleStr.contains("http://yago-knowledge.org/resource/linksTo") && tripleStr.contains("Clip"))
+                if(tripleStr.contains("http://legislation.data.gov.uk/ukpga/1999/29/section/76/england/data.xml") && tripleStr.contains("http://purl.org/dc/terms/hasVersion")&& tripleStr.contains(""))
+                    t = triple[0].length();
+
                 bw.write(tripleStr);
                 bw.newLine();
                 linesWrittenCount++;
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1479,14 +1489,21 @@ public class Main2 {
             ex.printStackTrace();
 
         }
-        System.out.println("convertion Done .. errors:"+err);
+        System.out.println("convertion Done, writen" + linesWrittenCount + " .. errors:" + err + " ,long text error:" + longTextErr);
 
     }
 
+    private boolean ignoreCovertedLine(long count) {
+        long[] arr = {543466, 1347540, 1347541, 1347548, 1347551, 3845831, 4102660, 4368091, 6007830};
+        for (int i = 0; i < arr.length; i++) {
+            if (count == arr[i] - 1 || count == arr[i])
+                return true;
+        }
+        return false;
+    }
 
 
-
-    private void listenToQuery(){
+    private void listenToQuery() {
         /*
         long a = 2;
         dictionary = new HashMap<>();
@@ -1499,22 +1516,21 @@ public class Main2 {
 
         System.out.println("Please enter Sparql Query:");
         Scanner scanner = new Scanner(System.in);
-        while (true){
+        while (true) {
             String query = scanner.nextLine();
-            if(query.matches("e")) {
+            if (query.matches("e")) {
                 System.out.println("Exiting query system..");
                 return;
             }
-
-            Query spQuery= new Query(dictionary  , query);
-            spQuery.findChainQueryAnswer(OPxP ,op_S );
+            long startTime = System.nanoTime();
+            Query spQuery = new Query(dictionary, query);
+            spQuery.findChainQueryAnswer(OPxP, op_S);
+            long stopTime = System.nanoTime();
+            long elapsedTime = stopTime - startTime;
+            System.out.println("time to execute qeury:" + elapsedTime);
             spQuery.printAnswers(reverseDictionary);
         }
     }
-
-
-  
-
 
 
 }
