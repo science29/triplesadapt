@@ -23,6 +23,10 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     public static final int [] noKeyType = {0,0,0};
 
+    public boolean onlyDiskGet = true;
+    public boolean diskMemPut = true;
+
+
     //   private int avgElemSize = 1 ;
     public MyHashMap(String fileName){
         super();
@@ -104,6 +108,10 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     @Override
     public V get(Object key) {
+        //todo fix this
+        if(this.onlyDiskGet)
+            return fileHashMap.get(key);
+
         if (hashMap != null && hashMap.containsKey(key))
             return hashMap.get(key);
         if (backupFileHashMap != null) {
@@ -126,6 +134,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     @Override
     public V put(K key, V value) {
         setSize();
+        //todo fix this
+        if(diskMemPut)
+            fileHashMap.put(key, value);
         if (elemSize * hashMap.size() < MAX_SIZE_GB)
             return hashMap.put(key, value);
 

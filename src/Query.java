@@ -188,7 +188,7 @@ public class Query {
         String key = triplePattern1.triples[2] + "" + triplePattern1.triples[1] + "" + triplePattern2.triples[1];
         ArrayList<Triple> list = OPxP.get(key);
         //now move to all triples in list
-        for (int i = 0; i < list.size() + 1; i += 2) {
+        for (int i = 0; i < list.size() - 1; i += 2) {
             Triple triple1 = list.get(i);
             answer.put(triplePattern1, triple1);
             Triple triple2 = list.get(i + 1);
@@ -197,6 +197,8 @@ public class Query {
             addToAnswerMap(triplePattern1, triple1);
             addToAnswerMap(triplePattern1, triple2);
             TriplePattern nextTripelPatern = getNextTriplePattern(triplePattern2, 0);
+            if(nextTripelPatern == null)
+                return;
             long next_p = nextTripelPatern.triples[1];
             key = next_o + "" + next_p;
             ArrayList<Triple> list2 = opS.get(key);
@@ -399,14 +401,12 @@ public class Query {
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
                 ArrayList<Triple> answer = (ArrayList<Triple>) pair.getValue();
-                Triple triple = answer.get(i);
-                if (triple != null) {
+                if (i < answer.size()) {
+                    Triple triple = answer.get(i);
                     found = true;
                     String tripleStr = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]) + ".";
                     System.out.println(tripleStr);
                 }
-                System.out.println(pair.getKey() + " = " + pair.getValue());
-
             }
             if (!found)
                 return;
