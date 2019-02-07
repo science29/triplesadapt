@@ -43,7 +43,7 @@ public class Main2 {
     final static boolean includeFragments = true;
     final static boolean quad = false;
     //final static String dataSetPath = "/home/ahmed/download/btc-data-3.nq";
-    final static String dataSetPath = "../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
+    final static String dataSetPath ="/home/keg/Desktop/BTC/btc-2009-filtered.n3"; //"../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
     // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
 
@@ -53,7 +53,7 @@ public class Main2 {
 
         System.out.println("starting ..");
         Main2 o = new Main2();
-        o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-20", "btc-2009-filtered.n3");
+    /*    o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-11", "btc-2009-filtered.n3");
         System.out.println("done converting..");
         byte[] a = new byte[1000];
         try {
@@ -61,7 +61,7 @@ public class Main2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+*/
         //""
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
@@ -875,7 +875,23 @@ public class Main2 {
         System.out.println("done");
     }
 
+
     private String[] getTripleFromTripleLine(String line, Integer errCount, Integer errSolved) {
+        String[] triple = new String[3];
+        String [] linet = new String[1];
+        linet[0] = line;
+        triple[0] = stripItem(linet);
+        triple[1] = stripItem(linet);
+        triple[2] = stripItem(linet);
+        if(triple[2] != null)
+            triple[2] = triple[2]+'.';
+        if(triple[0] != null && triple[1] != null && triple[2] != null)
+            return triple;
+        errCount++;
+        return null;
+    }
+
+    private String[] getTripleFromTripleLine_old(String line, Integer errCount, Integer errSolved) {
         String[] triple = new String[3];
         triple = line.split(" ");
         if (triple.length > 4) {
@@ -932,12 +948,70 @@ public class Main2 {
     }
 
 
+    private String stripItem(String []linet){
+        String line = linet[0].trim();
+        String item = null;
+        char startChar = line.charAt(0);
+        switch (startChar){
+            case '\"':
+                line = line.substring(1);
+                for (int i = 1; i < line.length(); i++){
+                    char c = line.charAt(i);
+                    if(c == '\"' && line.charAt(i-1) != '\\' ) {
+                        item = line.substring(0, i + 1);
+                        line = line.substring(i+1);
+                        linet[0] = line;
+                        return "\""+item;
+                    }
+                }
+                if(line.startsWith("\""))
+                    return "\""+"\"";
+             return null;
+
+            case '<':
+                item = line.substring(0,line.indexOf('>')+1);
+                line = line.substring(line.indexOf('>')+1);
+                linet[0] = line;
+                return item;
+            case '_':
+                item = line.substring(0,line.indexOf(' ')+1);
+                line = line.substring(line.indexOf(' ')+1);
+                linet[0] = line;
+                return item;
+        }
+        return null;
+    }
+
     private int errQuadProcess = 0;
     private int startErrQuadProcess = 0;
     private int quadProcess = 0;
 
     private String[] getTripleFromQuadLine(String line) {
-        if (!line.startsWith("<")) {
+        if(line.contains("<http://purl.org/rss/1.0/modules/content/encoded>"))
+            line.contains("");
+        String t = line.replace("qqq","");
+        if (!line.startsWith("<") && !line.startsWith("_:")) {
+            errQuadProcess++;
+            startErrQuadProcess++;
+            return null;
+        }
+        String[] triple = new String[3];
+        String [] linet = new String[1];
+        linet[0] = line;
+        triple[0] = stripItem(linet);
+        triple[1] = stripItem(linet);
+        triple[2] = stripItem(linet);
+        if(triple[2] != null)
+            triple[2] = triple[2]+'.';
+        if(triple[0] != null && triple[1] != null && triple[2] != null)
+            return triple;
+        errQuadProcess++;
+        return null;
+    }
+
+    private String[] getTripleFromQuadLine_old(String line) {
+        String t = line.replace("qqq","");
+        if (!line.startsWith("<") && !line.startsWith("_:")) {
             errQuadProcess++;
             startErrQuadProcess++;
             return null;
@@ -970,7 +1044,6 @@ public class Main2 {
                     errQuadProcess++;
                     return null;
                 }
-
                 line = line.trim();
                 if (line.startsWith("<")) {
                     triple[2] = line.substring(0, line.indexOf(">")+1);
@@ -981,8 +1054,9 @@ public class Main2 {
                         triple[2] = line.substring(from, to + 1);
                         line = line.replace(triple[2], "");
                     }
+                    else
+                        return null;
                 }
-
                 /*else {
                     from = line.indexOf("<");
                     to = line.indexOf(">");
@@ -1433,7 +1507,7 @@ public class Main2 {
         }
         int duplicateCount = 0;
         int count = 0;
-        while (it.hasNext()  && count <1000) {
+        while (it.hasNext() ) {
             try {
                 String lineTemp;
                 if (count % 10000 == 0) {
@@ -1464,12 +1538,13 @@ public class Main2 {
                     continue;
                 }
                 int t = 0;
-               // if (tripleStr.contains("http://yago-knowledge.org/resource/Uncle_Jam_Wants_You") && tripleStr.contains("http://yago-knowledge.org/resource/linksTo") && tripleStr.contains("Clip"))
-                if(tripleStr.contains("http://legislation.data.gov.uk/ukpga/1999/29/section/76/england/data.xml") && tripleStr.contains("http://purl.org/dc/terms/hasVersion")&& tripleStr.contains(""))
+                // if (tripleStr.contains("http://yago-knowledge.org/resource/Uncle_Jam_Wants_You") && tripleStr.contains("http://yago-knowledge.org/resource/linksTo") && tripleStr.contains("Clip"))
+                if (tripleStr.contains("http://legislation.data.gov.uk/ukpga/1999/29/section/76/england/data.xml") && tripleStr.contains("http://purl.org/dc/terms/hasVersion") && tripleStr.contains(""))
                     t = triple[0].length();
-
-                bw.write(tripleStr);
-                bw.newLine();
+               // if (linesWrittenCount > 1220 ){
+                    bw.write(tripleStr);
+                    bw.newLine();
+               // }
                 linesWrittenCount++;
 
             } catch (Exception e) {

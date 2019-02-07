@@ -23,8 +23,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     public static final int [] noKeyType = {0,0,0};
 
-    public boolean onlyDiskGet = true;
-    public boolean diskMemPut = true;
+    public boolean onlyDiskGet = false;
+    public boolean diskMemPut = false;
 
 
     //   private int avgElemSize = 1 ;
