@@ -672,7 +672,9 @@ public class Main2 {
                     if (triple == null)
                         continue;
                 } else {
-                    if (line.contains("<http://yago-knowledge.org/resource/Tuttle,_Oklahoma>"))
+                    if (line.contains("<http://dbpedia.org/resource/Norbert_K%C3%B6nyves> <http://dbpedia.org/ontology/birthPlace> <http://dbpedia.org/resource/Socialist_Federal_Republic_of_Yugoslavia>"))
+                        line.contains("");
+                    if(line.contains("<http://dbpedia.org/resource/Norbert_K%C3%B6nyves> <http://www.w3.org/2002/07/owl#sameAs> <http://dbpedia.org/resource/Norbert_K%C3%B6nyves>"))
                         line.contains("");
                     triple = getTripleFromTripleLine(line, errCount, errSolved);
 
@@ -884,7 +886,7 @@ public class Main2 {
         triple[1] = stripItem(linet);
         triple[2] = stripItem(linet);
         if(triple[2] != null)
-            triple[2] = triple[2]+'.';
+            triple[2] = triple[2];
         if(triple[0] != null && triple[1] != null && triple[2] != null)
             return triple;
         errCount++;

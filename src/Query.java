@@ -162,7 +162,7 @@ public class Query {
     public void findChainQueryAnswer(HashMap<String, ArrayList<Triple>> OPxP, HashMap<String, ArrayList<Triple>> opS) {
         if(knownEmpty)
             return;
-        HashMap<TriplePattern, Triple> answer = new HashMap<>();
+        //HashMap<TriplePattern, Triple> answer = new HashMap<>();
         answerMap = new HashMap<>();
         //first find triple pattern that has po fixed
         TriplePattern triplePattern1 = null, triplePattern2 = null;
@@ -176,7 +176,7 @@ public class Query {
             System.err.println("Error finding po fixed in chain query");
             return;
         }
-
+        processedTripelPattern(triplePattern1);
         //now look for the other p
         for (int i = triplePatterns.size() - 1; i >= 0; i--) {
             triplePattern2 = triplePatterns.get(i);
@@ -184,26 +184,34 @@ public class Query {
                 break;
             triplePattern2 = null;
         }
+        if(triplePattern2 == null){
+            //todo solve this
+            return;
+        }
+        processedTripelPattern(triplePattern2);
         //now build the index key OPP
         String key = triplePattern1.triples[2] + "" + triplePattern1.triples[1] + "" + triplePattern2.triples[1];
         ArrayList<Triple> list = OPxP.get(key);
         //now move to all triples in list
+        TriplePattern nextTripelPatern = getNextTriplePattern(triplePattern2, 0);
+        if(nextTripelPatern == null)
+            return;
         for (int i = 0; i < list.size() - 1; i += 2) {
             Triple triple1 = list.get(i);
-            answer.put(triplePattern1, triple1);
+           // answer.put(triplePattern1, triple1);
             Triple triple2 = list.get(i + 1);
-            answer.put(triplePattern2, triple2);
-            long next_o = triple2.triples[0];
-            addToAnswerMap(triplePattern1, triple1);
-            addToAnswerMap(triplePattern1, triple2);
-            TriplePattern nextTripelPatern = getNextTriplePattern(triplePattern2, 0);
-            if(nextTripelPatern == null)
-                return;
-            long next_p = nextTripelPatern.triples[1];
-            key = next_o + "" + next_p;
-            ArrayList<Triple> list2 = opS.get(key);
-            findDeepAnswer(nextTripelPatern, triple2, opS);
-            answer.put(nextTripelPatern, triple2);
+           // answer.put(triplePattern2, triple2);
+         //   long next_o = triple2.triples[0];
+
+          //  long next_p = nextTripelPatern.triples[1];
+          //  key = next_o + "" + next_p;
+         //   ArrayList<Triple> list2 = opS.get(key);
+          boolean res =  findDeepAnswer(nextTripelPatern, triple2, opS);
+          if(res){
+              addToAnswerMap(triplePattern1, triple1);
+              addToAnswerMap(triplePattern2, triple2);
+          }
+            //answer.put(nextTripelPatern, triple2);
         }
 
 
@@ -211,24 +219,25 @@ public class Query {
 
     private boolean findDeepAnswer(TriplePattern triplePattern, Triple triple, HashMap<String, ArrayList<Triple>> opS) {
         long next_o = triple.triples[0];
-        TriplePattern nextTripelPatern = getNextTriplePattern(triplePattern, 0);
-        if (nextTripelPatern == null)
-            return true;
-        if (!triplePattern.matches(triple))
-            return false;
-        long next_p = nextTripelPatern.triples[1];
+        long next_p = triplePattern.triples[1];
         String key = next_o + "" + next_p;
         ArrayList<Triple> list = opS.get(key);
         if (list == null)
             return false;
+        TriplePattern nextTripelPatern = getNextTriplePattern(triplePattern, 0);
         boolean found = false;
+        boolean matches;
         for (int i = 0; i < list.size(); i++) {
             Triple triple2 = list.get(i);
-            boolean res = findDeepAnswer(nextTripelPatern, triple2, opS);
+            matches = triplePattern.matches(triple2);
+            if(!matches)
+                continue;
+            boolean res = true;
+            if (nextTripelPatern != null)
+                res = findDeepAnswer(nextTripelPatern, triple2, opS);
             if (res) {
                 found = true;
-                if (triplePattern.matches(triple))
-                    addToAnswerMap(triplePattern, triple);
+                addToAnswerMap(triplePattern, triple);
             }
         }
         return found;
@@ -253,21 +262,30 @@ public class Query {
 
     private HashMap<TriplePattern, TriplePattern> seenPatterns = new HashMap<>();
 
+    private void processedTripelPattern(TriplePattern triplePattern){
+        seenPatterns.put(triplePattern,triplePattern);
+    }
     private TriplePattern getNextTriplePattern(TriplePattern triplePattern, int index) {
         //find the triple pattern that is connecte to triplePattern from index i
+        //find the index in triplePattern to find
+        int searchIndex = 0 ;
+        if(index == 0)
+            searchIndex = 2;
         TriplePattern firstNotSeen = null;
         for (int i = 0; i < triplePatterns.size(); i++) {
             TriplePattern candiatePattern = triplePatterns.get(i);
             if (!seenPatterns.containsKey(candiatePattern)) {
                 if (firstNotSeen == null)
                     firstNotSeen = candiatePattern;
-                if (candiatePattern.triples[index] == triplePattern.triples[index]) {
+                if (candiatePattern.triples[searchIndex] == triplePattern.triples[index]) {
                     seenPatterns.put(candiatePattern, candiatePattern);
                     return candiatePattern;
                 }
             }
 
         }
+        if(firstNotSeen != null)
+            seenPatterns.put(firstNotSeen, firstNotSeen);
         return firstNotSeen;
     }
 

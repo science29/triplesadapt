@@ -16,7 +16,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private HashMap<K, V> hashMap;
     private double elemSize = 0;
 
-    private final long fac = 8;
+    private final long fac = 16;
     private final long MAX_SIZE_GB =  fac*1000000000;
 
     public final IndexType indexType ;
