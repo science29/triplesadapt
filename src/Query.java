@@ -296,11 +296,13 @@ public class Query {
                 "?x5 <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?x7." +
                 "?x7 <http://mpii.de/yago/resource/isPartOf> <http://mpii.de/yago/resource/wordnet_transportation_system_104473432>} ";*/
         triplePatterns = new ArrayList<>();
+        String [] proj = spaql.split(" ");
         String s = spaql.split("\\{")[1];
         // s = s.replace("}", "");
         boolean build = false, varStart = false;
         String last = "";
         Long[] code = new Long[3];
+        boolean [] projectedFlags = new boolean[3];
         int index = 0;
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
@@ -310,13 +312,14 @@ public class Query {
                         break;
                     if (varStart)
                         code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
+
                     varStart = false;
                     last = "";
                     break;
                 case '}':
                     if (varStart)
                         code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
-                    return addToTriplePatterns(code);
+                    return addToTriplePatterns(code,projectedFlags);
                 case '?':
                     varStart = true;
                     last = "?";
@@ -338,7 +341,7 @@ public class Query {
                     code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
                     varStart = false;
                     last = "";
-                    boolean res = addToTriplePatterns(code);
+                    boolean res = addToTriplePatterns(code,projectedFlags);
                     index = 0;
                     code[0] = (long)0;code[1] = (long)0;code[2] = (long)0;
                     if(!res)
@@ -382,12 +385,14 @@ public class Query {
     }
 
 
-    private boolean addToTriplePatterns(Long[] code){
+    private boolean addToTriplePatterns(Long[] code , boolean[] projected){
         if (code[0] == null || code[1] == null || code[2] == null) {
             System.err.println("query answer is empty");
             return false;
         }
         TriplePattern triplePattern = new TriplePattern(code[0], code[1], code[2]);
+        //TODO do this
+///        triplePattern.setProjected(projected);
         triplePatterns.add(triplePattern);
         return true;
     }
@@ -419,6 +424,7 @@ public class Query {
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
                 ArrayList<Triple> answer = (ArrayList<Triple>) pair.getValue();
+                TriplePattern triplePattern = (TriplePattern) pair.getKey();
                 if (i < answer.size()) {
                     Triple triple = answer.get(i);
                     found = true;

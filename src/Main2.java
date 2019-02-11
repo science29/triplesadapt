@@ -53,7 +53,7 @@ public class Main2 {
 
         System.out.println("starting ..");
         Main2 o = new Main2();
-    /*    o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-11", "btc-2009-filtered.n3");
+      /*  o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc-2009-filtered.n3" , true);
         System.out.println("done converting..");
         byte[] a = new byte[1000];
         try {
@@ -1490,7 +1490,7 @@ public class Main2 {
 
 
     //this method only trnasofrm sourcefile in quad format to destFile in n3 format
-    public void convertNqToN3(String sourceFile, String destFile) {
+    public void convertNqToN3(String sourceFile, String destFile , boolean append) {
         boolean quad = true;
         int err = 0;
         int longTextErr = 0;
@@ -1501,7 +1501,7 @@ public class Main2 {
         BufferedWriter bw = null;
         try {
             it = FileUtils.lineIterator(file, "US-ASCII");
-            fw = new FileWriter(destFile);
+            fw = new FileWriter(destFile,append);
             bw = new BufferedWriter(fw);
         } catch (IOException e) {
             e.printStackTrace();
@@ -1603,8 +1603,8 @@ public class Main2 {
             Query spQuery = new Query(dictionary, query);
             spQuery.findChainQueryAnswer(OPxP, op_S);
             long stopTime = System.nanoTime();
-            long elapsedTime = stopTime - startTime;
-            System.out.println("time to execute qeury:" + elapsedTime);
+            long elapsedTime = (stopTime - startTime)/1000;
+            System.out.println("time to execute qeury:" + elapsedTime +" micro seconds");
             spQuery.printAnswers(reverseDictionary);
         }
     }
