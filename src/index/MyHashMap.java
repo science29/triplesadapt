@@ -192,8 +192,13 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         return hashMap.size()+fileHashMap.size();
     }
 
+    public double getSizeGB(){
+        return  elemSize*size();
+    }
 
 
-
+    public String getFileName() {
+        return fileName;
+    }
 }
 

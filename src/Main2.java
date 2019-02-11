@@ -1,3 +1,4 @@
+import index.IndexCollection;
 import triple.Triple;
 import index.MyHashMap;
 import org.apache.commons.io.FileUtils;
@@ -46,6 +47,7 @@ public class Main2 {
     final static String dataSetPath = "../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
     // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
+    private IndexCollection indexCollection;
 
 
     public static void main(String[] args) {
@@ -795,6 +797,9 @@ public class Main2 {
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
 
         System.out.println(" the total vetrices = " + verticies.size() + " max code = " + nextCode);
+
+        indexCollection = new IndexCollection();
+        indexCollection.addIndex(SPO,);
     }
 
 

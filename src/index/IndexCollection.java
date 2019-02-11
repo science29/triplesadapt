@@ -5,6 +5,8 @@ import triple.TriplePattern;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class IndexCollection {
 
@@ -66,6 +68,20 @@ public class IndexCollection {
 
         }
         return null;
+    }
+
+
+    public void printStat(){
+
+        Iterator itmap = indeciesMap.entrySet().iterator();
+        while (itmap.hasNext()) {
+            Map.Entry pair = (Map.Entry) itmap.next();
+            MyHashMap index = (MyHashMap) pair.getValue();
+            int elementCount = index.size();
+            String name = index.getFileName();
+            double sizeGB = index.getSizeGB();
+            System.out.println("index:"+name+", "+sizeGB+" GB,"+elementCount+" Items");
+        }
     }
 
 
