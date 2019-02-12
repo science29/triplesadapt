@@ -16,15 +16,15 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private HashMap<K, V> hashMap;
     private double elemSize = 0;
 
-    private final long fac = 16;
+    private final long fac = 8;
     private final long MAX_SIZE_GB =  fac*1000000000;
 
     public final IndexType indexType ;
 
     public static final int [] noKeyType = {0,0,0};
 
-    public boolean onlyDiskGet = false;
-    public boolean diskMemPut = false;
+    public boolean onlyDiskGet = true;
+    public boolean diskMemPut = true;
 
 
     //   private int avgElemSize = 1 ;
@@ -192,8 +192,13 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         return hashMap.size()+fileHashMap.size();
     }
 
+    public double getSizeGB(){
+        return  elemSize*size();
+    }
 
 
-
+    public String getFileName() {
+        return fileName;
+    }
 }
 
