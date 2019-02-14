@@ -33,6 +33,10 @@ public class Main2 {
     private MyHashMap<String, ArrayList<Triple>> SPxP = new MyHashMap("SPxP");
     private MyHashMap<String, ArrayList<Triple>> OPxP = new MyHashMap("OPxP");
 
+
+    private HashMap<String , ArrayList<Triple>> tempOPxP = new HashMap<String, ArrayList<Triple>>();
+    private HashMap<String , ArrayList<Triple>> tempop_S = new HashMap<String, ArrayList<Triple>>();
+
     private HashMap<String, Integer> tripleToPartutPartitionMap;
     private GlobalQueryGraph queryGraph;
 
@@ -805,6 +809,7 @@ public class Main2 {
                 addToOPSIndex(tripleObj);
 
                 //addTosp_OIndex(tripleObj);
+
                 addToOp_SIndex(tripleObj);
             }
         } finally {
@@ -817,7 +822,7 @@ public class Main2 {
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
 
         System.out.println(" the total vetrices = " + verticies.size() + " max code = " + nextCode);
-
+        writeTempIndex(tempop_S,op_S);
         indexCollection = new IndexCollection();
   //      indexCollection.addIndex(SPO, new IndexType(1,0,0));
   //      indexCollection.addIndex(OPS, new IndexType(1,1,0));
@@ -1139,12 +1144,32 @@ public class Main2 {
             op_S = new MyHashMap("op_S");
         long code[] = triple.triples;
         String key = code[2] + "" + code[1];
-        addToIndex(op_S, triple, key);
+        //addToIndex(op_S, triple, key);
+        addToIndexTemp(tempop_S,triple,key);
+    }
+    private void writeTempIndex(HashMap temp , MyHashMap persist){
+        Iterator it = temp.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            String key = (String) pair.getKey();
+            ArrayList val = (ArrayList) pair.getValue();
+            persist.put(key , val);
+        }
     }
 
     private void addToIndex(MyHashMap<String, ArrayList<Triple>> index, Triple triple, String key) {
         if (index.containsKey(key)) {
             index.appendToTripleList(key,triple);
+        } else {
+            ArrayList<Triple> list = new ArrayList();
+            list.add(triple);
+            index.put(key, list);
+        }
+    }
+
+    private void addToIndexTemp(HashMap<String, ArrayList<Triple>> index, Triple triple, String key) {
+        if (index.containsKey(key)) {
+            index.get(key).add(triple);
         } else {
             ArrayList<Triple> list = new ArrayList();
             list.add(triple);
@@ -1323,8 +1348,10 @@ public class Main2 {
                     Triple triple2 = list2.get(j);
                     long P2 = triple2.triples[1];
                     String key = O + "" + P1 + "" + P2;
-                    addToIndex(OPxP, triple1, key);
-                    addToIndex(OPxP, triple2, key);
+                    addToIndexTemp(tempOPxP, triple1, key);
+                    addToIndexTemp(tempOPxP, triple2, key);
+                   // addToIndex(OPxP, triple1, key);
+                   // addToIndex(OPxP, triple2, key);
                 }
 
             }

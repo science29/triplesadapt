@@ -270,6 +270,24 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     }
 
 
+    private void compress(String key , ArrayList<Triple> list){
+        if(indexType == null)
+            return;
+        int uIndex = -1;
+        for(int ii =0 ; ii < 3 ; ii++) {
+            if (indexType.keyType[ii] == 1) {
+                if (uIndex != -1)
+                    return;
+                uIndex = 0;
+            }
+        }
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for(int i=0 ; i<list.size() ; i++) {
+            stringBuilder.append()
+        }
+    }
+
 
     public void close(){
         try {
