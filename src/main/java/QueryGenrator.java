@@ -140,14 +140,15 @@ public class QueryGenrator {
 
     }
 
-    public static ArrayList<String> buildFastHeavyQuery(HashMap<String , ArrayList<Triple>> OPxP, HashMap<Long , ArrayList<Triple>> OPS , long max_id , HashMap<Long,String > reverseDicitionary){
+    public static ArrayList<String> buildFastHeavyQuery(MyHashMap<String , ArrayList<Triple>> OPxP, HashMap<Long , ArrayList<Triple>> OPS , long max_id , HashMap<Long,String > reverseDicitionary){
         ArrayList<ArrayList<TriplePattern>> quereis = new ArrayList();
         Iterator it = OPxP.entrySet().iterator();
         while(it.hasNext()){
             ArrayList<TriplePattern> locTriplePatterns = new ArrayList();
             Map.Entry pair = (Map.Entry)it.next();
            // Long O = (Long) pair.getKey();
-            ArrayList<Triple> list = (ArrayList<Triple>) pair.getValue();
+           // ArrayList<Triple> list = (ArrayList<Triple>) pair.getValue();
+            ArrayList<Triple> list =  OPxP.getArrayList((String) pair.getValue());
             for(int i=0 ; i < list.size() ; i+=2){
                 Triple triple1 = list.get(i);
                 Triple triple2 = list.get(i+1);

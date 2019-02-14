@@ -10,15 +10,18 @@ import util.FileHashMap;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
 
 
 //TODO solve the  creation of the filehashmap
 public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
+    private static final String ELEME_SEPERATOR = "algheziTr7";
+    private static final String TRIPLES_SEPERATOR =  "algheziTr8";
     private String fileName;
     ConcurrentMap<K, V> fastFileMap;
     private HTreeMap<K, String> fastFileMapString;
-    DB fileDb;
+    DB dbFile;
     private FileHashMap<K, V> fileHashMap;
     private FileHashMap<K, String> backupFileHashMap;
 
@@ -39,7 +42,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     public boolean diskMemPut = false;
 
     private final String HOME_DIR = "/home/ahmed/";
-
+    private DB dbMemory;
 
 
     //   private int avgElemSize = 1 ;
@@ -85,7 +88,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     private void setSize() {
         try {
-            if (hashMap.size() != 40000 || elemSize != 0 )
+            if (fastFileMap == null || fastFileMap.size() != 40000 || elemSize != 0 )
                 return;
 
             FileWriter fileWriter = new FileWriter(HOME_DIR+"temp_shjf");
@@ -132,6 +135,10 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     public boolean containsKey(Object key) {
         if(hashMap.containsKey(key))
             return true;
+        if(fastFileMap != null && fastFileMap.containsKey(key))
+            return true;
+        if(fastFileMapString != null && fastFileMapString.containsKey(key))
+            return true;
         if (fileHashMap != null)
             return fileHashMap.containsKey(key);
         return false;
@@ -143,40 +150,46 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         //todo fix this
         if(this.onlyDiskGet)
             return fileHashMap.get(key);
-
-        if (hashMap != null && hashMap.containsKey(key))
-            return hashMap.get(key);
-
         if(fastFileMapString != null) {
             String value = fastFileMapString.get(key);
             if (value == null)
                 return null;
             ArrayList<Triple> tarr = new ArrayList();
-            String elems[] = value.split("algheziAr7");
+            String elems[] = value.split("ELEME_SEPERATOR");
             for (int i = 0; i < elems.length; i++) {
-                String tripleStrA[] = value.split("algheziTr8");
+                String tripleStrA[] = value.split(TRIPLES_SEPERATOR );
                 Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
                 tarr.add(ttriple);
             }
             return (V) tarr;
         }
-
+        if(fastFileMap != null) {
+            String v = fastFileMapString.get(key);
+            if(v != null)
+                return  (V)v;
+        }
+        if (hashMap != null && hashMap.containsKey(key))
+            return hashMap.get(key);
         if (backupFileHashMap != null) {
             String value = (String) backupFileHashMap.get(key);
             if(value == null)
                 return null;
-            ArrayList<Triple> tarr = new ArrayList();
-            String elems[] = value.split("algheziAr7");
-            for (int i = 0; i < elems.length; i++) {
-                String tripleStrA[] = value.split("algheziTr8");
-                Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
-                tarr.add(ttriple);
-            }
+            ArrayList<Triple> tarr = getArrayList(value);
             return (V) tarr;
         }
-
         return fileHashMap.get(key);
 
+    }
+
+    public ArrayList<Triple> getArrayList(String serial){
+        ArrayList<Triple> tarr = new ArrayList();
+        String elems[] = serial.split("ELEME_SEPERATOR");
+        for (int i = 0; i < elems.length; i++) {
+            String tripleStrA[] = elems[i].split(TRIPLES_SEPERATOR);
+            Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
+            tarr.add(ttriple);
+        }
+        return  tarr;
     }
 
 
@@ -186,35 +199,34 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         //todo fix this
         if(diskMemPut)
             fileHashMap.put(key, value);
+
+        /*
         if (elemSize * hashMap.size() < maxAllowedRamSize)
-            return hashMap.put(key, value);
+            return hashMap.put(key, value);*/
 
         if (value instanceof ArrayList) {
             ArrayList tarr = (ArrayList) value;
+            if(tarr.size() <2)
+                tarr.size();
             if (tarr.size() > 0 && tarr.get(0) instanceof Triple) {
                 String serilaizedArray = "";
                 for (int i = 0; i < tarr.size(); i++) {
                     Triple ttriple = (Triple) tarr.get(i);
-                    String tripleStr = ttriple.triples[0] + "algheziTr8" + ttriple.triples[1] + "algheziTr8" + ttriple.triples[2];
+                    String tripleStr = ttriple.triples[0] + TRIPLES_SEPERATOR + ttriple.triples[1] + TRIPLES_SEPERATOR + ttriple.triples[2];
                     if (i == 0)
                         serilaizedArray = tripleStr;
                     else
-                        serilaizedArray = serilaizedArray + "algheziAr7" + tripleStr;
+                        serilaizedArray = serilaizedArray + ELEME_SEPERATOR + tripleStr;
                 }
                 if(fastFileMapString == null){
                     File file = new File(HOME_DIR + fileName + "db.db");
                     if(file.exists())
                         file.delete();
                     org.mapdb.Serializer<K> keyType = findTypeKey(key);
-                    org.mapdb.Serializer<String> valType =  Serializer.STRING;
-                    if(keyType != null && valType != null) {
-                        fileDb = DBMaker
-                                .fileDB(HOME_DIR + fileName + "db.db")
-                                .fileMmapEnable()
-                                .make();
-                        fastFileMapString = fileDb.hashMap("map", keyType, valType)
-                                .createOrOpen();
-                    }
+                    org.mapdb.Serializer<V> valType = (Serializer<V>) Serializer.STRING;
+                    fastFileMapString = createFastFileMap(keyType , valType);
+
+
                 }
                 if(fastFileMapString != null) {
                     return (V) fastFileMapString.put(key, serilaizedArray);
@@ -230,6 +242,11 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 return (V) backupFileHashMap.put(key, serilaizedArray);
             }
         }
+        if (fastFileMap == null){
+            fastFileMap = createFastFileMap(findTypeKey(key) , findTypeVal(value));
+        }
+        return fastFileMap.put(key, value);
+        /*
         if (fileHashMap == null)
             try {
                 fileHashMap = new FileHashMap(HOME_DIR+fileName);
@@ -237,9 +254,80 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        return fileHashMap.put(key, value);
+        return fileHashMap.put(key, value);*/
 
 
+    }
+    private String getTripleStr(Triple triple) {
+        return triple.triples[0] + TRIPLES_SEPERATOR + triple.triples[1] + TRIPLES_SEPERATOR + triple.triples[2];
+    }
+
+    public void appendToTripleList(K key, Triple triple) {
+        String elem = fastFileMapString.get(key);
+        String tripleStr = getTripleStr(triple);
+        elem += TRIPLES_SEPERATOR+tripleStr;
+        fastFileMapString.put(key,elem);
+    }
+
+
+
+    public void close(){
+        try {
+            if (dbFile != null)
+                dbFile.close();
+            if (dbMemory != null)
+                dbMemory.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private HTreeMap createFastFileMap(Serializer<K> keyType , Serializer<V> valType ) {
+        File file = new File(HOME_DIR + fileName + "db.db");
+       if (file.exists())
+            file.delete();
+       if(dbFile == null) {
+            dbFile = DBMaker
+                    .fileDB(file)
+                    .fileMmapEnable()
+                    .allocateStartSize( 1 * 1024*1024*1024) // 1GB
+                    .allocateIncrement(100 * 1024*1024)
+                    .make();
+        }
+        if(dbMemory == null) {
+            dbMemory = DBMaker
+                    .memoryDB()
+                    .make();
+        }
+
+
+        // Big map populated with data expired from cache
+      HTreeMap onDisk = dbFile
+                .hashMap("onDisk"+fileName,keyType,valType)
+                .create();
+            // fast in-memory collection with limited size
+        HTreeMap inMemory = dbMemory
+                .hashMap("inMemory"+fileName ,keyType,valType)
+               // .expireStoreSize(10 * 1024*1024*1024)
+                //this registers overflow to `onDisk`
+              //  .expireOverflow(onDisk)
+                //good idea is to enable background expiration
+                .expireExecutor(Executors.newScheduledThreadPool(2))
+                .create();
+
+        return  inMemory;
+ /*
+          if (keyType != null && valType != null) {
+            dbFile = DBMaker
+                    .fileDB(HOME_DIR + fileName + "db.db")
+                    .fileMmapEnable()
+                    .make();
+            HTreeMap map = dbFile.hashMap("map"+fileName, keyType, valType)
+                    .expireStoreSize(16 * 1024*1024*1024)
+                    .createOrOpen();
+            return map;
+        }
+        return null;*/
     }
 
     private Serializer<K> findTypeKey(K obj) {
@@ -270,8 +358,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     @Override
     public Set<Entry<K,V>> entrySet() {
         if(fastFileMapString != null){
-            fastFileMap = (ConcurrentMap<K, V>) fastFileMapString;
-            return fastFileMap.entrySet();
+            ConcurrentMap<K, V> fastFileMapTT = (ConcurrentMap<K, V>) fastFileMapString;
+            return fastFileMapTT.entrySet();
         }
         return hashMap.entrySet();
     }
@@ -302,5 +390,13 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         double s =  ((hashMap.size()/1000000)*elemSize)/1000;
         return s;
     }
+
+    public void open(K key , V val) {
+        org.mapdb.Serializer<K> keyType = findTypeKey(key);
+        org.mapdb.Serializer<V> valType = (Serializer<V>) Serializer.STRING;
+        fastFileMapString = createFastFileMap(keyType , valType);
+    }
+
+    
 }
 

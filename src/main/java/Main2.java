@@ -45,7 +45,7 @@ public class Main2 {
     final static boolean includeFragments = true;
     final static boolean quad = false;
     //final static String dataSetPath = "/home/ahmed/download/btc-data-3.nq";
-    final static String dataSetPath = "/home/keg/Desktop/BTC/btc-2009-filtered.n3"; //"/home/keg/Desktop/BTC/btc_small.n3";   ////"../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
+    final static String dataSetPath =  "/home/keg/Desktop/BTC/btc_small.n3"; //  "/home/keg/Desktop/BTC/btc-2009-filtered.n3";  ////"../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
     // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
     private IndexCollection indexCollection;
@@ -64,10 +64,16 @@ public class Main2 {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        o.openIndexes();
+        o.buildOppIndex();
+
 */
         //""
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
+
+
 
         o.porcess(dataSetPath, quad);
         //System.out.println("building extra indexes .. ");
@@ -129,6 +135,14 @@ public class Main2 {
 
 */
 
+    }
+
+    private void openIndexes() {
+        ArrayList<Triple> list = new ArrayList<Triple>();
+        list.add(new Triple(0,0,0));
+        if (op_S == null)
+            op_S = new MyHashMap("op_S");
+        op_S.open("",list);
     }
 
 
@@ -649,7 +663,7 @@ public class Main2 {
         int duplicateCount = 0;
         try {
             int count = 0;
-            while (it.hasNext()) {
+            while (it.hasNext() && count < 1000000) {
                 String lineTemp;
                 if (count % 100000 == 0 || count == 2082) {
                     if (count == 0)
@@ -796,6 +810,8 @@ public class Main2 {
         } finally {
             LineIterator.closeQuietly(it);
         }
+        op_S.close();
+
 //        ArrayList<Vertex> vv = graph.get(vertecesID.get(3));
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
@@ -1128,7 +1144,7 @@ public class Main2 {
 
     private void addToIndex(MyHashMap<String, ArrayList<Triple>> index, Triple triple, String key) {
         if (index.containsKey(key)) {
-            index.get(key).add(triple);
+            index.appendToTripleList(key,triple);
         } else {
             ArrayList<Triple> list = new ArrayList();
             list.add(triple);
@@ -1285,10 +1301,12 @@ public class Main2 {
     }
 
 
-    //TODo iterate over file set also?
+
     private void buildOppIndex() {
         //iterate over the OPS index
         Iterator it = OPS.entrySet().iterator();
+        long totalSize = OPS.size();
+        long cnt = 0;
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             Long O = (Long) pair.getKey();
@@ -1309,6 +1327,37 @@ public class Main2 {
                     addToIndex(OPxP, triple2, key);
                 }
 
+            }
+            cnt++;
+            if(cnt % 100000 == 0)
+                System.out.print(" , "+cnt*100/totalSize);
+        }
+        //  indexCollection.addIndexStringKey(OPxP , new IndexType(0,0,0));
+    }
+
+
+
+    //TODo iterate over file set also?
+    private void buildOppIndex2() {
+        //iterate over the OPS index
+        Iterator it = OPS.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            Long O = (Long) pair.getKey();
+            ArrayList<Triple> list1 = (ArrayList<Triple>) pair.getValue();
+            for (Triple triple1 : list1) {
+                long P1 = triple1.triples[1];
+                long s = triple1.triples[0];
+                //check each s as o in the OPS
+                ArrayList<Triple> list2 = OPS.get(s);
+                if (list2 == null)
+                    continue;
+                for (Triple triple2 : list2) {
+                    long P2 = triple2.triples[1];
+                    String key = O + "" + P1 + "" + P2;
+                    addToIndex(OPxP, triple1, key);
+                    addToIndex(OPxP, triple2, key);
+                }
             }
         }
       //  indexCollection.addIndexStringKey(OPxP , new IndexType(0,0,0));
