@@ -34,15 +34,19 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private long n = 1;
     private final long GB =  n*1000000000;
 
-    public final IndexType indexType ;
+    public  IndexType indexType ;
+    public  IndexType extraIndexType = null;
 
     public static final int [] noKeyType = {0,0,0};
 
     public boolean onlyDiskGet = false;
     public boolean diskMemPut = false;
 
+
+
     private final String HOME_DIR = "/home/ahmed/";
     private DB dbMemory;
+    private boolean comressEnabled = true;
 
 
     //   private int avgElemSize = 1 ;
@@ -84,6 +88,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         this.indexType = indexType;
         maxAllowedRamSize = MAX_SIZE_GB;
     }
+
+
 
 
     private void setSize() {
@@ -154,13 +160,23 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             String value = fastFileMapString.get(key);
             if (value == null)
                 return null;
-            ArrayList<Triple> tarr = new ArrayList();
-            String elems[] = value.split("ELEME_SEPERATOR");
+            ArrayList<Triple> tarr;
+            if(value.startsWith("c")) {
+                if(extraIndexType == null)
+                    tarr = deCompress( value);
+                else
+                    //tarr = specialDeCompress( value);
+                    tarr = deSerializeArrayList(value);
+                return (V) tarr;
+            }
+
+            tarr = deSerializeArrayList(value);
+            /*String elems[] = value.split("ELEME_SEPERATOR");
             for (int i = 0; i < elems.length; i++) {
                 String tripleStrA[] = value.split(TRIPLES_SEPERATOR );
                 Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
                 tarr.add(ttriple);
-            }
+            }*/
             return (V) tarr;
         }
         if(fastFileMap != null) {
@@ -181,15 +197,28 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     }
 
+    private ArrayList<Triple> deSerializeArrayList(String value) {
+        ArrayList <Triple> tarr = new ArrayList();
+        String elems[] = value.split(ELEME_SEPERATOR);
+        for (int i = 0; i < elems.length; i++) {
+            String tripleStrA[] = elems[i].split(TRIPLES_SEPERATOR );
+            Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
+            tarr.add(ttriple);
+        }
+        return tarr;
+    }
+
+
     public ArrayList<Triple> getArrayList(String serial){
-        ArrayList<Triple> tarr = new ArrayList();
+        return deSerializeArrayList(serial);
+        /*ArrayList<Triple> tarr = new ArrayList();
         String elems[] = serial.split("ELEME_SEPERATOR");
         for (int i = 0; i < elems.length; i++) {
             String tripleStrA[] = elems[i].split(TRIPLES_SEPERATOR);
             Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
             tarr.add(ttriple);
         }
-        return  tarr;
+        return  tarr;*/
     }
 
 
@@ -203,21 +232,25 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         /*
         if (elemSize * hashMap.size() < maxAllowedRamSize)
             return hashMap.put(key, value);*/
-
         if (value instanceof ArrayList) {
             ArrayList tarr = (ArrayList) value;
-            if(tarr.size() <2)
-                tarr.size();
             if (tarr.size() > 0 && tarr.get(0) instanceof Triple) {
                 String serilaizedArray = "";
-                for (int i = 0; i < tarr.size(); i++) {
-                    Triple ttriple = (Triple) tarr.get(i);
-                    String tripleStr = ttriple.triples[0] + TRIPLES_SEPERATOR + ttriple.triples[1] + TRIPLES_SEPERATOR + ttriple.triples[2];
-                    if (i == 0)
-                        serilaizedArray = tripleStr;
-                    else
-                        serilaizedArray = serilaizedArray + ELEME_SEPERATOR + tripleStr;
-                }
+                if(comressEnabled && tarr.size() > 100){
+                    if(extraIndexType == null) {
+                        serilaizedArray = compress(tarr);
+                        tempCheck(tarr, deCompress(serilaizedArray));
+                    }
+                    else {
+                        serilaizedArray = serializeArrayList(tarr);
+                        /*serilaizedArray = specialCompress(tarr);
+                        tempCheck(tarr,specialDeCompress(serilaizedArray));*/
+                    }
+
+                   // if(serilaizedArray.contains(":"))
+
+                }else
+                    serilaizedArray = serializeArrayList(tarr);
                 if(fastFileMapString == null){
                     File file = new File(HOME_DIR + fileName + "db.db");
                     if(file.exists())
@@ -258,6 +291,49 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
 
     }
+
+    private String serializeArrayList(ArrayList<Triple> tarr){
+        StringBuilder serilaizedArray = new StringBuilder();
+        for (int i = 0; i < tarr.size(); i++) {
+            Triple ttriple = (Triple) tarr.get(i);
+            if (i != 0)
+                serilaizedArray.append(ELEME_SEPERATOR);
+            serilaizedArray.append(ttriple.triples[0]); serilaizedArray.append(TRIPLES_SEPERATOR); serilaizedArray.append(ttriple.triples[1]); serilaizedArray.append(TRIPLES_SEPERATOR);serilaizedArray.append(ttriple.triples[2]);
+                /* String tripleStr = ttriple.triples[0] + TRIPLES_SEPERATOR + ttriple.triples[1] + TRIPLES_SEPERATOR + ttriple.triples[2];
+            if (i == 0)
+                serilaizedArray = tripleStr;
+            else
+                serilaizedArray = serilaizedArray + ELEME_SEPERATOR + tripleStr;*/
+        }
+        return serilaizedArray.toString();
+    }
+
+    private void tempCheck(ArrayList<Triple> tarr, ArrayList<Triple> chList) {
+
+        Collections.sort(tarr, new Comparator<Triple>() {
+            @Override
+            public int compare(Triple lhs, Triple rhs) {
+                // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                if(lhs.triples[0] < rhs.triples[0] )
+                    return -1;
+                if(lhs.triples[0] > rhs.triples[0] )
+                    return 1;
+                return 0;
+            }
+        });
+
+
+        for(int i = 0; i<tarr.size() ; i++){
+            if(tarr.get(i).triples[0] == chList.get(i).triples[0] && tarr.get(i).triples[1] == chList.get(i).triples[1] && tarr.get(i).triples[2] == chList.get(i).triples[2])
+                continue;
+            else {
+                System.out.println(tarr.get(i).triples[0] +" == "+  chList.get(i).triples[0] +" && "+ tarr.get(i).triples[1]+" == "+chList.get(i).triples[1] +" && "+ tarr.get(i).triples[2] +" == "+chList.get(i).triples[2]);
+                return;
+            }
+
+        }
+    }
+
     private String getTripleStr(Triple triple) {
         return triple.triples[0] + TRIPLES_SEPERATOR + triple.triples[1] + TRIPLES_SEPERATOR + triple.triples[2];
     }
@@ -270,22 +346,152 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     }
 
 
-    private void compress(String key , ArrayList<Triple> list){
+    private String compress( ArrayList<Triple> list){
         if(indexType == null)
-            return;
+            return null;
         int uIndex = -1;
         for(int ii =0 ; ii < 3 ; ii++) {
             if (indexType.keyType[ii] == 1) {
                 if (uIndex != -1)
-                    return;
-                uIndex = 0;
+                    return null;
+                uIndex = ii;
             }
         }
 
-        StringBuilder stringBuilder = new StringBuilder();
-        for(int i=0 ; i<list.size() ; i++) {
-            stringBuilder.append()
+        final int tindex = uIndex;
+        //sort
+        Collections.sort(list, new Comparator<Triple>() {
+            @Override
+            public int compare(Triple lhs, Triple rhs) {
+                // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                if(lhs.triples[tindex] < rhs.triples[tindex] )
+                    return -1;
+                if(lhs.triples[tindex] > rhs.triples[tindex] )
+                    return 1;
+                return 0;
+            }
+        });
+
+        StringBuilder stringBuilder = new StringBuilder("c");
+        stringBuilder.append(list.get(0).triples[0]);stringBuilder.append("c");
+        stringBuilder.append(list.get(0).triples[1]);stringBuilder.append("c");
+        stringBuilder.append(list.get(0).triples[2]);stringBuilder.append("c");
+        long prev = list.get(0).triples[uIndex];
+        long base = prev;
+        boolean saving = false;
+        for(int i=1 ; i<list.size() ; i++) {
+            long now = list.get(i).triples[uIndex];
+            if(now-prev == 1 && i < list.size() - 1 && i>1) {
+                saving = true;
+                prev = now;
+                continue;
+            }
+            else {
+                if(saving){
+                    stringBuilder.append(":");
+                    stringBuilder.append(prev-base);
+                    saving = false;
+                }
+                stringBuilder.append("a");
+                stringBuilder.append(now-base);
+            }
+            prev = now;
         }
+        return stringBuilder.toString();
+    }
+
+
+
+
+    private String specialCompress(ArrayList<Triple> list) {
+        ArrayList<Triple> list1 = new ArrayList<Triple>();
+        ArrayList<Triple> list2 = new ArrayList<Triple>();
+        for(int i=0; i<list.size() ; i+=2){
+            list1.add(list.get(i));
+            list2.add(list.get(i+1));
+        }
+
+        ArrayList res = new ArrayList();
+        for (int i = 0; i < list1.size(); i++){
+            res.add(list1.get(i));
+            res.add(list2.get(i));
+        }
+        tempCheck(list, res);
+
+        String s1 = compress(list1 );
+        this.s1 = s1;
+        tempCheck(list1, deCompress(s1));
+        String s2 = serializeArrayList(list2 );
+        this.s2 = s2;
+        tempCheck(list2, deSerializeArrayList(s2));
+        String st = s1+"n"+s2;
+        tempCheck(list,specialDeCompress(st));
+        return s1+"n"+s2;
+    }
+
+    String s1,s2;
+    private ArrayList<Triple> specialDeCompress(String value) {
+        String[] ar = value.split("n");
+        if(!s1.matches(ar[0]))
+            s1.matches(" ");
+        if(!s2.matches(ar[1]))
+            s2.matches(" ");
+        ArrayList res = new ArrayList();
+        ArrayList<Triple> list1 = deCompress(ar[0]);
+        ArrayList<Triple> list2 = deSerializeArrayList(ar[1]);
+        for (int i = 0; i < list1.size(); i++){
+            res.add(list1.get(i));
+            res.add(list2.get(i));
+        }
+        return res;
+    }
+
+    private ArrayList<Triple> deCompress(String record){
+        if(!record.startsWith("c"))
+            return null;
+
+        int uIndex = -1;
+        int firstFixedIndex = -1;
+        int secondFixedIndex = -1;
+        for(int ii =0 ; ii < 3 ; ii++) {
+            if (indexType.keyType[ii] == 1) {
+                if (uIndex != -1)
+                    return null;
+                uIndex = ii;
+            }else if(firstFixedIndex == -1)
+                firstFixedIndex = ii;
+            else
+                secondFixedIndex = ii;
+        }
+        String [] arrIni = record.split("c");
+        Triple triple = new Triple(Long.valueOf(arrIni[1]) , Long.valueOf(arrIni[2]) ,Long.valueOf(arrIni[3]));
+        ArrayList<Triple> resLsit = new ArrayList<Triple>();
+        resLsit.add(triple);
+        String [] arr = record.split("a");
+        long base = triple.triples[uIndex];
+        for(int i = 1 ; i < arr.length ; i++){
+            try{
+                long val =  Long.valueOf(arr[i]);
+                Triple triple1 = new Triple(0,0, 0);
+                triple1.triples[uIndex] = val+base;
+                triple1.triples[firstFixedIndex] = triple.triples[firstFixedIndex];
+                triple1.triples[secondFixedIndex] = triple.triples[secondFixedIndex];
+                resLsit.add(triple1);
+            }catch (NumberFormatException e){
+                String [] arr2 = arr[i].split(":");
+                long from = Long.valueOf(arr2[0])+base;
+                long to = Long.valueOf(arr2[1])+base;
+                for( ; from<=to ; from++){
+                    Triple triple1 = new Triple(0,0, 0);
+                    triple1.triples[uIndex] = from;
+                    triple1.triples[firstFixedIndex] = triple.triples[firstFixedIndex];
+                    triple1.triples[secondFixedIndex] = triple.triples[secondFixedIndex];
+                    resLsit.add(triple1);
+                }
+            }
+
+        }
+        return resLsit;
     }
 
 
@@ -413,6 +619,10 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         org.mapdb.Serializer<K> keyType = findTypeKey(key);
         org.mapdb.Serializer<V> valType = (Serializer<V>) Serializer.STRING;
         fastFileMapString = createFastFileMap(keyType , valType);
+    }
+
+    public void setExtraIndexType(IndexType extraIndexType) {
+        this.extraIndexType = extraIndexType;
     }
 
     

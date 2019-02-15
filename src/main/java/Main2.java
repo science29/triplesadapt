@@ -31,7 +31,7 @@ public class Main2 {
     private MyHashMap<String, ArrayList<Triple>> sp_O;
     private MyHashMap<String, ArrayList<Triple>> op_S;
     private MyHashMap<String, ArrayList<Triple>> SPxP = new MyHashMap("SPxP");
-    private MyHashMap<String, ArrayList<Triple>> OPxP = new MyHashMap("OPxP");
+    private MyHashMap<String, ArrayList<Triple>> OPxP = new MyHashMap("OPxP" , new IndexType(1,0,0));
 
 
     private HashMap<String , ArrayList<Triple>> tempOPxP = new HashMap<String, ArrayList<Triple>>();
@@ -60,7 +60,7 @@ public class Main2 {
 
         System.out.println("starting ..");
         Main2 o = new Main2();
- /*      o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
+      o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-60", "/home/keg/Desktop/BTC/btc_small.n3" , true);
         System.out.println("done converting..");
         byte[] a = new byte[1000];
         try {
@@ -72,7 +72,7 @@ public class Main2 {
         o.openIndexes();
         o.buildOppIndex();
 
-*/
+
         //""
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
@@ -145,7 +145,7 @@ public class Main2 {
         ArrayList<Triple> list = new ArrayList<Triple>();
         list.add(new Triple(0,0,0));
         if (op_S == null)
-            op_S = new MyHashMap("op_S");
+            op_S = new MyHashMap("op_S" , new IndexType(1,0,0));
         op_S.open("",list);
     }
 
@@ -1141,7 +1141,7 @@ public class Main2 {
 
     private void addToOp_SIndex(Triple triple) {
         if (op_S == null)
-            op_S = new MyHashMap("op_S");
+            op_S = new MyHashMap("op_S",new IndexType(1,0,0));
         long code[] = triple.triples;
         String key = code[2] + "" + code[1];
         //addToIndex(op_S, triple, key);
@@ -1359,6 +1359,8 @@ public class Main2 {
             if(cnt % 100000 == 0)
                 System.out.print(" , "+cnt*100/totalSize);
         }
+        OPxP.setExtraIndexType(new IndexType(1,0,1));
+        writeTempIndex(tempOPxP,OPxP);
         //  indexCollection.addIndexStringKey(OPxP , new IndexType(0,0,0));
     }
 
