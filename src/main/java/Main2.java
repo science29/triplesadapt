@@ -684,9 +684,9 @@ public class Main2 {
                     count++;
                     if (count % 10000000 == 0) {
                         System.out.println("writing to diskDb");
-                        //      writeTempIndex(tempop_S,op_S);
-                        //       tempop_S = new HashMap<String, ArrayList<Triple>>();
-                        //       op_S.commitToDisk();
+                             writeTempIndex(tempop_S,op_S);
+                               tempop_S = new HashMap<String, ArrayList<Triple>>();
+                               op_S.commitToDisk();
                     }
                     String line = it.nextLine();
                     if (line.startsWith("@")) {
@@ -759,9 +759,6 @@ public class Main2 {
                                 code[i] = nextPredicateCode;
                                 nextPredicateCode++;
                                 dictionary.put(triple[i], code[i]);
-                                if (triple[i].matches("<http://dbpedia-live.openlinksw.com/property/rd4Team>")) {
-                                    System.out.println("dd");
-                                }
                                 reverseDictionary.put(code[i], triple[i]);
                             }
                         }
