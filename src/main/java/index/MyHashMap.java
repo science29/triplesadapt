@@ -27,7 +27,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private FileHashMap<K, V> fileHashMap;
     private FileHashMap<K, String> backupFileHashMap;
 
-    private HashMap<K, V> hashMap;
+    private HashMap<K, V> hashMap = new HashMap<K, V>();
     private double elemSize = 0;
 
     private double maxAllowedRamSize ;
@@ -49,6 +49,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private final String HOME_DIR = "/home/ahmed/";
     private DB dbMemory;
     private boolean comressEnabled = true;
+    private boolean cacheEnabled = false;
 
 
     //   private int avgElemSize = 1 ;
@@ -199,7 +200,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     }
 
-    private ArrayList<Triple> deSerializeArrayList(String value) {
+    public static ArrayList<Triple> deSerializeArrayList(String value) {
         ArrayList <Triple> tarr = new ArrayList();
         String elems[] = value.split(ELEME_SEPERATOR);
         for (int i = 0; i < elems.length; i++) {
@@ -230,7 +231,13 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         //todo fix this
         if(diskMemPut)
             fileHashMap.put(key, value);
-
+        if(cacheEnabled){
+            hashMap.put(key, value);
+            if(hashMap.size() > 2000000){
+                writeCacheToPersist();
+                hashMap = new HashMap<K, V>();
+            }
+        }
         /*
         if (elemSize * hashMap.size() < maxAllowedRamSize)
             return hashMap.put(key, value);*/
@@ -294,10 +301,20 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     }
 
-    private String serializeArrayList(ArrayList<Triple> tarr){
+    private void writeCacheToPersist() {
+        Iterator it = hashMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            String key = (String) pair.getKey();
+            ArrayList val = (ArrayList) pair.getValue();
+          //  persist.put(key , val);xx
+        }
+    }
+
+    public static String serializeArrayList(ArrayList<Triple> tarr){
         StringBuilder serilaizedArray = new StringBuilder();
         for (int i = 0; i < tarr.size(); i++) {
-            Triple ttriple = (Triple) tarr.get(i);
+            Triple ttriple =  tarr.get(i);
             if (i != 0)
                 serilaizedArray.append(ELEME_SEPERATOR);
             serilaizedArray.append(ttriple.triples[0]); serilaizedArray.append(TRIPLES_SEPERATOR); serilaizedArray.append(ttriple.triples[1]); serilaizedArray.append(TRIPLES_SEPERATOR);serilaizedArray.append(ttriple.triples[2]);
@@ -309,6 +326,27 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         }
         return serilaizedArray.toString();
     }
+
+
+
+    public static String genSerializeArrayList(ArrayList<MySerialzable> tarr){
+        StringBuilder serilaizedArray = new StringBuilder();
+        for (int i = 0; i < tarr.size(); i++) {
+            MySerialzable mySerialzable = tarr.get(i);
+            String str = mySerialzable.serialize();
+            if (i != 0)
+                serilaizedArray.append(ELEME_SEPERATOR);
+            serilaizedArray.append(str);
+        }
+        return serilaizedArray.toString();
+    }
+
+    public static String[] genDeSerializeArrayList(String res ){
+         return res.split(ELEME_SEPERATOR);
+    }
+
+
+
 
     private void tempCheck(ArrayList<Triple> tarr, ArrayList<Triple> chList) {
 
@@ -596,8 +634,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         return hashMap.entrySet();
     }
 
-    public Set<Entry<K,V>> fileEntrySet(){
-        return fileHashMap.entrySet();
+    public Set<Entry<K,String>> fastEntrySet(){
+        return fastFileMapString.entrySet();
     }
 
 

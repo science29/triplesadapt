@@ -70,24 +70,23 @@ public class VertexGraphIndex {
 
     public void put(Long key, ArrayList<Vertex> value) {
         normalMap.put(key,value);
-        // inMemory.put(key,value);
     }
 
 
     public ArrayList<Vertex> get(Long key){
         return normalMap.get(key);
-        // return (Long)inMemory.get(key);
+        //return (ArrayList<Vertex>) inMemory.get(key);
     }
 
     public boolean containsKey(Object key) {
-        return normalMap.containsKey(key);
+       return normalMap.containsKey(key);
         //return inMemory.containsKey(key);
     }
 
 
     public Set<Map.Entry<Long, ArrayList<Vertex>>> entrySet() {
         return normalMap.entrySet();
-        //return inMemory.entrySet();
+       // return inMemory.entrySet();
     }
 
 }

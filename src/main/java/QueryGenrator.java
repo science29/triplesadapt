@@ -146,7 +146,7 @@ public class QueryGenrator {
         ArrayList<ArrayList<TriplePattern>> quereis = new ArrayList();
 
         for(int j = 0 ; j<queryKeys.size() ; j++){
-            ArrayList<Triple> list =  OPxP.getArrayList( queryKeys.get(j));
+            ArrayList<Triple> list =  OPxP.get( queryKeys.get(j));
             ArrayList<TriplePattern> locTriplePatterns = new ArrayList();
             for(int i=0 ; i < list.size() ; i+=2){
                 Triple triple1 = list.get(i);

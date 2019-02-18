@@ -17,7 +17,7 @@ public class Main2 {
 
     private HashMap<Long, ArrayList<Triple>> tripleGraph = new HashMap();//duplicate with graph , remove one!
     private ArrayList<Long> vertecesID = new ArrayList();
-    private HashMap<Long, VertexGraph> verticies;
+    private HashMap<Long, VertexGraph> verticies = new HashMap<Long, VertexGraph>();;
     private Dictionary dictionary = new Dictionary("dictionary");
     private HashMap<Long, String> reverseDictionary = new HashMap();
     private HashMap<Integer, ArrayList<VertexGraph>> distanceVertex;
@@ -26,8 +26,8 @@ public class Main2 {
     private static final int PARTITION_COUNT = 2;
 
     private HashMap<Long, ArrayList<Triple>> POS;
-    private HashMap<Long, ArrayList<Triple>> SPO;
-    private HashMap<Long, ArrayList<Triple>> OPS;
+    private MyHashMap<Long, ArrayList<Triple>> SPO;
+    private MyHashMap<Long, ArrayList<Triple>> OPS;
     private MyHashMap<String, ArrayList<Triple>> sp_O;
     private MyHashMap<String, ArrayList<Triple>> op_S;
     private MyHashMap<String, ArrayList<Triple>> SPxP = new MyHashMap("SPxP");
@@ -88,11 +88,7 @@ public class Main2 {
         o.buildOppIndex();
         System.out.println("generating queries .. ");
         ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary,o.queryKeys);
-        ArrayList<Query> queries = o.generateQueries();
 
-        System.out.println("Writting queries to file");
-        o.putStringTripleInQueries(queries);
-        o.writeQueriesToFile(queries);
         o.writePalinQueriesToFile(HeaveyQueries);
         o.printIndexesStat();
         while (true) {
@@ -103,7 +99,14 @@ public class Main2 {
             }
 
         }
-      /*  System.exit(0);
+
+       /*  ArrayList<Query> queries = o.generateQueries();
+
+        System.out.println("Writting queries to file");
+        o.putStringTripleInQueries(queries);
+        o.writeQueriesToFile(queries);
+
+       System.exit(0);
 
 
 
@@ -698,10 +701,6 @@ public class Main2 {
                     if (triple == null)
                         continue;
                 } else {
-                    if (line.contains("<http://dbpedia.org/resource/Norbert_K%C3%B6nyves> <http://dbpedia.org/ontology/birthPlace> <http://dbpedia.org/resource/Socialist_Federal_Republic_of_Yugoslavia>"))
-                        line.contains("");
-                    if(line.contains("<http://dbpedia.org/resource/Norbert_K%C3%B6nyves> <http://www.w3.org/2002/07/owl#sameAs> <http://dbpedia.org/resource/Norbert_K%C3%B6nyves>"))
-                        line.contains("");
                     triple = getTripleFromTripleLine(line, errCount, errSolved);
 
 
@@ -722,7 +721,8 @@ public class Main2 {
                                 PredicatesAsSubject.put(code[i], nextCode);
                                 v = new ArrayList();
                                 vertecesID.add(nextCode);
-                                graph.put(nextCode, v);
+                                addToGraph(nextCode, v);
+                                //graph.put(nextCode, v);
                                 code[i] = nextCode;
                                 dictionary.put(triple[i], code[i]);
                                 reverseDictionary.put(code[i], triple[i]);
@@ -751,7 +751,8 @@ public class Main2 {
                             reverseDictionary.put(code[i], triple[i]);
                             v = new ArrayList();
                             vertecesID.add(code[i]);
-                            graph.put(code[i], v);
+                            //graph.put(code[i], v);
+                            addToGraph(nextCode, v);
                         } else {
                             code[i] = nextPredicateCode;
                             nextPredicateCode++;
@@ -767,43 +768,36 @@ public class Main2 {
                     continue;
                 try {
                    /// addToVertexGraph(code);
-                    v = graph.get(code[0]);
-                    boolean duplicateFlag = false;
-                    for (int i = 0; i < v.size(); i++)
-                        if (v.get(i).v == code[2]) {
-                            duplicateCount++;
-                            duplicateFlag = true;
-                            break;
-                        }
-                    if (duplicateFlag)
-                        continue;
-                    v.add(new Vertex(code[2], code[1]));
-                    edgesCount++;
-                    v = graph.get(code[2]);
-                    v.add(new Vertex(code[0], -1));
+                   if(!buildGraph(code,v)){
+                       duplicateCount++;
+                       continue;
+                   }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 //build the tripe graph
                 Triple tripleObj = new Triple(code[0], code[1], code[2]);
-                if (!tripleGraph.containsKey(code[0]))
+               /* if (!tripleGraph.containsKey(code[0]))    seems like tripleGraph is the same as SPO, thus we dont need it
                     tripleGraph.put(code[0], new ArrayList<Triple>());
-                tripleGraph.get(code[0]).add(tripleObj);
+                tripleGraph.get(code[0]).add(tripleObj);*/
                 if (partutSupport) {
                     tripleToPartutPartitionMap.put(code[0] + "p" + code[1] + "p" + code[2], -1);
                 }
 
       //          addToPOSIndex(tripleObj);
-      //          addToSPOIndex(tripleObj);
-      //          addToOPSIndex(tripleObj);
+     //           addToSPOIndex(tripleObj);
+                addToOPSIndex(tripleObj);
 
                 //addTosp_OIndex(tripleObj);
 
-     //           addToOp_SIndex(tripleObj);
+                addToOp_SIndex(tripleObj);
             }
         } finally {
             LineIterator.closeQuietly(it);
         }
+
+        tripleGraph = SPO;
        // op_S.close();
 
 //        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
@@ -820,6 +814,27 @@ public class Main2 {
   //      indexCollection.addIndexStringKey(op_S, new IndexType(1,0,1));
 
 
+    }
+
+    private boolean buildGraph(long[] code,ArrayList<Vertex> v) {
+        /*v = graph.get(code[0]);
+        boolean duplicateFlag = false;
+        for (int i = 0; i < v.size(); i++)
+            if (v.get(i).v == code[2]) {
+                duplicateFlag = true;
+                break;
+            }
+        if (duplicateFlag)
+            return false;
+        v.add(new Vertex(code[2], code[1]));
+        edgesCount++;
+        v = graph.get(code[2]);
+        v.add(new Vertex(code[0], -1));*/
+        return true;
+    }
+
+    private void addToGraph(long code, ArrayList<Vertex> v) {
+        //graph.put(code, v);
     }
 
     private void addToVertexGraph(long [] code){
@@ -1199,7 +1214,7 @@ public class Main2 {
     private void addToSPOIndex(Triple triple) {
         long code[] = triple.triples;
         if (SPO == null)
-            SPO = new HashMap();
+            SPO = new MyHashMap("SPO");
         if (SPO.containsKey(code[0])) {
             SPO.get(code[0]).add(triple);
         } else {
@@ -1212,7 +1227,7 @@ public class Main2 {
     private void addToOPSIndex(Triple triple) {
         long code[] = triple.triples;
         if (OPS == null)
-            OPS = new HashMap();
+            OPS = new MyHashMap("OPS");
         if (OPS.containsKey(code[2])) {
             OPS.get(code[2]).add(triple);
         } else {
@@ -1335,12 +1350,12 @@ public class Main2 {
     private void buildOppIndex() {
         //iterate over the OPS index
         Iterator it = OPS.entrySet().iterator();
-        long totalSize = OPS.size();
+        long totalSize = OPS.size()+1;
         long cnt = 0;
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             Long O = (Long) pair.getKey();
-            ArrayList<Triple> list1 = (ArrayList<Triple>) pair.getValue();
+            ArrayList<Triple> list1 = MyHashMap.deSerializeArrayList((String)pair.getValue());
             for (int i = 0; i < list1.size(); i++) {
                 Triple triple1 = list1.get(i);
                 long P1 = triple1.triples[1];
@@ -1656,10 +1671,6 @@ public class Main2 {
                     longTextErr++;
                     continue;
                 }
-                int t = 0;
-                // if (tripleStr.contains("http://yago-knowledge.org/resource/Uncle_Jam_Wants_You") && tripleStr.contains("http://yago-knowledge.org/resource/linksTo") && tripleStr.contains("Clip"))
-                if (tripleStr.contains("http://legislation.data.gov.uk/ukpga/1999/29/section/76/england/data.xml") && tripleStr.contains("http://purl.org/dc/terms/hasVersion") && tripleStr.contains(""))
-                    t = triple[0].length();
                // if (linesWrittenCount > 1220 ){
                     bw.write(tripleStr);
                     bw.newLine();
