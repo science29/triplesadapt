@@ -67,25 +67,25 @@ public class Dictionary{
 
 
     public void put(String key, Long value) {
-        normalMap.put(key,value);
-       // inMemory.put(key,value);
+       // normalMap.put(key,value);
+       inMemory.put(key,value);
     }
 
 
     public Long get(String key){
-        return (Long)normalMap.get(key);
-       // return (Long)inMemory.get(key);
+       // return (Long)normalMap.get(key);
+       return (Long)inMemory.get(key);
     }
 
     public boolean containsKey(Object key) {
-        return normalMap.containsKey(key);
-        //return inMemory.containsKey(key);
+        //return normalMap.containsKey(key);
+        return inMemory.containsKey(key);
     }
 
 
     public Set<Map.Entry<String,Long>> entrySet() {
-        return normalMap.entrySet();
-        //return inMemory.entrySet();
+        //return normalMap.entrySet();
+        return inMemory.entrySet();
     }
 
 }

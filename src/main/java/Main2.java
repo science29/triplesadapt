@@ -61,9 +61,10 @@ public class Main2 {
         System.out.println("starting ..");
         Main2 o = new Main2();
         //o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
-    /*    o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-60", "/home/keg/Desktop/BTC/btc-2009-filtered.n3" , true);
-        o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-70", "/home/keg/Desktop/BTC/btc-2009-filtered.n3" , true);
+        //13 14 9 2
+   /*     o.convertNqToN3("/home/keg/Desktop/BTC/2/data.nq-", "/home/keg/Desktop/BTC/n3/btc-2.n3" , 0,15 ,1);
         System.out.println("done converting..");
+        System.exit(0);
         byte[] a = new byte[1000];
         try {
             System.in.read();
@@ -80,8 +81,10 @@ public class Main2 {
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
 
 
-
-        o.porcess(dataSetPath, quad);
+        ArrayList<String> filePaths = new ArrayList<String>();
+        filePaths.add("/home/keg/Desktop/BTC/n3/btc-2.n3");
+        filePaths.add("/home/keg/Desktop/BTC/n3/btc-13.n3");
+        o.porcess(filePaths, quad);
         //System.out.println("building extra indexes .. ");
         //o.buildSppIndex();
         System.out.println("building extra indexes OPxPs .. ");
@@ -649,7 +652,7 @@ public class Main2 {
     HashMap<String, String> prefix = new HashMap<String, String>();
     ArrayList<String> header;
 
-    public void porcess(String filePath, boolean quad) {
+    public void porcess(ArrayList<String> filePathList, boolean quad) {
         tripleToPartutPartitionMap = new HashMap();
         header = new ArrayList();
         PredicatesAsSubject = new HashMap();
@@ -658,145 +661,144 @@ public class Main2 {
         long nextPredicateCode = BASE_PREDICATE_CODE;
         Integer errCount = 0;
         Integer errSolved = 0;
-        File file = new File(filePath);
-        LineIterator it = null;
-        try {
-            it = FileUtils.lineIterator(file, "US-ASCII");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
         int duplicateCount = 0;
-        try {
-            int count = 0;
-            while (it.hasNext()) {
-                String lineTemp;
-                if (count % 100000 == 0 || count == 2082) {
-                    if (count == 0)
-                        printBuffer(0, "processing line " + count/1000 +" k");
-                    else
-                        printBuffer(1, "processing line " + count/1000 +" k");
+        for(int k =0 ; k < filePathList.size() ; k++) {
+            File file = new File(filePathList.get(k));
+            LineIterator it = null;
+            try {
+                it = FileUtils.lineIterator(file, "US-ASCII");
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            try {
+                int count = 0;
+                while (it.hasNext()) {
+                    if (count % 100000 == 0 || count == 2082) {
+                        if (count == 0)
+                            printBuffer(0, k+" processing line " + count / 1000 + " k");
+                        else
+                            printBuffer(1, k+" processing line " + count / 1000 + " k");
 
-                }
-                count++;
-                if (count % 10000000 == 0) {
-                    System.out.println("writing to diskDb");
-              //      writeTempIndex(tempop_S,op_S);
-             //       tempop_S = new HashMap<String, ArrayList<Triple>>();
-             //       op_S.commitToDisk();
-                }
-                String line = it.nextLine();
-                if (line.startsWith("@")) {
-                    if (line.startsWith("@base"))
-                        prefix.put("base", line.split(" ")[1]);
-                    else
-                        prefix.put(line.split(" ")[1].replace(":", ""), line.split(" ")[2]);
-                    header.add(line);
-                    continue;
-                }
-                String[] triple;
-                if (quad) {
-                    triple = getTripleFromQuadLine(line);
-                    if (triple == null)
+                    }
+                    count++;
+                    if (count % 10000000 == 0) {
+                        System.out.println("writing to diskDb");
+                        //      writeTempIndex(tempop_S,op_S);
+                        //       tempop_S = new HashMap<String, ArrayList<Triple>>();
+                        //       op_S.commitToDisk();
+                    }
+                    String line = it.nextLine();
+                    if (line.startsWith("@")) {
+                        if (line.startsWith("@base"))
+                            prefix.put("base", line.split(" ")[1]);
+                        else
+                            prefix.put(line.split(" ")[1].replace(":", ""), line.split(" ")[2]);
+                        header.add(line);
                         continue;
-                } else {
-                    triple = getTripleFromTripleLine(line, errCount, errSolved);
+                    }
+                    String[] triple;
+                    if (quad) {
+                        triple = getTripleFromQuadLine(line);
+                        if (triple == null)
+                            continue;
+                    } else {
+                        triple = getTripleFromTripleLine(line, errCount, errSolved);
 
 
-                }
-                if (triple == null || triple.length < 3) {
-                    continue;
-                }
-                if (triple[0].equals(triple[1]))
-                    continue;
-                ArrayList<Vertex> v = null;
-                boolean ignoreFlag = false;
-                for (int i = 0; i < 3; i++) {
-                    if (dictionary.containsKey(triple[i])) {
-                        code[i] = dictionary.get(triple[i]);
-                        if (i != 1 && code[i] >= BASE_PREDICATE_CODE) {
-                            //ignoreFlag = true; //just ignore the predicate which came as subj or obj
-                            if (!PredicatesAsSubject.containsKey(code[i])) {
-                                PredicatesAsSubject.put(code[i], nextCode);
-                                v = new ArrayList();
-                                vertecesID.add(nextCode);
-                                addToGraph(nextCode, v);
-                                //graph.put(nextCode, v);
+                    }
+                    if (triple == null || triple.length < 3) {
+                        continue;
+                    }
+                    if (triple[0].equals(triple[1]))
+                        continue;
+                    ArrayList<Vertex> v = null;
+                    boolean ignoreFlag = false;
+                    for (int i = 0; i < 3; i++) {
+                        if (dictionary.containsKey(triple[i])) {
+                            code[i] = dictionary.get(triple[i]);
+                            if (i != 1 && code[i] >= BASE_PREDICATE_CODE) {
+                                //ignoreFlag = true; //just ignore the predicate which came as subj or obj
+                                if (!PredicatesAsSubject.containsKey(code[i])) {
+                                    PredicatesAsSubject.put(code[i], nextCode);
+                                    v = new ArrayList();
+                                    vertecesID.add(nextCode);
+                                    addToGraph(nextCode, v);
+                                    //graph.put(nextCode, v);
+                                    code[i] = nextCode;
+                                    dictionary.put(triple[i], code[i]);
+                                    reverseDictionary.put(code[i], triple[i]);
+                                    nextCode++;
+                                }
+                            }
+                            if (i == 1 && code[i] < BASE_PREDICATE_CODE) {
+                                //wrong value was added fix it!
+                                //dictionary.remove(triple[i]);
+                                //reverseDictionary.remove(code[i]);
+                                // vertecesID.remove(code[i]);
+                                // graph.remove(code[i]);
+
+                                //    code[i] = nextPredicateCode;
+                                //   nextPredicateCode++;
+                                //  dictionary.put(triple[i], code[i]);
+                                // reverseDictionary.put(code[i], triple[i]);
+                            }
+
+                            // v = graph.get(code[i]);
+                        } else {
+                            if (i != 1) {
                                 code[i] = nextCode;
+                                nextCode++;
                                 dictionary.put(triple[i], code[i]);
                                 reverseDictionary.put(code[i], triple[i]);
-                                nextCode++;
+                                v = new ArrayList();
+                                vertecesID.add(code[i]);
+                                //graph.put(code[i], v);
+                                addToGraph(nextCode, v);
+                            } else {
+                                code[i] = nextPredicateCode;
+                                nextPredicateCode++;
+                                dictionary.put(triple[i], code[i]);
+                                if (triple[i].matches("<http://dbpedia-live.openlinksw.com/property/rd4Team>")) {
+                                    System.out.println("dd");
+                                }
+                                reverseDictionary.put(code[i], triple[i]);
                             }
-                        }
-                        if (i == 1 && code[i] < BASE_PREDICATE_CODE) {
-                            //wrong value was added fix it!
-                            //dictionary.remove(triple[i]);
-                            //reverseDictionary.remove(code[i]);
-                            // vertecesID.remove(code[i]);
-                            // graph.remove(code[i]);
-
-                            //    code[i] = nextPredicateCode;
-                            //   nextPredicateCode++;
-                            //  dictionary.put(triple[i], code[i]);
-                            // reverseDictionary.put(code[i], triple[i]);
-                        }
-
-                        // v = graph.get(code[i]);
-                    } else {
-                        if (i != 1) {
-                            code[i] = nextCode;
-                            nextCode++;
-                            dictionary.put(triple[i], code[i]);
-                            reverseDictionary.put(code[i], triple[i]);
-                            v = new ArrayList();
-                            vertecesID.add(code[i]);
-                            //graph.put(code[i], v);
-                            addToGraph(nextCode, v);
-                        } else {
-                            code[i] = nextPredicateCode;
-                            nextPredicateCode++;
-                            dictionary.put(triple[i], code[i]);
-                            if (triple[i].matches("<http://dbpedia-live.openlinksw.com/property/rd4Team>")) {
-                                System.out.println("dd");
-                            }
-                            reverseDictionary.put(code[i], triple[i]);
                         }
                     }
-                }
-                if (ignoreFlag)
-                    continue;
-                try {
-                   /// addToVertexGraph(code);
-                   if(!buildGraph(code,v)){
-                       duplicateCount++;
-                       continue;
-                   }
+                    if (ignoreFlag)
+                        continue;
+                    try {
+                        /// addToVertexGraph(code);
+                        if (!buildGraph(code, v)) {
+                            duplicateCount++;
+                            continue;
+                        }
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                //build the tripe graph
-                Triple tripleObj = new Triple(code[0], code[1], code[2]);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    //build the tripe graph
+                    Triple tripleObj = new Triple(code[0], code[1], code[2]);
                /* if (!tripleGraph.containsKey(code[0]))    seems like tripleGraph is the same as SPO, thus we dont need it
                     tripleGraph.put(code[0], new ArrayList<Triple>());
                 tripleGraph.get(code[0]).add(tripleObj);*/
-                if (partutSupport) {
-                    tripleToPartutPartitionMap.put(code[0] + "p" + code[1] + "p" + code[2], -1);
+                    if (partutSupport) {
+                        tripleToPartutPartitionMap.put(code[0] + "p" + code[1] + "p" + code[2], -1);
+                    }
+
+                    //          addToPOSIndex(tripleObj);
+                    //           addToSPOIndex(tripleObj);
+                    addToOPSIndex(tripleObj);
+
+                    //addTosp_OIndex(tripleObj);
+
+                    addToOp_SIndex(tripleObj);
                 }
-
-      //          addToPOSIndex(tripleObj);
-     //           addToSPOIndex(tripleObj);
-                addToOPSIndex(tripleObj);
-
-                //addTosp_OIndex(tripleObj);
-
-                addToOp_SIndex(tripleObj);
+            } finally {
+                LineIterator.closeQuietly(it);
             }
-        } finally {
-            LineIterator.closeQuietly(it);
         }
-
         tripleGraph = SPO;
        // op_S.close();
 
@@ -1620,7 +1622,13 @@ public class Main2 {
         }
     }
 
-
+    public void convertNqToN3(String sourceFile, String destFile ,int from , int to , int mult) {
+        String path ;
+        for(int i=from; i<=to ; i++){
+            path = sourceFile +(i*mult);
+            convertNqToN3(path,destFile,true);
+        }
+    }
     //this method only trnasofrm sourcefile in quad format to destFile in n3 format
     public void convertNqToN3(String sourceFile, String destFile , boolean append) {
         boolean quad = true;
