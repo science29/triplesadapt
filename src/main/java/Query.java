@@ -1,10 +1,8 @@
+import index.Dictionary;
 import triple.Triple;
 import triple.TriplePattern;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class Query {
     public ArrayList<TriplePattern> triplePatterns;
@@ -28,7 +26,7 @@ public class Query {
         this.simpleAnswer = simpleAnswer;
     }
 
-    public Query(HashMap<String, Long> dictionary, String SPARQL) {
+    public Query(Dictionary dictionary, String SPARQL) {
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
     }
 
@@ -304,7 +302,7 @@ public class Query {
     }
 
 
-    public boolean parseSparqlChain(String spaql, HashMap<String, Long> dictionary) {
+    public boolean parseSparqlChain(String spaql, index.Dictionary dictionary) {
         /*" select  ?x1 ?x3 ?x5 ?x7 where " +
                 "{?x1 <http://mpii.de/yago/resource/describes> ?x3.?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x5." +
                 "?x5 <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?x7." +

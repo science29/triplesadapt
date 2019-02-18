@@ -22,6 +22,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     ConcurrentMap<K, V> fastFileMap;
     private HTreeMap<K, String> fastFileMapString;
     DB dbFile;
+
+
     private FileHashMap<K, V> fileHashMap;
     private FileHashMap<K, String> backupFileHashMap;
 
@@ -180,9 +182,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             return (V) tarr;
         }
         if(fastFileMap != null) {
-            String v = fastFileMapString.get(key);
+            V v = fastFileMap.get(key);
             if(v != null)
-                return  (V)v;
+                return  v;
         }
         if (hashMap != null && hashMap.containsKey(key))
             return hashMap.get(key);
@@ -514,7 +516,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             dbFile = DBMaker
                     .fileDB(file)
                     .fileMmapEnable()
-                    .allocateStartSize( 1 * 1024*1024*1024) // 1GB
+                    .allocateStartSize( 1000 * 1024*1024) // 1GB
                     .allocateIncrement(100 * 1024*1024)
                     .make();
         }
@@ -532,9 +534,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             // fast in-memory collection with limited size
         HTreeMap inMemory = dbMemory
                 .hashMap("inMemory"+fileName ,keyType,valType)
-               // .expireStoreSize(10 * 1024*1024*1024)
+                .expireStoreSize(500 *1024*1024)
                 //this registers overflow to `onDisk`
-              //  .expireOverflow(onDisk)
+                .expireOverflow(onDisk)
                 //good idea is to enable background expiration
                 .expireExecutor(Executors.newScheduledThreadPool(2))
                 .create();
@@ -552,6 +554,12 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             return map;
         }
         return null;*/
+    }
+
+    public void commitToDisk(){
+        dbMemory.commit();
+        dbFile.commit();
+        fastFileMapString.clear();
     }
 
     private Serializer<K> findTypeKey(K obj) {

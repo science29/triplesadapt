@@ -532,7 +532,7 @@ public class Main2 {
                 if (vees.get(i).e == -1) {
                     ArrayList<Vertex> other = this.graph.get(vees.get(i).v);
                     if(other == null) {
-                        System.err.println("error getting other Vertex list");
+                        System.err.println("error getting other triple.Vertex list");
                         System.exit(0);
                     }
 
@@ -763,7 +763,7 @@ public class Main2 {
         } finally {
             LineIterator.closeQuietly(it);
         }
-//        ArrayList<Vertex> vv = graph.get(vertecesID.get(3));
+//        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
 

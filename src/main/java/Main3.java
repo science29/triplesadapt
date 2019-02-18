@@ -4,6 +4,7 @@ import index.MyHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import triple.Triple;
+import triple.Vertex;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,7 +17,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class Main3 {
 
-    private static final long BASE_PREDICATE_CODE = 1000000000;
+    /*private static final long BASE_PREDICATE_CODE = 1000000000;
     private MyHashMap<Long, ArrayList<Vertex>> graph = new MyHashMap("graph");
 
     private MyHashMap<Long, ArrayList<Triple>> tripleGraph = new MyHashMap("tripleGraph");//duplicate with graph , remove one!
@@ -60,7 +61,7 @@ public class Main3 {
 
         System.out.println("starting ..");
         Main3 o = new Main3();
- /*      o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
+       o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
         System.out.println("done converting..");
         byte[] a = new byte[1000];
         try {
@@ -68,7 +69,7 @@ public class Main3 {
         } catch (IOException e) {
             e.printStackTrace();
         }
-*/
+
         //""
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
@@ -79,7 +80,7 @@ public class Main3 {
         System.out.println("building extra indexes OPxPs .. ");
         o.buildOppIndex();
         System.out.println("generating queries .. ");
-        ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary);
+        ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary, null);
         ArrayList<Query> queries = o.generateQueries();
 
         System.out.println("Writting queries to file");
@@ -95,7 +96,7 @@ public class Main3 {
             }
 
         }
-      /*  System.exit(0);
+        System.exit(0);
 
 
 
@@ -131,7 +132,7 @@ public class Main3 {
         else
             o.writePartutPartitions(PARTITION_COUNT);
 
-*/
+
 
     }
 
@@ -239,9 +240,9 @@ public class Main3 {
                         int p1 = verticies.get(v.get(i).v).partitionNumber;
                         int p2 = verticies.get(count).partitionNumber;
 
-                        /*if(p1 == -1 || p2 == -1)
+                        if(p1 == -1 || p2 == -1)
                             break;
-                        if (p1 != p2)*/
+                        if (p1 != p2)
                         boolean bsource = false;//isBorder(count);
                         boolean bdest = v.get(i).isBorder;//isBorder(v.get(i).v);
                         if (bsource || bdest) {
@@ -253,11 +254,11 @@ public class Main3 {
                             out_ext_list[n].add(triple);
                             compressed_ext_list[n].add(triple);
                             boolean added = verticies.get(v.get(i).v).addLinkInPartition(p2);
-                           /* if (added && reverseDictionary.get(v.get(i).v).contains("<") && reverseDictionary.get(v.get(i).v).contains(">")) {
+                            if (added && reverseDictionary.get(v.get(i).v).contains("<") && reverseDictionary.get(v.get(i).v).contains(">")) {
                                 String InBorderTriple = reverseDictionary.get(v.get(i).v) + " " + "x:isRefferedBy" + " " + "\"" + p2 + "\"";
                                 outBuff[p1].write(InBorderTriple + " .");
                                 outBuff[p1].newLine();
-                            }*/
+                            }
                         } else {
                             triple = triple + " .";
                             outBuff[n].write(triple);
@@ -427,12 +428,12 @@ public class Main3 {
         }
         System.out.println("done ");
     }
-/*
+
     private void setVertexVisted(long v) {
        VertexGraph vertexGraph = verticies.get(v);
        if(vertexGraph.dist == -1)
            vertexGraph.dist = -2;
-    }*/
+    }
 
     private void setDistVervtices(int maxDist) {
         distanceVertex = new HashMap();
@@ -510,10 +511,10 @@ public class Main3 {
             for (int i = 0; i < vertecesID.size(); i++) {
                 ArrayList<Vertex> ves = graph.get(vertecesID.get(i));
                 String str = buildVertixString(ves, vertecesID.get(i), weighting);
-      /*      if (str.matches("")){
+            if (str.matches("")){
                 System.err.println("error: empty line detected");
                 System.exit(1);
-            }*/
+            }
 
                 linesWrittenCount++;
                 bw.write(str);
@@ -563,7 +564,7 @@ public class Main3 {
                 if (vees.get(i).e == -1) {
                     ArrayList<Vertex> other = this.graph.get(vees.get(i).v);
                     if (other == null) {
-                        System.err.println("error getting other Vertex list");
+                        System.err.println("error getting other triple.Vertex list");
                         System.exit(0);
                     }
 
@@ -594,12 +595,12 @@ public class Main3 {
                 weightStr = weight + "";
                 tempIntToStringMap.put((long) weight, weightStr);
             }
-            /*
+
             String destVertexID = tempIntToStringMap.get(vees.get(i).v);
             if(destVertexID == null) {
                 destVertexID =  vees.get(i).v + "" ;
                 tempIntToStringMap.put(vees.get(i).v, destVertexID);
-            }*/
+            }
             String destVertexID = vees.get(i).v + "";
             if (first)
                 // res = destVertexID + " " + weightStr + "";
@@ -800,7 +801,7 @@ public class Main3 {
         } finally {
             LineIterator.closeQuietly(it);
         }
-//        ArrayList<Vertex> vv = graph.get(vertecesID.get(3));
+//        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
 
@@ -840,11 +841,11 @@ public class Main3 {
         for (int i = 0; i < 50; i++) {
             System.out.println();
         }
-       /* try {
+        try {
             Runtime.getRuntime().exec("clear");
         } catch (IOException e) {
             e.printStackTrace();
-        }*/
+        }
         for (int i = 0; i < printBuffer.size(); i++) {
             System.out.println(printBuffer.get(i));
         }
@@ -945,7 +946,7 @@ public class Main3 {
                     to = line.lastIndexOf(">") + 1;
                     triple[2] = line.substring(from, to);
                 }
-                /*
+
                 if (line.contains("<") && !line.trim().startsWith("<")) {
                     from = line.lastIndexOf("<");
                     to = line.lastIndexOf(">") + 1;
@@ -954,7 +955,7 @@ public class Main3 {
                     from = line.indexOf('\"');
                     to = line.lastIndexOf('.');
                     triple[2] = line.substring(from, to + 1);
-                }*/
+                }
 
                 //triple[1] = line.replaceFirst(triple[2], "");
                 triple[1] = line.substring(0, from);
@@ -1084,12 +1085,12 @@ public class Main3 {
                     else
                         return null;
                 }
-                /*else {
+                else {
                     from = line.indexOf("<");
                     to = line.indexOf(">");
                     triple[2] = line.substring(from, to + 1);
                     line = line.replace(triple[2], "");
-                }*/
+                }
                 triple[2] = triple[2] + '.';
 
             } catch (StringIndexOutOfBoundsException e) {
@@ -1276,13 +1277,13 @@ public class Main3 {
                     String key = s + "" + p1 + "" + p2;
                     addToIndex(SPxP, triple1, key);
                     addToIndex(SPxP, triple2, key);
-                        /*
+
                         ArrayList<Triple> tripleList = SPxP.get(key);
                         if(tripleList == null)
                             tripleList = new ArrayList();
                         tripleList.add(triple1);
                         tripleList.add(triple2);
-                        SPxP.put(key , tripleList);*/
+                        SPxP.put(key , tripleList);
                 }
             }
         }
@@ -1375,7 +1376,7 @@ public class Main3 {
             ArrayList<Triple> fragmentTriples = annomizedTriple.fragment.triples;
             int partutPartition = annomizedTriple.partutAssignedPartition;
             for (int j = 0; j < fragmentTriples.size(); j++) {
-             /*  boolean isAlreadyBorder =  borderCodesPartutMap.get(fragmentTriples.get(j).triples[0]) != null;
+               boolean isAlreadyBorder =  borderCodesPartutMap.get(fragmentTriples.get(j).triples[0]) != null;
                if(isAlreadyBorder)
                    continue;
                VertexGraph srcVertex = this.verticies.get(fragmentTriples.get(j).triples[0]) ;
@@ -1387,7 +1388,7 @@ public class Main3 {
                }else if(foundPartition != annomizedTriple.partutAssignedPartition ){
                    borderCodesPartutMap.put(fragmentTriples.get(j).triples[0] , fragmentTriples.get(j).triples[0]);
                }
-               */
+
                 String tripleLine = reverseDictionary.get(fragmentTriples.get(j).triples[0]) + " " + reverseDictionary.get(fragmentTriples.get(j).triples[1]) + " " + reverseDictionary.get(fragmentTriples.get(j).triples[2]) + " .";
                 tripleToPartutPartitionMap.put(fragmentTriples.get(j).triples[0] + "p" + fragmentTriples.get(j).triples[1] + "p" + fragmentTriples.get(j).triples[2], partutPartition);
 
@@ -1607,17 +1608,18 @@ public class Main3 {
 
 
     private void listenToQuery() {
-        /*
+
         long a = 2;
         dictionary = new HashMap();
             dictionary.put("<http://mpii.de/yago/resource/describes>",a++);
             dictionary.put("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>",a++);
             dictionary.put("<http://www.w3.org/2000/01/rdf-schema#subClassOf>",a++);
             dictionary.put("<http://mpii.de/yago/resource/isPartOf>",a++);
-            dictionary.put("<http://mpii.de/yago/resource/wordnet_transportation_system_104473432>",a++);*/
+            dictionary.put("<http://mpii.de/yago/resource/wordnet_transportation_system_104473432>",a++);
 
 
-        System.out.println("Please enter Sparql Query:");
+        System.out.println("Please enter Sparql Query:  please remove the commented part fist");
+
         Scanner scanner = new Scanner(System.in);
         while (true) {
             String query = scanner.nextLine();
@@ -1634,6 +1636,5 @@ public class Main3 {
             spQuery.printAnswers(reverseDictionary);
         }
     }
-
-
+*/
 }

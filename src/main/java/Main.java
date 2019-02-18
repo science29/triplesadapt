@@ -1,6 +1,7 @@
 import triple.Triple;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import triple.Vertex;
 
 
 import java.io.*;
@@ -10,7 +11,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class Main {
 
-    private HashMap<Long, ArrayList<Vertex>> graph = new HashMap();
+   /* private HashMap<Long, ArrayList<Vertex>> graph = new HashMap();
 
     private HashMap<Long, ArrayList<Triple>> tripleGraph = new HashMap();//duplicate with graph , remove one!
     private ArrayList<Long> vertecesID = new ArrayList();
@@ -201,9 +202,9 @@ public class Main {
                         int p1 = verticies.get(v.get(i).v).partitionNumber;
                         int p2 = verticies.get(count).partitionNumber;
 
-                        /*if(p1 == -1 || p2 == -1)
+                        *//*if(p1 == -1 || p2 == -1)
                             break;
-                        if (p1 != p2)*/
+                        if (p1 != p2)*//*
                         boolean bsource = false;//isBorder(count);
                         boolean bdest = v.get(i).isBorder;//isBorder(v.get(i).v);
                         if (bsource || bdest) {
@@ -215,11 +216,11 @@ public class Main {
                             out_ext_list[n].add(triple);
                             compressed_ext_list[n].add(triple);
                             boolean added = verticies.get(v.get(i).v).addLinkInPartition(p2);
-                           /* if (added && reverseDictionary.get(v.get(i).v).contains("<") && reverseDictionary.get(v.get(i).v).contains(">")) {
+                           *//* if (added && reverseDictionary.get(v.get(i).v).contains("<") && reverseDictionary.get(v.get(i).v).contains(">")) {
                                 String InBorderTriple = reverseDictionary.get(v.get(i).v) + " " + "x:isRefferedBy" + " " + "\"" + p2 + "\"";
                                 outBuff[p1].write(InBorderTriple + " .");
                                 outBuff[p1].newLine();
-                            }*/
+                            }*//*
                         } else {
                             triple = triple + " .";
                             outBuff[n].write(triple);
@@ -389,12 +390,12 @@ public class Main {
         }
         System.out.println("done ");
     }
-/*
+*//*
     private void setVertexVisted(long v) {
        VertexGraph vertexGraph = verticies.get(v);
        if(vertexGraph.dist == -1)
            vertexGraph.dist = -2;
-    }*/
+    }*//*
 
     private void setDistVervtices(int maxDist) {
         distanceVertex = new HashMap();
@@ -472,10 +473,10 @@ public class Main {
             for (int i = 0; i < vertecesID.size(); i++) {
                 ArrayList<Vertex> ves = graph.get(vertecesID.get(i));
                 String str = buildVertixString(ves, vertecesID.get(i), weighting);
-      /*      if (str.matches("")){
+      *//*      if (str.matches("")){
                 System.err.println("error: empty line detected");
                 System.exit(1);
-            }*/
+            }*//*
 
                 linesWrittenCount++;
                 bw.write(str);
@@ -548,12 +549,12 @@ public class Main {
                 weightStr = weight + "";
                 tempIntToStringMap.put((long) weight, weightStr);
             }
-            /*
+            *//*
             String destVertexID = tempIntToStringMap.get(vees.get(i).v);
             if(destVertexID == null) {
                 destVertexID =  vees.get(i).v + "" ;
                 tempIntToStringMap.put(vees.get(i).v, destVertexID);
-            }*/
+            }*//*
             String destVertexID = vees.get(i).v + "";
             if (first)
                 // res = destVertexID + " " + weightStr + "";
@@ -1019,7 +1020,7 @@ public class Main {
             ArrayList<Triple> fragmentTriples = annomizedTriple.fragment.triples;
             int partutPartition = annomizedTriple.partutAssignedPartition;
             for (int j = 0; j < fragmentTriples.size(); j++) {
-             /*  boolean isAlreadyBorder =  borderCodesPartutMap.get(fragmentTriples.get(j).triples[0]) != null;
+             *//*  boolean isAlreadyBorder =  borderCodesPartutMap.get(fragmentTriples.get(j).triples[0]) != null;
                if(isAlreadyBorder)
                    continue;
                VertexGraph srcVertex = this.verticies.get(fragmentTriples.get(j).triples[0]) ;
@@ -1031,7 +1032,7 @@ public class Main {
                }else if(foundPartition != annomizedTriple.partutAssignedPartition ){
                    borderCodesPartutMap.put(fragmentTriples.get(j).triples[0] , fragmentTriples.get(j).triples[0]);
                }
-               */
+               *//*
                 String tripleLine = reverseDictionary.get(fragmentTriples.get(j).triples[0]) + " " + reverseDictionary.get(fragmentTriples.get(j).triples[1]) + " " + reverseDictionary.get(fragmentTriples.get(j).triples[2]) + " .";
                 tripleToPartutPartitionMap.put(fragmentTriples.get(j).triples[0] + "p" + fragmentTriples.get(j).triples[1] + "p" + fragmentTriples.get(j).triples[2], partutPartition);
 
@@ -1223,5 +1224,5 @@ public class Main {
 
 
     }
-
+*/
 }

@@ -140,8 +140,36 @@ public class QueryGenrator {
 
     }
 
-    public static ArrayList<String> buildFastHeavyQuery(MyHashMap<String , ArrayList<Triple>> OPxP, HashMap<Long , ArrayList<Triple>> OPS , long max_id , HashMap<Long,String > reverseDicitionary){
+    public static ArrayList<String> buildFastHeavyQuery(MyHashMap<String, ArrayList<Triple>> OPxP, HashMap<Long, ArrayList<Triple>> OPS, long max_id, HashMap<Long, String> reverseDicitionary, ArrayList<String> queryKeys){
+        if(queryKeys == null)
+            return null ;
         ArrayList<ArrayList<TriplePattern>> quereis = new ArrayList();
+
+        for(int j = 0 ; j<queryKeys.size() ; j++){
+            ArrayList<Triple> list =  OPxP.getArrayList( queryKeys.get(j));
+            ArrayList<TriplePattern> locTriplePatterns = new ArrayList();
+            for(int i=0 ; i < list.size() ; i+=2){
+                Triple triple1 = list.get(i);
+                Triple triple2 = list.get(i+1);
+                long s = triple2.triples[0];
+                ArrayList<Triple> list2 = OPS.get(s);
+                if(list2!=null){
+                    Triple triple3 = list2.get(0);
+                    TriplePattern triplePattern3 = new TriplePattern(-3,triple3.triples[1],-2);
+                    TriplePattern triplePattern2 = new TriplePattern(-2,triple2.triples[1],-1);
+                    TriplePattern triplePattern1 = new TriplePattern(-1,triple1.triples[1],triple1.triples[2]);
+                    String tkey = triple1.triples[2]+""+triple1.triples[1]+""+triple2.triples[1];
+                    ArrayList<Triple> listtt = OPxP.get(tkey);
+                    triplePattern1.tempID = tkey;triplePattern2.tempID = tkey;triplePattern3.tempID = tkey;
+                    locTriplePatterns.add(triplePattern1);
+                    locTriplePatterns.add(triplePattern2);
+                    locTriplePatterns.add(triplePattern3);
+                    quereis.add(locTriplePatterns);
+                    break;
+                }
+            }
+        }
+        /*
         Iterator it = OPxP.entrySet().iterator();
         while(it.hasNext()){
             ArrayList<TriplePattern> locTriplePatterns = new ArrayList();
@@ -169,11 +197,11 @@ public class QueryGenrator {
                     break;
                 }
             }
-        }
-        ArrayList<String> quereisStrList = new ArrayList();
-        for(int jj = 0 ; jj<50 ; jj++) {
-            int ch = new Random().nextInt(quereis.size()) + 1;
-            ArrayList<TriplePattern> triplePatterns = quereis.get(ch);
+        }*/
+       ArrayList<String> quereisStrList = new ArrayList();
+        for(int jj = 0 ; jj<quereis.size() ; jj++) {
+         //   int ch = new Random().nextInt(quereis.size()) + 1;
+            ArrayList<TriplePattern> triplePatterns = quereis.get(jj);
             String vars = "?x1 ?x2 ?x3 ?x4 ";
             String predicates = "?x1 " + reverseDicitionary.get(triplePatterns.get(2).triples[1]) + " ?x2.";
             predicates += "?x2 " + reverseDicitionary.get(triplePatterns.get(1).triples[1]) + " ?x3.";
@@ -196,7 +224,7 @@ public class QueryGenrator {
         toProcess.add(stratingNode);
         while(toProcess.size() > 0 && resultedVertices.size() < numberOfNodes) {
             Long toProcessVertex = toProcess.remove();
-            ArrayList<Vertex> v = graph.get(toProcessVertex);
+            ArrayList<triple.Vertex> v = graph.get(toProcessVertex);
             int currentMaxEdges = new Random().nextInt(maxNumberofEdges) + 1;
             resultedVertices.add(toProcessVertex);
             Random ran = new Random();

@@ -1,5 +1,7 @@
+import index.VertexGraphIndex;
 import triple.Triple;
 import triple.TriplePattern;
+import triple.Vertex;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -134,7 +136,7 @@ public class GlobalQueryGraph {
         return annomizedTriples;
     }
 
-    public static void setDynamicWeights(ArrayList<Query> queries, HashMap<Long, ArrayList<Triple>> tripleGraph, HashMap<Long, ArrayList<Vertex>> graph, HashMap<Long, ArrayList<Triple>> POS) {
+    public static void setDynamicWeights(ArrayList<Query> queries, HashMap<Long, ArrayList<Triple>> tripleGraph, VertexGraphIndex graph, HashMap<Long, ArrayList<Triple>> POS) {
        for(int i=0 ; i<queries.size() ; i++){
           Query query = queries.get(i);
           try {

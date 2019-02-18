@@ -1,3 +1,5 @@
+package triple;
+
 public class Vertex {
 
 

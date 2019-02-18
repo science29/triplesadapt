@@ -1,9 +1,9 @@
-import index.IndexCollection;
-import index.IndexType;
+import index.*;
+import index.Dictionary;
 import triple.Triple;
-import index.MyHashMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import triple.Vertex;
 
 import java.io.*;
 import java.util.*;
@@ -13,12 +13,12 @@ import java.util.regex.PatternSyntaxException;
 public class Main2 {
 
     private static final long BASE_PREDICATE_CODE = 1000000000;
-    private HashMap<Long, ArrayList<Vertex>> graph = new HashMap();
+    private VertexGraphIndex graph = new VertexGraphIndex("graph");
 
     private HashMap<Long, ArrayList<Triple>> tripleGraph = new HashMap();//duplicate with graph , remove one!
     private ArrayList<Long> vertecesID = new ArrayList();
     private HashMap<Long, VertexGraph> verticies;
-    private HashMap<String, Long> dictionary = new HashMap();
+    private Dictionary dictionary = new Dictionary("dictionary");
     private HashMap<Long, String> reverseDictionary = new HashMap();
     private HashMap<Integer, ArrayList<VertexGraph>> distanceVertex;
     private HashMap<Long, Long> PredicatesAsSubject;
@@ -49,7 +49,7 @@ public class Main2 {
     final static boolean includeFragments = true;
     final static boolean quad = false;
     //final static String dataSetPath = "/home/ahmed/download/btc-data-3.nq";
-    final static String dataSetPath =  "/home/keg/Desktop/BTC/btc_small.n3"; //  "/home/keg/Desktop/BTC/btc-2009-filtered.n3";  ////"../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
+    final static String dataSetPath = "/home/keg/Desktop/BTC/btc-2009-filtered.n3";// "/home/keg/Desktop/BTC/btc_small.n3";   ////"../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
     // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
     private IndexCollection indexCollection;
@@ -60,7 +60,9 @@ public class Main2 {
 
         System.out.println("starting ..");
         Main2 o = new Main2();
-      o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-60", "/home/keg/Desktop/BTC/btc_small.n3" , true);
+        //o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
+    /*    o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-60", "/home/keg/Desktop/BTC/btc-2009-filtered.n3" , true);
+        o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-70", "/home/keg/Desktop/BTC/btc-2009-filtered.n3" , true);
         System.out.println("done converting..");
         byte[] a = new byte[1000];
         try {
@@ -71,7 +73,7 @@ public class Main2 {
 
         o.openIndexes();
         o.buildOppIndex();
-
+*/
 
         //""
         // "/home/ahmed/download/yago2_core_20101206.n3"
@@ -85,7 +87,7 @@ public class Main2 {
         System.out.println("building extra indexes OPxPs .. ");
         o.buildOppIndex();
         System.out.println("generating queries .. ");
-        ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary);
+        ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary,o.queryKeys);
         ArrayList<Query> queries = o.generateQueries();
 
         System.out.println("Writting queries to file");
@@ -577,7 +579,7 @@ public class Main2 {
                 if (vees.get(i).e == -1) {
                     ArrayList<Vertex> other = this.graph.get(vees.get(i).v);
                     if (other == null) {
-                        System.err.println("error getting other Vertex list");
+                        System.err.println("error getting other triple.Vertex list");
                         System.exit(0);
                     }
 
@@ -647,8 +649,6 @@ public class Main2 {
     public void porcess(String filePath, boolean quad) {
         tripleToPartutPartitionMap = new HashMap();
         header = new ArrayList();
-        if (verticies == null)
-            verticies = new HashMap();
         PredicatesAsSubject = new HashMap();
         long[] code = new long[3];
         long nextCode = 1;
@@ -667,18 +667,22 @@ public class Main2 {
         int duplicateCount = 0;
         try {
             int count = 0;
-            while (it.hasNext() && count < 1000000) {
+            while (it.hasNext()) {
                 String lineTemp;
                 if (count % 100000 == 0 || count == 2082) {
                     if (count == 0)
-                        printBuffer(0, "processing line " + count);
+                        printBuffer(0, "processing line " + count/1000 +" k");
                     else
-                        printBuffer(1, "processing line " + count);
+                        printBuffer(1, "processing line " + count/1000 +" k");
 
                 }
                 count++;
-                if (count == 543464)
-                    count++;
+                if (count % 10000000 == 0) {
+                    System.out.println("writing to diskDb");
+              //      writeTempIndex(tempop_S,op_S);
+             //       tempop_S = new HashMap<String, ArrayList<Triple>>();
+             //       op_S.commitToDisk();
+                }
                 String line = it.nextLine();
                 if (line.startsWith("@")) {
                     if (line.startsWith("@base"))
@@ -762,22 +766,7 @@ public class Main2 {
                 if (ignoreFlag)
                     continue;
                 try {
-                    //this code to create an extra graph vertex which should be used in the graph algo, obviously this is redenednt situ to the created vertext in the latter code block
-                    VertexGraph savedVertex = verticies.get(code[0]);
-                    if (savedVertex == null) {
-                        savedVertex = new VertexGraph(code[0]);
-                        verticies.put(code[0], savedVertex);
-                    }
-                    savedVertex.addEdge(code[2], code[1]);
-                    if (verticies.get(code[2]) == null)
-                        verticies.put(code[2], new VertexGraph(code[2]));
-                    //end of grpah vertex creation
-
-
-                    if (verticies.get(code[2]).edgesVertex.size() > 0)
-                        savedVertex.edgesVertex.size();
-
-
+                   /// addToVertexGraph(code);
                     v = graph.get(code[0]);
                     boolean duplicateFlag = false;
                     for (int i = 0; i < v.size(); i++)
@@ -804,25 +793,26 @@ public class Main2 {
                     tripleToPartutPartitionMap.put(code[0] + "p" + code[1] + "p" + code[2], -1);
                 }
 
-                addToPOSIndex(tripleObj);
-                addToSPOIndex(tripleObj);
-                addToOPSIndex(tripleObj);
+      //          addToPOSIndex(tripleObj);
+      //          addToSPOIndex(tripleObj);
+      //          addToOPSIndex(tripleObj);
 
                 //addTosp_OIndex(tripleObj);
 
-                addToOp_SIndex(tripleObj);
+     //           addToOp_SIndex(tripleObj);
             }
         } finally {
             LineIterator.closeQuietly(it);
         }
-        op_S.close();
+       // op_S.close();
 
-//        ArrayList<Vertex> vv = graph.get(vertecesID.get(3));
+//        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
 
         System.out.println(" the total vetrices = " + verticies.size() + " max code = " + nextCode);
         writeTempIndex(tempop_S,op_S);
+        tempop_S = new HashMap<String, ArrayList<Triple>>();
         indexCollection = new IndexCollection();
   //      indexCollection.addIndex(SPO, new IndexType(1,0,0));
   //      indexCollection.addIndex(OPS, new IndexType(1,1,0));
@@ -830,6 +820,21 @@ public class Main2 {
   //      indexCollection.addIndexStringKey(op_S, new IndexType(1,0,1));
 
 
+    }
+
+    private void addToVertexGraph(long [] code){
+        if(verticies == null)
+            verticies = new HashMap<Long, VertexGraph>();
+        //this code to create an extra graph vertex which should be used in the graph algo, obviously this is redenednt situ to the created vertext in the latter code block
+        VertexGraph savedVertex = verticies.get(code[0]);
+        if (savedVertex == null) {
+            savedVertex = new VertexGraph(code[0]);
+            verticies.put(code[0], savedVertex);
+        }
+        savedVertex.addEdge(code[2], code[1]);
+        if (verticies.get(code[2]) == null)
+            verticies.put(code[2], new VertexGraph(code[2]));
+        //end of grpah vertex creation
     }
 
     private void printIndexesStat(){
@@ -899,7 +904,7 @@ public class Main2 {
     private void readDictioanry() {
 
         System.out.println("reading dictionary from temp file");
-        dictionary = new HashMap();
+        dictionary = new Dictionary("dictionary");
         reverseDictionary = new HashMap();
         File file = new File("/home/ahmed/download/dictionary_temp.n3");
         LineIterator it = null;
@@ -1348,6 +1353,7 @@ public class Main2 {
                     Triple triple2 = list2.get(j);
                     long P2 = triple2.triples[1];
                     String key = O + "" + P1 + "" + P2;
+                    addToQueryCandidate(key);
                     addToIndexTemp(tempOPxP, triple1, key);
                     addToIndexTemp(tempOPxP, triple2, key);
                    // addToIndex(OPxP, triple1, key);
@@ -1361,9 +1367,20 @@ public class Main2 {
         }
         OPxP.setExtraIndexType(new IndexType(1,0,1));
         writeTempIndex(tempOPxP,OPxP);
+        tempOPxP = null;
         //  indexCollection.addIndexStringKey(OPxP , new IndexType(0,0,0));
     }
 
+
+    private ArrayList<String> queryKeys = new ArrayList<String>();
+    private void addToQueryCandidate(String key) {
+        if(queryKeys.size()>40)
+            return;
+        int ch = new Random().nextInt(100) + 1;
+        if(ch == 10)
+            queryKeys.add(key);
+
+    }
 
 
     //TODo iterate over file set also?
@@ -1697,6 +1714,8 @@ public class Main2 {
             String query = scanner.nextLine();
             if (query.matches("e")) {
                 System.out.println("Exiting query system..");
+                finish();
+                System.out.println("done ..");
                 return;
             }
             long startTime = System.nanoTime();
@@ -1707,6 +1726,11 @@ public class Main2 {
             System.out.println("time to execute qeury:" + elapsedTime +" micro seconds");
             spQuery.printAnswers(reverseDictionary);
         }
+    }
+
+    private void finish() {
+        OPxP.close();
+        op_S.close();
     }
 
 

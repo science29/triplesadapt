@@ -146,7 +146,7 @@ public class QueryGenrator {
         toProcess.add(stratingNode);
         while(toProcess.size() > 0 && resultedVertices.size() < numberOfNodes) {
             Long toProcessVertex = toProcess.remove();
-            ArrayList<Vertex> v = graph.get(toProcessVertex);
+            ArrayList<triple.Vertex> v = graph.get(toProcessVertex);
             int currentMaxEdges = new Random().nextInt(maxNumberofEdges) + 1;
             resultedVertices.add(toProcessVertex);
             Random ran = new Random();
