@@ -48,8 +48,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     private final String HOME_DIR = "/home/ahmed/";
     private DB dbMemory;
-    private boolean comressEnabled = true;
-    private boolean cacheEnabled = false;
+    private boolean comressEnabled = false;
+    private boolean cacheEnabled = true;
 
 
     //   private int avgElemSize = 1 ;
@@ -64,6 +64,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         this.fileName = fileName;
         this.indexType = new IndexType();
         maxAllowedRamSize = MAX_SIZE_GB;
+        comressEnabled = false;
     }
 
     public MyHashMap(String fileName,double memSizeGB){
@@ -77,6 +78,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         this.fileName = fileName;
         this.indexType = new IndexType();
         this.maxAllowedRamSize = GB * memSizeGB;
+        comressEnabled = false;
     }
 
     public MyHashMap(String fileName, IndexType indexType) {
@@ -90,6 +92,28 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         this.fileName = fileName;
         this.indexType = indexType;
         maxAllowedRamSize = MAX_SIZE_GB;
+        if(indexType.keyType[0]+indexType.keyType[1]+indexType.keyType[2] == 1)
+            comressEnabled = true;
+        else
+            comressEnabled = false;
+    }
+
+    public MyHashMap(String fileName, IndexType indexType , boolean cacheEnabled) {
+        super();
+        try {
+            fileHashMap = new FileHashMap(HOME_DIR+fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        hashMap = new HashMap();
+        this.fileName = fileName;
+        this.indexType = indexType;
+        maxAllowedRamSize = MAX_SIZE_GB;
+        this.cacheEnabled = cacheEnabled;
+        if(indexType.keyType[0]+indexType.keyType[1]+indexType.keyType[2] == 1)
+            comressEnabled = true;
+        else
+            comressEnabled = false;
     }
 
 
@@ -162,7 +186,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         if(fastFileMapString != null) {
             String value = fastFileMapString.get(key);
             if (value == null)
-                return null;
+                return getFromCache(key);
             ArrayList<Triple> tarr;
             if(value.startsWith("c")) {
                 if(extraIndexType == null)
@@ -192,13 +216,15 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         if (backupFileHashMap != null) {
             String value = (String) backupFileHashMap.get(key);
             if(value == null)
-                return null;
+                return getFromCache(key);
             ArrayList<Triple> tarr = getArrayList(value);
             return (V) tarr;
         }
         return fileHashMap.get(key);
 
     }
+
+
 
     public static ArrayList<Triple> deSerializeArrayList(String value) {
         ArrayList <Triple> tarr = new ArrayList();
@@ -231,13 +257,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         //todo fix this
         if(diskMemPut)
             fileHashMap.put(key, value);
-        if(cacheEnabled){
-            hashMap.put(key, value);
-            if(hashMap.size() > 2000000){
-                writeCacheToPersist();
-                hashMap = new HashMap<K, V>();
-            }
-        }
+
+        if(addToCache(key,value))
+            return value;
         /*
         if (elemSize * hashMap.size() < maxAllowedRamSize)
             return hashMap.put(key, value);*/
@@ -248,7 +270,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 if(comressEnabled && tarr.size() > 100){
                     if(extraIndexType == null) {
                         serilaizedArray = compress(tarr);
-                        tempCheck(tarr, deCompress(serilaizedArray));
+                      //  tempCheck(tarr, deCompress(serilaizedArray));
                     }
                     else {
                         serilaizedArray = serializeArrayList(tarr);
@@ -261,13 +283,12 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 }else
                     serilaizedArray = serializeArrayList(tarr);
                 if(fastFileMapString == null){
-                    File file = new File(HOME_DIR + fileName + "db.db");
+                   /* File file = new File(HOME_DIR + fileName + "db.db");
                     if(file.exists())
-                        file.delete();
+                        file.delete();*/
                     org.mapdb.Serializer<K> keyType = findTypeKey(key);
                     org.mapdb.Serializer<V> valType = (Serializer<V>) Serializer.STRING;
                     fastFileMapString = createFastFileMap(keyType , valType);
-
 
                 }
                 if(fastFileMapString != null) {
@@ -301,14 +322,85 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     }
 
-    private void writeCacheToPersist() {
+    private V putArrayList(K key , ArrayList<Triple> tarr , boolean append){
+        if (tarr.size() > 0 && tarr.get(0) instanceof Triple) {
+            String serilaizedArray = "";
+            if (comressEnabled && tarr.size() > 100) {
+                if (extraIndexType == null) {
+                    serilaizedArray = compress(tarr);
+                    //  tempCheck(tarr, deCompress(serilaizedArray));
+                } else {
+                    serilaizedArray = serializeArrayList(tarr);
+                        /*serilaizedArray = specialCompress(tarr);
+                        tempCheck(tarr,specialDeCompress(serilaizedArray));*/
+                }
+
+                // if(serilaizedArray.contains(":"))
+
+            } else
+                serilaizedArray = serializeArrayList(tarr);
+            if (fastFileMapString == null) {
+                org.mapdb.Serializer<K> keyType = findTypeKey(key);
+                org.mapdb.Serializer<V> valType = (Serializer<V>) Serializer.STRING;
+                fastFileMapString = createFastFileMap(keyType, valType);
+            }
+            if (fastFileMapString != null) {
+                if(!append)
+                    return (V) fastFileMapString.put(key, serilaizedArray);
+                String val = fastFileMapString.get(key);
+                if(val == null)
+                    return (V) fastFileMapString.put(key, serilaizedArray);
+                val = val +ELEME_SEPERATOR+serilaizedArray;xxx
+            }
+        }
+            return null;
+        }
+
+
+
+    private V getFromCache(Object key) {
+        if(cacheEnabled)
+            return hashMap.get(key);
+        return null;
+    }
+
+    private boolean addToCache(K key ,V value){
+        if(cacheEnabled){
+            hashMap.put(key, value);
+            if(hashMap.size() > 1000000){
+                writeCacheToPersist();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void addTripletoList(Long key, Triple triple) {
+        V val = getFromCache(key);
+        if(val != null){
+            ArrayList<Triple>  arr = (ArrayList<Triple>) val;
+            arr.add(triple);
+        }else {
+            ArrayList<Triple> arr =new ArrayList<Triple>();
+            arr.add(triple);
+            put((K) key , (V)arr);
+        }
+    }
+
+    public void writeCacheToPersist() {
+        if(hashMap == null || !cacheEnabled)
+            return;
+        System.out.println("writing "+fileName+" cache ..");
+        cacheEnabled = false;
         Iterator it = hashMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            String key = (String) pair.getKey();
-            ArrayList val = (ArrayList) pair.getValue();
-          //  persist.put(key , val);xx
+            K key = (K) pair.getKey();
+            V val = (V) pair.getValue();
+            put(key , val);
         }
+        hashMap = new HashMap<K, V>();
+        cacheEnabled = true;
     }
 
     public static String serializeArrayList(ArrayList<Triple> tarr){
@@ -456,7 +548,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             res.add(list1.get(i));
             res.add(list2.get(i));
         }
-        tempCheck(list, res);
+      /*  tempCheck(list, res);
 
         String s1 = compress(list1 );
         this.s1 = s1;
@@ -465,7 +557,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         this.s2 = s2;
         tempCheck(list2, deSerializeArrayList(s2));
         String st = s1+"n"+s2;
-        tempCheck(list,specialDeCompress(st));
+        tempCheck(list,specialDeCompress(st));*/
         return s1+"n"+s2;
     }
 
@@ -487,8 +579,21 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     }
 
     private ArrayList<Triple> deCompress(String record){
+        return deCompress(record,null);
+    }
+    private ArrayList<Triple> deCompress(String record ,  ArrayList<Triple> resLsit){
         if(!record.startsWith("c"))
             return null;
+
+        //first solve the case of more than one compressed arrays
+        String [] compressedRecordArrs  = record.split("k");
+        if(compressedRecordArrs.length > 1) {
+            resLsit = new ArrayList<Triple>();
+            for (int p = 0; p < compressedRecordArrs.length; p++) {
+                deCompress(compressedRecordArrs[p], resLsit);
+            }
+            return resLsit;
+        }
 
         int uIndex = -1;
         int firstFixedIndex = -1;
@@ -505,7 +610,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         }
         String [] arrIni = record.split("c");
         Triple triple = new Triple(Long.valueOf(arrIni[1]) , Long.valueOf(arrIni[2]) ,Long.valueOf(arrIni[3]));
-        ArrayList<Triple> resLsit = new ArrayList<Triple>();
+        if(resLsit == null)
+            resLsit = new ArrayList<Triple>();
         resLsit.add(triple);
         String [] arr = record.split("a");
         long base = triple.triples[uIndex];
@@ -537,20 +643,25 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     public void close(){
         try {
-            if (dbFile != null)
+            if (dbFile != null) {
+                dbFile.commit();
                 dbFile.close();
-            if (dbMemory != null)
+            }
+            if (dbMemory != null) {
+                dbMemory.commit();
                 dbMemory.close();
+            }
         }catch (Exception e){
             e.printStackTrace();
         }
     }
 
+
     private HTreeMap createFastFileMap(Serializer<K> keyType , Serializer<V> valType ) {
         File file = new File(HOME_DIR + fileName + "db.db");
-       if (file.exists())
-            file.delete();
-       if(dbFile == null) {
+       /*if (file.exists())
+            file.delete();*/
+       if(dbFile == null|| dbFile.isClosed()) {
             dbFile = DBMaker
                     .fileDB(file)
                     .fileMmapEnable()
@@ -558,7 +669,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                     .allocateIncrement(100 * 1024*1024)
                     .make();
         }
-        if(dbMemory == null) {
+        if(dbMemory == null || dbMemory.isClosed()) {
             dbMemory = DBMaker
                     .memoryDB()
                     .make();
@@ -568,7 +679,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         // Big map populated with data expired from cache
       HTreeMap onDisk = dbFile
                 .hashMap("onDisk"+fileName,keyType,valType)
-                .create();
+                .createOrOpen();
             // fast in-memory collection with limited size
         HTreeMap inMemory = dbMemory
                 .hashMap("inMemory"+fileName ,keyType,valType)
@@ -577,9 +688,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 .expireOverflow(onDisk)
                 //good idea is to enable background expiration
                 .expireExecutor(Executors.newScheduledThreadPool(2))
-                .create();
+                .createOrOpen();
 
-        return  inMemory;
+        return  onDisk;
  /*
           if (keyType != null && valType != null) {
             dbFile = DBMaker
@@ -597,7 +708,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     public void commitToDisk(){
         dbMemory.commit();
         dbFile.commit();
-        fastFileMapString.clear();
+        fastFileMapString = null;
     }
 
     private Serializer<K> findTypeKey(K obj) {
@@ -671,6 +782,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         this.extraIndexType = extraIndexType;
     }
 
-    
+
+
 }
 

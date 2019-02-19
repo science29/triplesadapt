@@ -53,6 +53,7 @@ public class Main2 {
     // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
     private IndexCollection indexCollection;
+    private long skipToLine = 49500000;
 
 
     public static void main(String[] args) {
@@ -653,6 +654,7 @@ public class Main2 {
     ArrayList<String> header;
 
     public void porcess(ArrayList<String> filePathList, boolean quad) {
+        long test = 0;
         tripleToPartutPartitionMap = new HashMap();
         header = new ArrayList();
         PredicatesAsSubject = new HashMap();
@@ -675,6 +677,12 @@ public class Main2 {
                 int count = 0;
                 while (it.hasNext()) {
                     if (count % 100000 == 0 || count == 2082) {
+                        File stopFile = new File("/home/ahmed/stop");
+                        if(stopFile.exists()){
+                            System.out.println("stop file detected, stopping ..");
+                            finish();
+                            System.exit(0);
+                        }
                         if (count == 0)
                             printBuffer(0, k+" processing line " + count / 1000 + " k");
                         else
@@ -682,12 +690,6 @@ public class Main2 {
 
                     }
                     count++;
-                    if (count % 10000000 == 0) {
-                        System.out.println("writing to diskDb");
-                             writeTempIndex(tempop_S,op_S);
-                               tempop_S = new HashMap<String, ArrayList<Triple>>();
-                               op_S.commitToDisk();
-                    }
                     String line = it.nextLine();
                     if (line.startsWith("@")) {
                         if (line.startsWith("@base"))
@@ -749,7 +751,8 @@ public class Main2 {
                             if (i != 1) {
                                 code[i] = nextCode;
                                 nextCode++;
-                                dictionary.put(triple[i], code[i]);
+                                if(count>=skipToLine )
+                                    dictionary.put(triple[i], code[i]);
                                 reverseDictionary.put(code[i], triple[i]);
                                 v = new ArrayList();
                                 vertecesID.add(code[i]);
@@ -758,7 +761,8 @@ public class Main2 {
                             } else {
                                 code[i] = nextPredicateCode;
                                 nextPredicateCode++;
-                                dictionary.put(triple[i], code[i]);
+                                if(count>=skipToLine )
+                                    dictionary.put(triple[i], code[i]);
                                 reverseDictionary.put(code[i], triple[i]);
                             }
                         }
@@ -775,6 +779,14 @@ public class Main2 {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    if(count<skipToLine )
+                        continue;
+                    if (count % 10000000 == 0) {
+                        System.out.println("writing to diskDb");
+                        writeTempIndex(tempop_S,op_S);
+                        tempop_S = new HashMap<String, ArrayList<Triple>>();
+                        op_S.commitToDisk();
+                    }
                     //build the tripe graph
                     Triple tripleObj = new Triple(code[0], code[1], code[2]);
                /* if (!tripleGraph.containsKey(code[0]))    seems like tripleGraph is the same as SPO, thus we dont need it
@@ -786,8 +798,12 @@ public class Main2 {
 
                     //          addToPOSIndex(tripleObj);
                     //           addToSPOIndex(tripleObj);
+                   // addToOPSIndex(new Triple(88,87,43));
+                   // ArrayList<Triple> test2 = OPS.get(new Long(2));
                     addToOPSIndex(tripleObj);
-
+                   // if(test == 0)
+                     //   test = code[2];
+                  //  ArrayList<Triple> test3 = OPS.get(test);
                     //addTosp_OIndex(tripleObj);
 
                     addToOp_SIndex(tripleObj);
@@ -1160,12 +1176,14 @@ public class Main2 {
 
     private void addToOp_SIndex(Triple triple) {
         if (op_S == null)
-            op_S = new MyHashMap("op_S",new IndexType(1,0,0));
+            op_S = new MyHashMap("op_S",new IndexType(1,0,0) , false);
         long code[] = triple.triples;
         String key = code[2] + "" + code[1];
         //addToIndex(op_S, triple, key);
         addToIndexTemp(tempop_S,triple,key);
     }
+
+
     private void writeTempIndex(HashMap temp , MyHashMap persist){
         Iterator it = temp.entrySet().iterator();
         while (it.hasNext()) {
@@ -1226,14 +1244,16 @@ public class Main2 {
     private void addToOPSIndex(Triple triple) {
         long code[] = triple.triples;
         if (OPS == null)
-            OPS = new MyHashMap("OPS");
+            OPS = new MyHashMap("OPS" , new IndexType(1,1,0) );
+        OPS.addTripletoList(code[2] , triple);
+        /*
         if (OPS.containsKey(code[2])) {
             OPS.get(code[2]).add(triple);
         } else {
             ArrayList<Triple> list = new ArrayList();
             list.add(triple);
             OPS.put(code[2], list);
-        }
+        }*/
     }
 
 
@@ -1745,8 +1765,10 @@ public class Main2 {
     }
 
     private void finish() {
+        OPS.close();
         OPxP.close();
         op_S.close();
+        dictionary.close();
     }
 
 
