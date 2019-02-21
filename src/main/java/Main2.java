@@ -19,7 +19,8 @@ public class Main2 {
     private ArrayList<Long> vertecesID = new ArrayList();
     private HashMap<Long, VertexGraph> verticies = new HashMap<Long, VertexGraph>();;
     private Dictionary dictionary = new Dictionary("dictionary");
-    private HashMap<Long, String> reverseDictionary = new HashMap();
+    //private HashMap<Long, String> reverseDictionary = new HashMap();
+    Dictionary reverseDictionary = dictionary;
     private HashMap<Integer, ArrayList<VertexGraph>> distanceVertex;
     private HashMap<Long, Long> PredicatesAsSubject;
     private long edgesCount = 0;
@@ -53,7 +54,7 @@ public class Main2 {
     // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
     private IndexCollection indexCollection;
-    private long skipToLine = 49500000;
+    private long skipToLine = 0;
 
 
     public static void main(String[] args) {
@@ -61,6 +62,7 @@ public class Main2 {
 
         System.out.println("starting ..");
         Main2 o = new Main2();
+
         //o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
         //13 14 9 2
    /*     o.convertNqToN3("/home/keg/Desktop/BTC/2/data.nq-", "/home/keg/Desktop/BTC/n3/btc-2.n3" , 0,15 ,1);
@@ -81,28 +83,48 @@ public class Main2 {
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
 
+try {
+    ArrayList<String> filePaths = new ArrayList<String>();
+    filePaths.add("/home/keg/Desktop/BTC/n3/btc-2.n3");
+    filePaths.add("/home/keg/Desktop/BTC/n3/btc-13.n3");
+    o.openIndexes();
+    o.buildOppIndex();
+    o.finish();
+    System.exit(0);
 
-        ArrayList<String> filePaths = new ArrayList<String>();
-        filePaths.add("/home/keg/Desktop/BTC/n3/btc-2.n3");
-        filePaths.add("/home/keg/Desktop/BTC/n3/btc-13.n3");
-        o.porcess(filePaths, quad);
-        //System.out.println("building extra indexes .. ");
-        //o.buildSppIndex();
-        System.out.println("building extra indexes OPxPs .. ");
-        o.buildOppIndex();
-        System.out.println("generating queries .. ");
-        ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary,o.queryKeys);
+    o.porcess(filePaths, quad);
+    //System.out.println("building extra indexes .. ");
+    //o.buildSppIndex();
+    System.out.println(" press any key to continue building extra indexes, press e to exit , press s to close indexes");
+    Scanner scanner = new Scanner(System.in);
+    String res = scanner.next();
+    if(res.matches("e")){
+        System.out.println("exiting ..");
+        o.finish();
+        System.exit(0);
+    }
+    if(res.matches("s")){
+        o.finish();
+    }
+    System.out.println("building extra indexes OPxPs .. ");
+    o.buildOppIndex();
+    System.out.println("generating queries .. ");
+    ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary, o.queryKeys);
 
-        o.writePalinQueriesToFile(HeaveyQueries);
-        o.printIndexesStat();
-        while (true) {
-            try {
-                o.listenToQuery();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
+    o.writePalinQueriesToFile(HeaveyQueries);
+    o.printIndexesStat();
+    while (true) {
+        try {
+            o.listenToQuery();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+    }
+}catch (Exception e){
+    e.printStackTrace();
+    o.finish();
+}
 
        /*  ArrayList<Query> queries = o.generateQueries();
 
@@ -150,14 +172,28 @@ public class Main2 {
 
     }
 
+
     private void openIndexes() {
         ArrayList<Triple> list = new ArrayList<Triple>();
         list.add(new Triple(0,0,0));
-        if (op_S == null)
-            op_S = new MyHashMap("op_S" , new IndexType(1,0,0));
-        op_S.open("",list);
-    }
 
+        if (OPS == null)
+            OPS = new MyHashMap("OPS" , new IndexType(1,1,0) );
+
+        OPS.open(new Long(5),list);
+
+  /*
+          if (op_S == null)
+            op_S = new MyHashMap("op_S" , new IndexType(1,0,0));
+
+        op_S.open(" ",list);
+
+    */
+
+
+        OPxP.setExtraIndexType(new IndexType(1,0,1));
+        OPxP.open(" ",list);
+    }
 
     private void setDynamicWeights(ArrayList<Query> queries) {
         GlobalQueryGraph.setDynamicWeights(queries, tripleGraph, graph, POS);
@@ -664,6 +700,7 @@ public class Main2 {
         Integer errCount = 0;
         Integer errSolved = 0;
         int duplicateCount = 0;
+        int count = 0;
         for(int k =0 ; k < filePathList.size() ; k++) {
             File file = new File(filePathList.get(k));
             LineIterator it = null;
@@ -674,8 +711,7 @@ public class Main2 {
                 return;
             }
             try {
-                int count = 0;
-                while (it.hasNext()) {
+                while (it.hasNext() /*&& count < 10000000*/) {
                     if (count % 100000 == 0 || count == 2082) {
                         File stopFile = new File("/home/ahmed/stop");
                         if(stopFile.exists()){
@@ -687,10 +723,13 @@ public class Main2 {
                             printBuffer(0, k+" processing line " + count / 1000 + " k");
                         else
                             printBuffer(1, k+" processing line " + count / 1000 + " k");
+                        checkMemory();
 
                     }
                     count++;
                     String line = it.nextLine();
+                    if(count < skipToLine)
+                        continue;
                     if (line.startsWith("@")) {
                         if (line.startsWith("@base"))
                             prefix.put("base", line.split(" ")[1]);
@@ -724,7 +763,8 @@ public class Main2 {
                                 if (!PredicatesAsSubject.containsKey(code[i])) {
                                     PredicatesAsSubject.put(code[i], nextCode);
                                     v = new ArrayList();
-                                    vertecesID.add(nextCode);
+                                    //TODO replace the verticesID list with iteration over reverse dictinary
+               ///                     vertecesID.add(nextCode);
                                     addToGraph(nextCode, v);
                                     //graph.put(nextCode, v);
                                     code[i] = nextCode;
@@ -751,19 +791,21 @@ public class Main2 {
                             if (i != 1) {
                                 code[i] = nextCode;
                                 nextCode++;
-                                if(count>=skipToLine )
+                                if(count>=skipToLine ) {
                                     dictionary.put(triple[i], code[i]);
-                                reverseDictionary.put(code[i], triple[i]);
+                                    reverseDictionary.put(code[i], triple[i]);
+                                }
                                 v = new ArrayList();
-                                vertecesID.add(code[i]);
+              ////                  vertecesID.add(code[i]);
                                 //graph.put(code[i], v);
                                 addToGraph(nextCode, v);
                             } else {
                                 code[i] = nextPredicateCode;
                                 nextPredicateCode++;
-                                if(count>=skipToLine )
+                                if(count>=skipToLine ) {
                                     dictionary.put(triple[i], code[i]);
-                                reverseDictionary.put(code[i], triple[i]);
+                                    reverseDictionary.put(code[i], triple[i]);
+                                }
                             }
                         }
                     }
@@ -779,13 +821,14 @@ public class Main2 {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    if(count<skipToLine )
+                    if(count < skipToLine )
                         continue;
                     if (count % 10000000 == 0) {
                         System.out.println("writing to diskDb");
                         writeTempIndex(tempop_S,op_S);
                         tempop_S = new HashMap<String, ArrayList<Triple>>();
-                        op_S.commitToDisk();
+                        if(op_S != null)
+                            op_S.commitToDisk();
                     }
                     //build the tripe graph
                     Triple tripleObj = new Triple(code[0], code[1], code[2]);
@@ -935,7 +978,7 @@ public class Main2 {
 
         System.out.println("reading dictionary from temp file");
         dictionary = new Dictionary("dictionary");
-        reverseDictionary = new HashMap();
+    //    reverseDictionary = new HashMap();
         File file = new File("/home/ahmed/download/dictionary_temp.n3");
         LineIterator it = null;
         try {
@@ -949,7 +992,7 @@ public class Main2 {
             String[] strArr = line.split(" powerx1983s ");
             Long key = Long.valueOf(strArr[1]);
             dictionary.put(strArr[0], key);
-            reverseDictionary.put(key, strArr[0]);
+          //  reverseDictionary.put(key, strArr[0]);
         }
         System.out.println("done");
     }
@@ -1179,8 +1222,9 @@ public class Main2 {
             op_S = new MyHashMap("op_S",new IndexType(1,0,0) , false);
         long code[] = triple.triples;
         String key = code[2] + "" + code[1];
+        op_S.addTripleLazy(key,triple);
         //addToIndex(op_S, triple, key);
-        addToIndexTemp(tempop_S,triple,key);
+        //addToIndexTemp(tempop_S,triple,key);
     }
 
 
@@ -1245,7 +1289,7 @@ public class Main2 {
         long code[] = triple.triples;
         if (OPS == null)
             OPS = new MyHashMap("OPS" , new IndexType(1,1,0) );
-        OPS.addTripletoList(code[2] , triple);
+        OPS.addTripleLazy(code[2] , triple);
         /*
         if (OPS.containsKey(code[2])) {
             OPS.get(code[2]).add(triple);
@@ -1264,6 +1308,8 @@ public class Main2 {
         return queries;
     }
 
+
+    /*
     private void putStringTripleInQueries(ArrayList<Query> queries) {
         for (int i = 0; i < queries.size(); i++) {
             queries.get(i).findStringTriple(reverseDictionary);
@@ -1271,7 +1317,7 @@ public class Main2 {
         }
         //  writeQueriesToFile(queries);
     }
-
+*/
 
     private void writePalinQueriesToFile(ArrayList<String> queries) {
         BufferedWriter bw = null;
@@ -1368,41 +1414,80 @@ public class Main2 {
 
     private void buildOppIndex() {
         //iterate over the OPS index
-        Iterator it = OPS.entrySet().iterator();
         long totalSize = OPS.size()+1;
         long cnt = 0;
+        //first iterate over OPS cache
+        Iterator it = OPS.cacheEntrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             Long O = (Long) pair.getKey();
-            ArrayList<Triple> list1 = MyHashMap.deSerializeArrayList((String)pair.getValue());
-            for (int i = 0; i < list1.size(); i++) {
-                Triple triple1 = list1.get(i);
-                long P1 = triple1.triples[1];
-                long s = triple1.triples[0];
-                //check each s as o in the OPS
-                ArrayList<Triple> list2 = OPS.get(s);
-                if (list2 == null)
-                    continue;
-                for (int j = 0; j < list2.size(); j++) {
-                    Triple triple2 = list2.get(j);
-                    long P2 = triple2.triples[1];
-                    String key = O + "" + P1 + "" + P2;
-                    addToQueryCandidate(key);
-                    addToIndexTemp(tempOPxP, triple1, key);
-                    addToIndexTemp(tempOPxP, triple2, key);
-                   // addToIndex(OPxP, triple1, key);
-                   // addToIndex(OPxP, triple2, key);
-                }
+            ArrayList<Triple> list1 = (ArrayList<Triple>)pair.getValue();
+            addToOppIndex(O,list1);
+            cnt++;
+            if(cnt % 100000 == 0) {
+                System.out.print(" , " + cnt * 100 / totalSize);
+                checkMemory();
+            }
+        }
+        //then iterate over OPS disk
+        it = OPS.fastEntrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            Long O = (Long) pair.getKey();
+            ArrayList<Triple> list1 = OPS.deCompressedHyprid((String)pair.getValue());
+            addToOppIndex(O,list1);
+            cnt++;
+            if(cnt % 100000 == 0){
+                System.out.print(" , "+cnt*100/totalSize);
+                checkMemory();
 
             }
-            cnt++;
-            if(cnt % 100000 == 0)
-                System.out.print(" , "+cnt*100/totalSize);
         }
-        OPxP.setExtraIndexType(new IndexType(1,0,1));
-        writeTempIndex(tempOPxP,OPxP);
-        tempOPxP = null;
+        //writeTempIndex(tempOPxP,OPxP);
+      //  tempOPxP = null;
         //  indexCollection.addIndexStringKey(OPxP , new IndexType(0,0,0));
+    }
+
+
+    private int oppsCurrentCount = 0;
+    private void addToOppIndex(Long O ,ArrayList<Triple> list1) {
+        for (int i = 0; i < list1.size(); i++) {
+            Triple triple1 = list1.get(i);
+            long P1 = triple1.triples[1];
+            long s = triple1.triples[0];
+            //check each s as o in the OPS
+            ArrayList<Triple> list2 = OPS.get(s);
+            if (list2 == null)
+                continue;
+            for (int j = 0; j < list2.size(); j++) {
+                Triple triple2 = list2.get(j);
+                long P2 = triple2.triples[1];
+                String key = O + "" + P1 + "" + P2;
+                addToQueryCandidate(key);
+                OPxP.addTripleLazy(key,triple1);
+                OPxP.addTripleLazy(key,triple2);
+               // addToIndexTemp(OPxP, triple1, key);
+               //addToIndexTemp(OPxP, triple2, key);
+                //addToIndex(OPxP, triple1, key);
+                // addToIndex(OPxP, triple2, key);
+
+                if(oppsCurrentCount % 100000 == 0) {
+                    for (int m = 0; m < 50; m++)
+                        System.out.println();
+                    System.out.flush();
+                    System.out.println("adding triple "+oppsCurrentCount/1000 +" k, writting buffer size = " + OPxP.getWritingThreadBufferSize()/1000 +" k");
+                    File stopFile = new File("/home/ahmed/stop");
+                    if (stopFile.exists()) {
+                        System.out.println("stop file detected, stopping ..");
+                        finish();
+                        System.exit(0);
+                    }
+                }
+                oppsCurrentCount++;
+
+            }
+
+        }
     }
 
 
@@ -1765,10 +1850,26 @@ public class Main2 {
     }
 
     private void finish() {
-        OPS.close();
-        OPxP.close();
-        op_S.close();
-        dictionary.close();
+        if(OPS != null)
+            OPS.close();
+        if(OPxP != null)
+            OPxP.close();
+        if(op_S != null)
+            op_S.close();
+        if(dictionary != null)
+            dictionary.close();
+    }
+
+
+    private void checkMemory(){
+        long rem =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long max = Runtime.getRuntime().maxMemory();
+        System.out.println(" remaining memory: "+rem/1000000000 + " GB");
+        if((max-rem)/1000 < 2000000) {
+            System.out.println(" Low memory detected, exiting ... ");
+            finish();
+            System.exit(1);
+        }
     }
 
 

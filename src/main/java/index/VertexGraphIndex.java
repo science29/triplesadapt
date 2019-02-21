@@ -55,7 +55,7 @@ public class VertexGraphIndex {
                 .create();
         // fast in-memory collection with limited size
         HTreeMap inMemory = dbMemory
-                .hashMap("inMemory"+fileName ,Serializer.LONG,Serializer.STRING)
+                .hashMap("fastMap"+fileName ,Serializer.LONG,Serializer.STRING)
                 .expireStoreSize(500 *1024*1024)
                 //this registers overflow to `onDisk`
                 .expireOverflow(onDisk)
@@ -75,18 +75,18 @@ public class VertexGraphIndex {
 
     public ArrayList<Vertex> get(Long key){
         return normalMap.get(key);
-        //return (ArrayList<Vertex>) inMemory.get(key);
+        //return (ArrayList<Vertex>) fastMap.get(key);
     }
 
     public boolean containsKey(Object key) {
        return normalMap.containsKey(key);
-        //return inMemory.containsKey(key);
+        //return fastMap.containsKey(key);
     }
 
 
     public Set<Map.Entry<Long, ArrayList<Vertex>>> entrySet() {
         return normalMap.entrySet();
-       // return inMemory.entrySet();
+       // return fastMap.entrySet();
     }
 
 }

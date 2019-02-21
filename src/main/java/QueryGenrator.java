@@ -1,3 +1,4 @@
+import index.Dictionary;
 import index.MyHashMap;
 import triple.Triple;
 import triple.TriplePattern;
@@ -140,7 +141,7 @@ public class QueryGenrator {
 
     }
 
-    public static ArrayList<String> buildFastHeavyQuery(MyHashMap<String, ArrayList<Triple>> OPxP, HashMap<Long, ArrayList<Triple>> OPS, long max_id, HashMap<Long, String> reverseDicitionary, ArrayList<String> queryKeys){
+    public static ArrayList<String> buildFastHeavyQuery(MyHashMap<String, ArrayList<Triple>> OPxP, HashMap<Long, ArrayList<Triple>> OPS, long max_id, Dictionary reverseDicitionary, ArrayList<String> queryKeys){
         if(queryKeys == null)
             return null ;
         ArrayList<ArrayList<TriplePattern>> quereis = new ArrayList();

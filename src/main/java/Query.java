@@ -455,7 +455,7 @@ public class Query {
     }
 
 
-    public void printAnswers(HashMap<Long, String> reverseDictionary) {
+    public void printAnswers(Dictionary reverseDictionary) {
         if(knownEmpty)
             return;
         if (answerMap == null) {

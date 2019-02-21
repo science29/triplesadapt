@@ -9,18 +9,22 @@ import util.FileHashMap;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 
 //TODO solve the  creation of the filehashmap
 public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
-    private static final String ELEME_SEPERATOR = "algheziTr7";
-    private static final String TRIPLES_SEPERATOR =  "algheziTr8";
+    private static final String ELEME_SEPERATOR = "e";
+    private static final String TRIPLES_SEPERATOR =  "t";
+    private static final String HYPRYID_SEPEAROTR = "h";
+    private static final String COMPRESSED_SEPERATOR = "c" ;
     private String fileName;
     ConcurrentMap<K, V> fastFileMap;
-    private HTreeMap<K, String> fastFileMapString;
+    private ConcurrentMap<K, String> fastFileMapString;
     DB dbFile;
 
 
@@ -50,6 +54,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private DB dbMemory;
     private boolean comressEnabled = false;
     private boolean cacheEnabled = true;
+    private MyHashMap<K, V>.Consumer consumer;
 
 
     //   private int avgElemSize = 1 ;
@@ -187,23 +192,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             String value = fastFileMapString.get(key);
             if (value == null)
                 return getFromCache(key);
-            ArrayList<Triple> tarr;
-            if(value.startsWith("c")) {
-                if(extraIndexType == null)
-                    tarr = deCompress( value);
-                else
-                    //tarr = specialDeCompress( value);
-                    tarr = deSerializeArrayList(value);
-                return (V) tarr;
-            }
-
-            tarr = deSerializeArrayList(value);
-            /*String elems[] = value.split("ELEME_SEPERATOR");
-            for (int i = 0; i < elems.length; i++) {
-                String tripleStrA[] = value.split(TRIPLES_SEPERATOR );
-                Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
-                tarr.add(ttriple);
-            }*/
+            ArrayList<Triple> tarr = deCompressedHyprid(value);
             return (V) tarr;
         }
         if(fastFileMap != null) {
@@ -226,8 +215,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
 
 
-    public static ArrayList<Triple> deSerializeArrayList(String value) {
-        ArrayList <Triple> tarr = new ArrayList();
+    public static ArrayList<Triple> deSerializeArrayList(String value , ArrayList<Triple> tarr) {
+        if(tarr == null)
+            tarr = new ArrayList();
         String elems[] = value.split(ELEME_SEPERATOR);
         for (int i = 0; i < elems.length; i++) {
             String tripleStrA[] = elems[i].split(TRIPLES_SEPERATOR );
@@ -239,7 +229,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
 
     public ArrayList<Triple> getArrayList(String serial){
-        return deSerializeArrayList(serial);
+        return deSerializeArrayList(serial , null);
         /*ArrayList<Triple> tarr = new ArrayList();
         String elems[] = serial.split("ELEME_SEPERATOR");
         for (int i = 0; i < elems.length; i++) {
@@ -266,35 +256,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         if (value instanceof ArrayList) {
             ArrayList tarr = (ArrayList) value;
             if (tarr.size() > 0 && tarr.get(0) instanceof Triple) {
-                String serilaizedArray = "";
-                if(comressEnabled && tarr.size() > 100){
-                    if(extraIndexType == null) {
-                        serilaizedArray = compress(tarr);
-                      //  tempCheck(tarr, deCompress(serilaizedArray));
-                    }
-                    else {
-                        serilaizedArray = serializeArrayList(tarr);
-                        /*serilaizedArray = specialCompress(tarr);
-                        tempCheck(tarr,specialDeCompress(serilaizedArray));*/
-                    }
-
-                   // if(serilaizedArray.contains(":"))
-
-                }else
-                    serilaizedArray = serializeArrayList(tarr);
-                if(fastFileMapString == null){
-                   /* File file = new File(HOME_DIR + fileName + "db.db");
-                    if(file.exists())
-                        file.delete();*/
-                    org.mapdb.Serializer<K> keyType = findTypeKey(key);
-                    org.mapdb.Serializer<V> valType = (Serializer<V>) Serializer.STRING;
-                    fastFileMapString = createFastFileMap(keyType , valType);
-
-                }
-                if(fastFileMapString != null) {
-                    return (V) fastFileMapString.put(key, serilaizedArray);
-                }
-
+               putArrayList(key,tarr,true);
+               /*
                 if (backupFileHashMap == null)
                     try {
                         backupFileHashMap = new FileHashMap(HOME_DIR+"backup" + fileName);
@@ -302,8 +265,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                return (V) backupFileHashMap.put(key, serilaizedArray);
+                return (V) backupFileHashMap.put(key, serilaizedArray);*/
             }
+            return value;
         }
         if (fastFileMap == null){
             fastFileMap = createFastFileMap(findTypeKey(key) , findTypeVal(value));
@@ -322,12 +286,14 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     }
 
-    private V putArrayList(K key , ArrayList<Triple> tarr , boolean append){
+    private String putArrayList(K key , ArrayList<Triple> tarr , boolean append){
         if (tarr.size() > 0 && tarr.get(0) instanceof Triple) {
             String serilaizedArray = "";
+            boolean weCompress = false;
             if (comressEnabled && tarr.size() > 100) {
                 if (extraIndexType == null) {
                     serilaizedArray = compress(tarr);
+                    weCompress  = true;
                     //  tempCheck(tarr, deCompress(serilaizedArray));
                 } else {
                     serilaizedArray = serializeArrayList(tarr);
@@ -346,11 +312,15 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             }
             if (fastFileMapString != null) {
                 if(!append)
-                    return (V) fastFileMapString.put(key, serilaizedArray);
+                    return fastFileMapString.put(key, serilaizedArray);
                 String val = fastFileMapString.get(key);
                 if(val == null)
-                    return (V) fastFileMapString.put(key, serilaizedArray);
-                val = val +ELEME_SEPERATOR+serilaizedArray;xxx
+                    return fastFileMapString.put(key, serilaizedArray);
+                if(!weCompress)
+                    val = val +ELEME_SEPERATOR+serilaizedArray;
+                else
+                    val = val + HYPRYID_SEPEAROTR + serilaizedArray;
+                return fastFileMapString.put(key, val);
             }
         }
             return null;
@@ -364,18 +334,35 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         return null;
     }
 
-    private boolean addToCache(K key ,V value){
+    private int maxCacheSize = 10000000;
+    private int minCacheSize = 500000;
+    private double factor = 2;
+   private boolean addToCache(K key ,V value){
         if(cacheEnabled){
             hashMap.put(key, value);
-            if(hashMap.size() > 1000000){
+            if(hashMap.size() > maxCacheSize){
                 writeCacheToPersist();
+                maxCacheSize =(int)(((double)maxCacheSize)/factor);
+                factor = factor-0.18;
+                if(maxCacheSize < minCacheSize)
+                    maxCacheSize = minCacheSize;
             }
             return true;
         }
         return false;
     }
 
-    public void addTripletoList(Long key, Triple triple) {
+
+    public void addTripleLazy(K key, Triple triple){
+       //waring no get is allowed
+        if(consumer == null){
+            consumer =new Consumer();
+            consumer.start();
+        }
+        consumer.addTriple(key,triple);
+    }
+
+    public void addTripletoList(K key, Triple triple) {
         V val = getFromCache(key);
         if(val != null){
             ArrayList<Triple>  arr = (ArrayList<Triple>) val;
@@ -570,7 +557,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             s2.matches(" ");
         ArrayList res = new ArrayList();
         ArrayList<Triple> list1 = deCompress(ar[0]);
-        ArrayList<Triple> list2 = deSerializeArrayList(ar[1]);
+        ArrayList<Triple> list2 = deSerializeArrayList(ar[1] , null);
         for (int i = 0; i < list1.size(); i++){
             res.add(list1.get(i));
             res.add(list2.get(i));
@@ -578,11 +565,32 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         return res;
     }
 
+
+    public ArrayList<Triple> deCompressedHyprid(String record){
+        if(record.contains(HYPRYID_SEPEAROTR)){
+            String [] arr = record.split(HYPRYID_SEPEAROTR);
+            ArrayList<Triple> res = new ArrayList<Triple>();
+            for(int i = 0 ; i<arr.length ; i++){
+                if(arr[i].startsWith(COMPRESSED_SEPERATOR)){
+                    deCompress(record,res);
+                }else{
+                    deSerializeArrayList(arr[i] ,res);
+                }
+            }
+            return  res;
+        }
+        if(record.startsWith(COMPRESSED_SEPERATOR)){
+            return deCompress(record);
+        }
+        return deSerializeArrayList(record ,null);
+
+    }
+
     private ArrayList<Triple> deCompress(String record){
         return deCompress(record,null);
     }
     private ArrayList<Triple> deCompress(String record ,  ArrayList<Triple> resLsit){
-        if(!record.startsWith("c"))
+        if(!record.startsWith(COMPRESSED_SEPERATOR))
             return null;
 
         //first solve the case of more than one compressed arrays
@@ -608,7 +616,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             else
                 secondFixedIndex = ii;
         }
-        String [] arrIni = record.split("c");
+        String [] arrIni = record.split(COMPRESSED_SEPERATOR);
         Triple triple = new Triple(Long.valueOf(arrIni[1]) , Long.valueOf(arrIni[2]) ,Long.valueOf(arrIni[3]));
         if(resLsit == null)
             resLsit = new ArrayList<Triple>();
@@ -643,6 +651,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     public void close(){
         try {
+            writeCacheToPersist();
             if (dbFile != null) {
                 dbFile.commit();
                 dbFile.close();
@@ -651,11 +660,19 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 dbMemory.commit();
                 dbMemory.close();
             }
+            if(consumer != null)
+                consumer.stopThread();
         }catch (Exception e){
             e.printStackTrace();
         }
     }
 
+
+    public int getWritingThreadBufferSize(){
+        if(consumer != null)
+            return consumer.getBufferSize();
+        return 0;
+    }
 
     private HTreeMap createFastFileMap(Serializer<K> keyType , Serializer<V> valType ) {
         File file = new File(HOME_DIR + fileName + "db.db");
@@ -665,8 +682,10 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             dbFile = DBMaker
                     .fileDB(file)
                     .fileMmapEnable()
+                    .closeOnJvmShutdown()
                     .allocateStartSize( 1000 * 1024*1024) // 1GB
                     .allocateIncrement(100 * 1024*1024)
+                    //.transactionEnable()
                     .make();
         }
         if(dbMemory == null || dbMemory.isClosed()) {
@@ -682,7 +701,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 .createOrOpen();
             // fast in-memory collection with limited size
         HTreeMap inMemory = dbMemory
-                .hashMap("inMemory"+fileName ,keyType,valType)
+                .hashMap("fastMap"+fileName ,keyType,valType)
                 .expireStoreSize(500 *1024*1024)
                 //this registers overflow to `onDisk`
                 .expireOverflow(onDisk)
@@ -708,7 +727,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     public void commitToDisk(){
         dbMemory.commit();
         dbFile.commit();
-        fastFileMapString = null;
+       // fastFileMapString = null;
     }
 
     private Serializer<K> findTypeKey(K obj) {
@@ -745,8 +764,13 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         return hashMap.entrySet();
     }
 
+
     public Set<Entry<K,String>> fastEntrySet(){
         return fastFileMapString.entrySet();
+    }
+
+    public Iterable cacheEntrySet() {
+        return hashMap.entrySet();
     }
 
 
@@ -782,6 +806,60 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         this.extraIndexType = extraIndexType;
     }
 
+
+
+
+
+
+    class Consumer extends Thread /*implements Runnable*/{
+        private  BlockingQueue<Triple> sharedTripleQueue;
+        private  BlockingQueue<K> sharedkeyQueue;
+        private  BlockingQueue<String> sharedStrkeyQueue;
+        private boolean stop = false;
+        private K stopingVal;
+
+        public Consumer() {
+            this.sharedTripleQueue = new LinkedBlockingQueue<Triple>(maxCacheSize*2);
+            this.sharedkeyQueue =  new LinkedBlockingQueue<K>(maxCacheSize*2);
+
+
+        }
+
+        public int getBufferSize(){
+            return sharedkeyQueue.size();
+        }
+
+        public void stopThread(){
+            stop = true;
+            if(stopingVal != null)
+                sharedkeyQueue.add(stopingVal );
+            sharedTripleQueue.add(new Triple(0,0,0) );
+        }
+
+        public void addTriple(K key , Triple triple){
+            try {
+                if(stopingVal == null)
+                    stopingVal = key;
+                sharedkeyQueue.put(key);
+                sharedTripleQueue.put(triple);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        public void run() {
+            while(!stop){
+                try {
+                    Triple triple = sharedTripleQueue.take();
+                    K key = sharedkeyQueue.take();
+                    if(!stop)
+                        addTripletoList(key, triple);
+                    //System.out.println("Consumed: "+ num + ":by thread:"+threadNo);
+                } catch (Exception err) {
+                    err.printStackTrace();
+                }
+            }
+        }
+    }
 
 
 }
