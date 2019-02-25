@@ -88,14 +88,14 @@ try {
     filePaths.add("/home/keg/Desktop/BTC/n3/btc-2.n3");
     filePaths.add("/home/keg/Desktop/BTC/n3/btc-13.n3");
     o.openIndexes();
-    o.buildOppIndex();
-    o.finish();
-    System.exit(0);
+    System.out.println("loading extra index in memory..");
+    o.OPxP.loadQueryTimeCahce();
+    //o.buildOppIndex();
 
-    o.porcess(filePaths, quad);
+   // o.porcess(filePaths, quad);
     //System.out.println("building extra indexes .. ");
     //o.buildSppIndex();
-    System.out.println(" press any key to continue building extra indexes, press e to exit , press s to close indexes");
+   /* System.out.println(" press any key to continue building extra indexes, press e to exit , press s to close indexes");
     Scanner scanner = new Scanner(System.in);
     String res = scanner.next();
     if(res.matches("e")){
@@ -106,21 +106,16 @@ try {
     if(res.matches("s")){
         o.finish();
     }
-    System.out.println("building extra indexes OPxPs .. ");
-    o.buildOppIndex();
-    System.out.println("generating queries .. ");
-    ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary, o.queryKeys);
+    System.out.println("building extra indexes OPxPs .. ");*/
+   // o.buildOppIndex();
+    //System.out.println("generating queries .. ");
+   // ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary, o.queryKeys);
 
-    o.writePalinQueriesToFile(HeaveyQueries);
-    o.printIndexesStat();
-    while (true) {
-        try {
-            o.listenToQuery();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+   // o.writePalinQueriesToFile(HeaveyQueries);
+   // o.printIndexesStat();
 
-    }
+    o.listenToQuery();
+
 }catch (Exception e){
     e.printStackTrace();
     o.finish();
@@ -182,17 +177,17 @@ try {
 
         OPS.open(new Long(5),list);
 
-  /*
+
           if (op_S == null)
             op_S = new MyHashMap("op_S" , new IndexType(1,0,0));
 
         op_S.open(" ",list);
 
-    */
-
 
         OPxP.setExtraIndexType(new IndexType(1,0,1));
         OPxP.open(" ",list);
+
+
     }
 
     private void setDynamicWeights(ArrayList<Query> queries) {
@@ -1829,23 +1824,43 @@ try {
             dictionary.put("<http://mpii.de/yago/resource/wordnet_transportation_system_104473432>",a++);*/
 
 
-        System.out.println("Please enter Sparql Query:");
+
         Scanner scanner = new Scanner(System.in);
         while (true) {
-            String query = scanner.nextLine();
-            if (query.matches("e")) {
-                System.out.println("Exiting query system..");
-                finish();
-                System.out.println("done ..");
-                return;
+            try {
+                System.out.println("Please enter Sparql Query:");
+                String query = scanner.nextLine();
+                if (query.matches("e")) {
+                    System.out.println("Exiting query system..");
+                    finish();
+                    System.out.println("done ..");
+                    return;
+                }
+                if (query.startsWith("g")) {
+                    String s = query.replace("g","").trim();
+                    double memPercent = 0;
+                    if(s.equals(""))
+                        memPercent = Double.valueOf(s);
+                    if(memPercent > 1)
+                        memPercent = memPercent/100;
+
+                    ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(OPxP, OPS, vertecesID.size(), reverseDictionary, queryKeys , memPercent);
+                    writePalinQueriesToFile(HeaveyQueries);
+                    System.out.println("done ..queries written to file..");
+                    continue;
+                }
+                long startTime = System.nanoTime();
+                Query spQuery = new Query(dictionary, query);
+                long parseTime = System.nanoTime();
+                StringBuilder extTime = new StringBuilder();
+                spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
+                long stopTime = System.nanoTime();
+                long elapsedTime = (stopTime - startTime) / 1000;
+                System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
+                spQuery.printAnswers(reverseDictionary);
+            }catch (Exception e){
+                System.err.println("unable to parse query..");
             }
-            long startTime = System.nanoTime();
-            Query spQuery = new Query(dictionary, query);
-            spQuery.findChainQueryAnswer(OPxP, op_S);
-            long stopTime = System.nanoTime();
-            long elapsedTime = (stopTime - startTime)/1000;
-            System.out.println("time to execute qeury:" + elapsedTime +" micro seconds");
-            spQuery.printAnswers(reverseDictionary);
         }
     }
 
@@ -1864,13 +1879,15 @@ try {
     private void checkMemory(){
         long rem =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         long max = Runtime.getRuntime().maxMemory();
-        System.out.println(" remaining memory: "+rem/1000000000 + " GB");
+        System.out.println(" app used memory: "+rem/1000000000 + " GB");
         if((max-rem)/1000 < 2000000) {
             System.out.println(" Low memory detected, exiting ... ");
             finish();
             System.exit(1);
         }
     }
+
+
 
 
 }

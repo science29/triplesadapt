@@ -55,6 +55,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private boolean comressEnabled = false;
     private boolean cacheEnabled = true;
     private MyHashMap<K, V>.Consumer consumer;
+    private HashMap<K, V> queryTimeCache;
+    public boolean queryTimeCacheEnabled = false;
 
 
     //   private int avgElemSize = 1 ;
@@ -183,11 +185,17 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     }
 
 
+
     @Override
     public V get(Object key) {
         //todo fix this
         if(this.onlyDiskGet)
             return fileHashMap.get(key);
+        if(queryTimeCacheEnabled) {
+            V cVal = getFromQueryTimeCache(key);
+            if (cVal != null)
+                return cVal;
+        }
         if(fastFileMapString != null) {
             String value = fastFileMapString.get(key);
             if (value == null)
@@ -331,6 +339,12 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private V getFromCache(Object key) {
         if(cacheEnabled)
             return hashMap.get(key);
+        return null;
+    }
+
+    private V getFromQueryTimeCache(Object key){
+        if(queryTimeCache != null)
+            return queryTimeCache.get(key);
         return null;
     }
 
@@ -764,6 +778,11 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         return hashMap.entrySet();
     }
 
+    public Iterator getQueryTimeIterator() {
+        if(queryTimeCache != null)
+            return  queryTimeCache.entrySet().iterator();
+        return null;
+    }
 
     public Set<Entry<K,String>> fastEntrySet(){
         return fastFileMapString.entrySet();
@@ -808,6 +827,42 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
 
 
+    public void loadQueryTimeCahce(){
+        queryTimeCache = new HashMap<K, V>();
+        Iterator it = fastFileMapString.entrySet().iterator();
+        int count = 0;
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            K key = (K) pair.getKey() ;
+            String value = (String) pair.getValue();
+            ArrayList<Triple> tarr = deCompressedHyprid(value);
+            queryTimeCache.put(key , (V)tarr);
+             if(count % 100 ==0 && isMemoryLow()) {
+                 System.out.println("done, memory filled !");
+                 return;
+             }
+             if(count%10000 == 0){
+                 for (int i = 0; i < 50; i++) {
+                     System.out.println();
+                 }
+                 System.out.println("loaded "+count/1000 +" K keys.");
+             }
+             count++;
+             //TODO remove
+             if(count > 30000)
+                 break;
+        }
+        System.out.println("done, full load !");
+        queryTimeCacheEnabled = true;
+    }
+
+    public static boolean isMemoryLow(){
+        long rem =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        long max = Runtime.getRuntime().maxMemory();
+        if((max-rem)/1000 < 2000000)
+            return true;
+        return false;
+    }
 
 
 

@@ -197,12 +197,20 @@ public class Dictionary{
 
 
 
-    public boolean containsKey(Object key) {
+    public boolean containsKey(String key) {
         //return normalMap.containsKey(key);
         if(cacheEnabled && cache.containsKey(key))
             return true;
         return fastMap.containsKey(key);
     }
+
+    public boolean containsKey(Long key) {
+        //return normalMap.containsKey(key);
+        if(cacheEnabled && reverseCache.containsKey(key))
+            return true;
+        return reverseFastMap.containsKey(key);
+    }
+
 
 
     public Set<Map.Entry<String,Long>> entrySet() {

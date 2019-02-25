@@ -3,6 +3,8 @@ import triple.Triple;
 import triple.TriplePattern;
 
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Query {
     public ArrayList<TriplePattern> triplePatterns;
@@ -157,7 +159,7 @@ public class Query {
     }
 
 
-    public void findChainQueryAnswer(HashMap<String, ArrayList<Triple>> OPxP, HashMap<String, ArrayList<Triple>> opS) {
+    public void findChainQueryAnswer(HashMap<String, ArrayList<Triple>> OPxP, HashMap<String, ArrayList<Triple>> opS , StringBuilder timeString) {
         if(knownEmpty)
             return;
         //HashMap<TriplePattern, Triple> answer = new HashMap();
@@ -189,7 +191,14 @@ public class Query {
         processedTripelPattern(triplePattern2);
         //now build the index key OPP
         String key = triplePattern1.triples[2] + "" + triplePattern1.triples[1] + "" + triplePattern2.triples[1];
+        //TODO remove time stuff
+        long startTime = System.nanoTime();
+
         ArrayList<Triple> list = OPxP.get(key);
+        long stopTime = System.nanoTime();
+        long OPxpElapsedTime = (stopTime - startTime) / 1000;
+        timeString.append("time to opxp "+OPxpElapsedTime);
+
         if(list == null)
             list = temp(opS,triplePattern1.triples[2],triplePattern1.triples[1],triplePattern2.triples[1]);
         //now move to all triples in list
@@ -206,6 +215,7 @@ public class Query {
           //  long next_p = nextTripelPatern.triples[1];
           //  key = next_o + "" + next_p;
          //   ArrayList<Triple> list2 = opS.get(key);
+            new QueryWorker(nextTripelPatern,triple2,opS);
           boolean res =  findDeepAnswer(nextTripelPatern, triple2, opS);
           if(res){
               addToAnswerMap(triplePattern1, triple1);
@@ -345,8 +355,12 @@ public class Query {
                         code[index++] = dictionary.get(last);
                     return addToTriplePatterns(code,projectedFlags);
                 case '?':
-                    varStart = true;
-                    last = "?";
+                    if(!build) {
+                        varStart = true;
+                        last = "?";
+                    }else {
+                        last = last + c;
+                    }
                     break;
                 case '<':
                     build = true;
@@ -486,13 +500,80 @@ public class Query {
 
 
 
-    /*public void parseSparqlChain(String spaql){
-        " select  ?x1 ?x3 ?x5 ?x7 where " +
-                "{?x1 <http://mpii.de/yago/resource/describes> ?x3.?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x5." +
-                "?x5 <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?x7." +
-                "?x7 <http://mpii.de/yago/resource/isPartOf> <http://mpii.de/yago/resource/wordnet_transportation_system_104473432>} ";
+    class QueryWorker extends Thread /*implements Runnable*/{
+        private final HashMap<String, ArrayList<Triple>> opS;
+        public BlockingQueue<Triple> sharedTriple1Queue;
+        public BlockingQueue<Triple> sharedTriple2Queue;
+        public  BlockingQueue<TriplePattern> sharedPatternQueue;
+        private boolean stop = false;
+        private int doneCount;
+        private int threadCount;
 
+
+        public QueryWorker( HashMap<String, ArrayList<Triple>> opS){
+            this.opS = opS;
+            this.sharedPatternQueue =  new LinkedBlockingQueue<TriplePattern>();
+            this.sharedTriple1Queue = new LinkedBlockingQueue<Triple>();
+            this.sharedTriple2Queue = new LinkedBlockingQueue<Triple>();
+        } 
+
+        public QueryWorker( HashMap<String, ArrayList<Triple>> opS , QueryWorker mainWorker) {
+            this.opS = opS;
+            this.sharedPatternQueue = mainWorker.sharedPatternQueue;
+            this.sharedTriple1Queue = mainWorker.sharedTriple1Queue;
+            this.sharedTriple2Queue = mainWorker.sharedTriple2Queue;
+        }
         
-    }*/
+        public synchronized void imDone(){
+            doneCount++;
+            if(doneCount == threadCount)
+                listener.qeuryDone();
+        }
+        
+        
+
+        public int getBufferSize(){
+            return sharedPatternQueue.size();
+        }
+
+        public void stopThread(){
+            stop = true;
+            Triple triple = new Triple(0,0,0);
+            if(sharedPatternQueue != null)
+                sharedPatternQueue.add(new TriplePattern(0,0,0) );
+            sharedTriple1Queue.add(triple);
+            sharedTriple2Queue.add(triple );
+        }
+
+        public void addWork(TriplePattern triplePattern , Triple triple1 , Triple triple2) {
+            try {
+                sharedPatternQueue.put(triplePattern);
+                sharedTriple1Queue.put(triple1);
+                sharedTriple1Queue.put(triple2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        public void run() {
+            while(!stop){
+                try {
+                    TriplePattern triplePattern = sharedPatternQueue.take();
+                    Triple triple1 = sharedTriple1Queue.take();
+                    Triple triple2 = sharedTriple2Queue.take();
+                    boolean res = findDeepAnswer(triplePattern, triple2, opS);
+                    if(res && !stop) {
+                        addToAnswerMap(triplePattern, triple1);
+                        addToAnswerMap(triplePattern, triple2);
+                    }
+                    
+                    //System.out.println("Consumed: "+ num + ":by thread:"+threadNo);
+                } catch (Exception err) {
+                    err.printStackTrace();
+                }
+            }
+        }
+    }
+
+
 
 }
