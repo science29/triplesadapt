@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 
+
 public class Main2 {
 
     private static final long BASE_PREDICATE_CODE = 1000000000;

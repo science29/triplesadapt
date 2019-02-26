@@ -18,6 +18,8 @@ public class Query {
     public String partitionString = "";
     public String answerString = "";
 
+    private long startTime;
+
     boolean knownEmpty = false;
 
     private HashMap<String, Long> varNameMap = new HashMap();
@@ -498,6 +500,13 @@ public class Query {
         }
     }
 
+    private void qeuryDone() {
+        long stopTime = System.nanoTime();
+        long elapsedTime = (stopTime - startTime) / 1000;
+        System.
+    }
+
+
 
 
     class QueryWorker extends Thread /*implements Runnable*/{
@@ -527,7 +536,7 @@ public class Query {
         public synchronized void imDone(){
             doneCount++;
             if(doneCount == threadCount)
-                listener.qeuryDone();
+                qeuryDone();
         }
         
         
