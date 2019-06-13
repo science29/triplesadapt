@@ -34,6 +34,9 @@ public class Query {
         this.simpleAnswer = simpleAnswer;
     }
 
+    public HashMap<TriplePattern, ArrayList<Triple>> getAnswerMap(){
+        return answerMap;
+    }
     public Query(Dictionary dictionary, String SPARQL) {
         this.dictionary = dictionary;
       //  startTime = System.nanoTime();
