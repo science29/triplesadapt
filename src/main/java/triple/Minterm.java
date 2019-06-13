@@ -1,5 +1,4 @@
-import triple.Prediacte;
-import triple.Triple;
+package triple;
 
 import java.util.ArrayList;
 

@@ -1,3 +1,7 @@
+package QueryStuff;
+
+import QueryStuff.Query;
+import QueryStuff.VertexGraph;
 import index.VertexGraphIndex;
 import triple.Triple;
 import triple.TriplePattern;

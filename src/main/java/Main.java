@@ -15,10 +15,10 @@ public class Main {
 
     private HashMap<Long, ArrayList<Triple>> tripleGraph = new HashMap();//duplicate with graph , remove one!
     private ArrayList<Long> vertecesID = new ArrayList();
-    private HashMap<Long, VertexGraph> verticies;
+    private HashMap<Long, QueryStuff.VertexGraph> verticies;
     private HashMap<String, Long> dictionary = new HashMap();
     private HashMap<Long, String> reverseDictionary = new HashMap();
-    private HashMap<Integer, ArrayList<VertexGraph>> distanceVertex;
+    private HashMap<Integer, ArrayList<QueryStuff.VertexGraph>> distanceVertex;
     private long edgesCount = 0;
     private static final int PARTITION_COUNT = 2;
 
@@ -26,7 +26,7 @@ public class Main {
     private HashMap<Long, ArrayList<Triple>> SPO;
     private HashMap<Long, ArrayList<Triple>> OPS;
     private HashMap<String, Integer> tripleToPartutPartitionMap;
-    private GlobalQueryGraph queryGraph;
+    private QueryStuff.GlobalQueryGraph queryGraph;
 
 
     static boolean partutSupport = false;
@@ -60,7 +60,7 @@ public class Main {
 
         o.porcess(dataSetPath, quad);
         System.out.println("generating queries .. ");
-        ArrayList<Query> queries = o.generateQueries();
+        ArrayList<QueryStuff.Query> queries = o.generateQueries();
 
 
         // System.out.println("setting dynamic weigths .. ");
@@ -99,8 +99,8 @@ public class Main {
     }
 
 
-    private void setDynamicWeights(ArrayList<Query> queries) {
-        GlobalQueryGraph.setDynamicWeights(queries, tripleGraph, graph, POS);
+    private void setDynamicWeights(ArrayList<QueryStuff.Query> queries) {
+        QueryStuff.GlobalQueryGraph.setDynamicWeights(queries, tripleGraph, graph, POS);
     }
 
     private void clean() {
@@ -133,7 +133,7 @@ public class Main {
         }
     }
 
-    private HashMap<Long, VertexGraph> toBeCheckedVertexes; // this is the list of non boraders vertex that need to be checked if they have been written before the border ones
+    private HashMap<Long, QueryStuff.VertexGraph> toBeCheckedVertexes; // this is the list of non boraders vertex that need to be checked if they have been written before the border ones
 
     private void readOutput(String filePath, int partitionCount, boolean includeFragments) {
         toBeCheckedVertexes = new HashMap();
@@ -247,7 +247,7 @@ public class Main {
             int dummyCount = 0;
             while (itmap.hasNext()) {
                 Map.Entry pair = (Map.Entry) itmap.next();
-                VertexGraph vx = (VertexGraph) pair.getValue();
+                QueryStuff.VertexGraph vx = (QueryStuff.VertexGraph) pair.getValue();
                 if (vx.writtenToFile)
                     continue;
                 if (reverseDictionary.get(vx.ID).contains("<") && reverseDictionary.get(vx.ID).contains(">")) {
@@ -292,17 +292,17 @@ public class Main {
                         System.err.println("no global query graph found, consider buliding the query graph first");
                         System.exit(1);
                     }
-                    ArrayList<AnnomizedTriple> fragmentsTriple = queryGraph.getAnnomizedTriples();
+                    ArrayList<QueryStuff.AnnomizedTriple> fragmentsTriple = queryGraph.getAnnomizedTriples();
                     int nonBorderErr = 0;
                     int total = 0;
                     for (int i = 0; i < fragmentsTriple.size(); i++) {
-                        AnnomizedTriple anmoizedTriple = fragmentsTriple.get(i);
+                        QueryStuff.AnnomizedTriple anmoizedTriple = fragmentsTriple.get(i);
                         ArrayList<Triple> triples = anmoizedTriple.fragment.triples;
                         for (int j = 0; j < triples.size(); j++) {
                             total++;
-                            VertexGraph vs = verticies.get(triples.get(j).triples[0]);
+                            QueryStuff.VertexGraph vs = verticies.get(triples.get(j).triples[0]);
                             int sourcePartitionNr = vs.partitionNumber;
-                            VertexGraph vd = verticies.get(triples.get(j).triples[2]);
+                            QueryStuff.VertexGraph vd = verticies.get(triples.get(j).triples[2]);
 
                             if (sourcePartitionNr < 0 || sourcePartitionNr >= partitionCount) {
                                 System.err.println("(Main255) error in partition number:" + sourcePartitionNr);
@@ -392,7 +392,7 @@ public class Main {
     }
 *//*
     private void setVertexVisted(long v) {
-       VertexGraph vertexGraph = verticies.get(v);
+       QueryStuff.VertexGraph vertexGraph = verticies.get(v);
        if(vertexGraph.dist == -1)
            vertexGraph.dist = -2;
     }*//*
@@ -402,10 +402,10 @@ public class Main {
         distanceVertex.put(0, new ArrayList());
         //set distane zero
         for (int i = 0; i < vertecesID.size(); i++) {
-            VertexGraph vertexGraph = verticies.get(vertecesID.get(i));
+            QueryStuff.VertexGraph vertexGraph = verticies.get(vertecesID.get(i));
             for (int j = 0; j < vertexGraph.edgesVertex.size(); j++) {
                 long toVertexID = vertexGraph.edgesVertex.get(j);
-                VertexGraph toVertex = verticies.get(toVertexID);
+                QueryStuff.VertexGraph toVertex = verticies.get(toVertexID);
                 if (toVertex.partitionNumber == -1) {
                     System.err.println("error setting the distance ..the partition number is not set ... please check if the partitions number are set ..");
                     System.exit(1);
@@ -425,14 +425,14 @@ public class Main {
         }
         System.out.println("setting 0 dist : " + distanceVertex.get(0).size() + " vertecies");
         for (int i = 1; i < maxDist; i++) {
-            ArrayList<VertexGraph> newDistList = new ArrayList();
+            ArrayList<QueryStuff.VertexGraph> newDistList = new ArrayList();
             distanceVertex.put(i, newDistList);
-            ArrayList<VertexGraph> prevVertices = distanceVertex.get(i - 1);
+            ArrayList<QueryStuff.VertexGraph> prevVertices = distanceVertex.get(i - 1);
             for (int j = 0; j < prevVertices.size(); j++) {
-                VertexGraph edgeVert = prevVertices.get(j);
+                QueryStuff.VertexGraph edgeVert = prevVertices.get(j);
                 for (int k = 0; k < edgeVert.edgesVertex.size(); k++) {
                     long vid = edgeVert.edgesVertex.get(k);
-                    VertexGraph v = verticies.get(vid);
+                    QueryStuff.VertexGraph v = verticies.get(vid);
                     if (v.dist == -1) {
                         v.dist = edgeVert.dist + 1;
                         newDistList.add(v);
@@ -658,14 +658,14 @@ public class Main {
                 }
                 try {
                     //this code to create an extra graph vertex which should be used in the graph algo, obviously this is redenednt situ to the created vertext in the latter code block
-                    VertexGraph savedVertex = verticies.get(code[0]);
+                    QueryStuff.VertexGraph savedVertex = verticies.get(code[0]);
                     if (savedVertex == null) {
-                        savedVertex = new VertexGraph(code[0]);
+                        savedVertex = new QueryStuff.VertexGraph(code[0]);
                         verticies.put(code[0], savedVertex);
                     }
                     savedVertex.addEdge(code[2], code[1]);
                     if (verticies.get(code[2]) == null)
-                        verticies.put(code[2], new VertexGraph(code[2]));
+                        verticies.put(code[2], new QueryStuff.VertexGraph(code[2]));
                     //end of grpah vertex creation
 
                     v = graph.get(code[0]);
@@ -917,15 +917,15 @@ public class Main {
         }
     }
 
-    private ArrayList<Query> generateQueries() {
-        QueryGenrator queryGenrator = new QueryGenrator(5, 4, verticies, 4, tripleGraph, 40);
-        //ArrayList<Query> queries = queryGenrator.buildQueries(10);
-        ArrayList<Query> queries = queryGenrator.buildHeavyQueries(10);
+    private ArrayList<QueryStuff.Query> generateQueries() {
+        QueryStuff.QueryGenrator queryGenrator = new QueryStuff.QueryGenrator(5, 4, verticies, 4, tripleGraph, 40);
+        //ArrayList<QueryStuff.Query> queries = queryGenrator.buildQueries(10);
+        ArrayList<QueryStuff.Query> queries = queryGenrator.buildHeavyQueries(10);
 
         return queries;
     }
 
-    private void putStringTripleInQueries(ArrayList<Query> queries) {
+    private void putStringTripleInQueries(ArrayList<QueryStuff.Query> queries) {
         for (int i = 0; i < queries.size(); i++) {
             queries.get(i).findStringTriple(reverseDictionary);
             queries.get(i).setQuerySPARQL(reverseDictionary, prefix, verticies);
@@ -933,7 +933,7 @@ public class Main {
         //  writeQueriesToFile(queries);
     }
 
-    private void writeQueriesToFile(ArrayList<Query> queries) {
+    private void writeQueriesToFile(ArrayList<QueryStuff.Query> queries) {
         BufferedWriter bw = null;
         FileWriter fw = null;
         try {
@@ -964,8 +964,8 @@ public class Main {
         }
     }
 
-    private void generateQueryGraph(ArrayList<Query> queries) {
-        queryGraph = new GlobalQueryGraph(queries, 4, POS, SPO, OPS, verticies);
+    private void generateQueryGraph(ArrayList<QueryStuff.Query> queries) {
+        queryGraph = new QueryStuff.GlobalQueryGraph(queries, 4, POS, SPO, OPS, verticies);
         queryGraph.genrate();
 
 
@@ -1016,15 +1016,15 @@ public class Main {
 
         for (int i = 0; i < queryGraph.getAnnomizedTriples().size(); i++) {
 
-            AnnomizedTriple annomizedTriple = queryGraph.getAnnomizedTriples().get(i);
+            QueryStuff.AnnomizedTriple annomizedTriple = queryGraph.getAnnomizedTriples().get(i);
             ArrayList<Triple> fragmentTriples = annomizedTriple.fragment.triples;
             int partutPartition = annomizedTriple.partutAssignedPartition;
             for (int j = 0; j < fragmentTriples.size(); j++) {
              *//*  boolean isAlreadyBorder =  borderCodesPartutMap.get(fragmentTriples.get(j).triples[0]) != null;
                if(isAlreadyBorder)
                    continue;
-               VertexGraph srcVertex = this.verticies.get(fragmentTriples.get(j).triples[0]) ;
-               VertexGraph destVertex = this.verticies.get(fragmentTriples.get(j).triples[2]) ;
+               QueryStuff.VertexGraph srcVertex = this.verticies.get(fragmentTriples.get(j).triples[0]) ;
+               QueryStuff.VertexGraph destVertex = this.verticies.get(fragmentTriples.get(j).triples[2]) ;
                if(srcVertex)
                Integer foundPartition = codeToPartutpartitionMap.get(fragmentTriples.get(j).triples[0]);
                if(foundPartition == null){
@@ -1127,11 +1127,11 @@ public class Main {
     private void assignPartutPartionInVertices(int partitionCount) {
         // we first pass over all the triples of the fragments and assigns the partition number to it.
         for (int i = 0; i < queryGraph.getAnnomizedTriples().size(); i++) {
-            AnnomizedTriple annomizedTriple = queryGraph.getAnnomizedTriples().get(i);
+            QueryStuff.AnnomizedTriple annomizedTriple = queryGraph.getAnnomizedTriples().get(i);
             ArrayList<Triple> fragmentTriples = annomizedTriple.fragment.triples;
             for (int j = 0; j < fragmentTriples.size(); j++) {
                 Triple triple = fragmentTriples.get(j);
-                VertexGraph vertex = verticies.get(triple.triples[0]);
+                QueryStuff.VertexGraph vertex = verticies.get(triple.triples[0]);
                 if (vertex.partutPartitionsMap == null)
                     vertex.partutPartitionsMap = new HashMap();
                 vertex.partutPartitionsMap.put(annomizedTriple.partutAssignedPartition, annomizedTriple.partutAssignedPartition);
@@ -1142,7 +1142,7 @@ public class Main {
         // now we assign all the triples which does not belong to a fragment
 
         for (int j = 0; j < verticies.size(); j++) {
-            VertexGraph vertex = verticies.get(j);
+            QueryStuff.VertexGraph vertex = verticies.get(j);
             if (vertex.partutPartitionsMap == null) {
                 int partition = (int) (Math.random() * partitionCount);
                 vertex.partutPartitionsMap = new HashMap();

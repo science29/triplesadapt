@@ -1,3 +1,7 @@
+import QueryStuff.AnnomizedTriple;
+import QueryStuff.Query;
+import QueryStuff.VertexGraph;
+import triple.Prediacte;
 import triple.Triple;
 import triple.TriplePattern;
 
@@ -58,7 +62,7 @@ public class Fragment {
 
         /*
         for(int i = 0 ; i< predicates.size() ; i++) {
-            Prediacte prediacte = predicates.get(i);
+            triple.Prediacte prediacte = predicates.get(i);
             if(prediacte.variablePos == 1) {
                 ArrayList<triple.triple> triples1 = POS.get(prediacte.constPredicate);
             }

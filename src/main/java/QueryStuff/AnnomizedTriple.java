@@ -1,3 +1,6 @@
+package QueryStuff;
+
+import triple.Fragment;
 import triple.Triple;
 import triple.TriplePattern;
 

@@ -1,3 +1,4 @@
+import QueryStuff.*;
 import index.*;
 import index.Dictionary;
 import triple.Triple;
@@ -110,7 +111,7 @@ try {
     System.out.println("building extra indexes OPxPs .. ");*/
    // o.buildOppIndex();
     //System.out.println("generating queries .. ");
-   // ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary, o.queryKeys);
+   // ArrayList<String> HeaveyQueries = QueryStuff.QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary, o.queryKeys);
 
    // o.writePalinQueriesToFile(HeaveyQueries);
    // o.printIndexesStat();
@@ -122,7 +123,7 @@ try {
     o.finish();
 }
 
-       /*  ArrayList<Query> queries = o.generateQueries();
+       /*  ArrayList<QueryStuff.Query> queries = o.generateQueries();
 
         System.out.println("Writting queries to file");
         o.putStringTripleInQueries(queries);
@@ -484,7 +485,7 @@ try {
     }
 /*
     private void setVertexVisted(long v) {
-       VertexGraph vertexGraph = verticies.get(v);
+       QueryStuff.VertexGraph vertexGraph = verticies.get(v);
        if(vertexGraph.dist == -1)
            vertexGraph.dist = -2;
     }*/
@@ -1299,14 +1300,14 @@ try {
 
     private ArrayList<Query> generateQueries() {
         QueryGenrator queryGenrator = new QueryGenrator(5, 4, verticies, 4, tripleGraph, 40);
-        //ArrayList<Query> queries = queryGenrator.buildQueries(10);
+        //ArrayList<QueryStuff.Query> queries = queryGenrator.buildQueries(10);
         ArrayList<Query> queries = queryGenrator.buildHeavyQueries(10);
         return queries;
     }
 
 
     /*
-    private void putStringTripleInQueries(ArrayList<Query> queries) {
+    private void putStringTripleInQueries(ArrayList<QueryStuff.Query> queries) {
         for (int i = 0; i < queries.size(); i++) {
             queries.get(i).findStringTriple(reverseDictionary);
             queries.get(i).setQuerySPARQL(reverseDictionary, prefix, verticies);
@@ -1584,8 +1585,8 @@ try {
              /*  boolean isAlreadyBorder =  borderCodesPartutMap.get(fragmentTriples.get(j).triples[0]) != null;
                if(isAlreadyBorder)
                    continue;
-               VertexGraph srcVertex = this.verticies.get(fragmentTriples.get(j).triples[0]) ;
-               VertexGraph destVertex = this.verticies.get(fragmentTriples.get(j).triples[2]) ;
+               QueryStuff.VertexGraph srcVertex = this.verticies.get(fragmentTriples.get(j).triples[0]) ;
+               QueryStuff.VertexGraph destVertex = this.verticies.get(fragmentTriples.get(j).triples[2]) ;
                if(srcVertex)
                Integer foundPartition = codeToPartutpartitionMap.get(fragmentTriples.get(j).triples[0]);
                if(foundPartition == null){
@@ -1829,7 +1830,7 @@ try {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             try {
-                System.out.println("Please enter Sparql Query:");
+                System.out.println("Please enter Sparql QueryStuff.Query:");
                 String query = scanner.nextLine();
                 if (query.matches("e")) {
                     System.out.println("Exiting query system..");
@@ -1850,17 +1851,23 @@ try {
                     System.out.println("done ..queries written to file..");
                     continue;
                 }
+                StringBuilder extTime = new StringBuilder();
+                if(Query.sep()) {
+                    Query spQuery_t = new Query(dictionary, query);
+                    spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
+                    extTime = new StringBuilder();
+                }
                 long startTime = System.nanoTime();
                 Query spQuery = new Query(dictionary, query);
                 long parseTime = System.nanoTime();
-                StringBuilder extTime = new StringBuilder();
                 spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
                 long stopTime = System.nanoTime();
                 long elapsedTime = (stopTime - startTime) / 1000;
-                System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
                 spQuery.printAnswers(reverseDictionary);
+                System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
             }catch (Exception e){
                 System.err.println("unable to parse query..");
+              //  e.printStackTrace();
             }
         }
     }

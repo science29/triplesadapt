@@ -390,7 +390,7 @@ public class Main {
     }
 /*
     private void setVertexVisted(long v) {
-       VertexGraph vertexGraph = verticies.get(v);
+       QueryStuff.VertexGraph vertexGraph = verticies.get(v);
        if(vertexGraph.dist == -1)
            vertexGraph.dist = -2;
     }*/
@@ -917,7 +917,7 @@ public class Main {
 
     private ArrayList<Query> generateQueries() {
         QueryGenrator queryGenrator = new QueryGenrator(5, 4, verticies, 4, tripleGraph, 40);
-        //ArrayList<Query> queries = queryGenrator.buildQueries(10);
+        //ArrayList<QueryStuff.Query> queries = queryGenrator.buildQueries(10);
         ArrayList<Query> queries = queryGenrator.buildHeavyQueries(10);
 
         return queries;
@@ -1021,8 +1021,8 @@ public class Main {
              /*  boolean isAlreadyBorder =  borderCodesPartutMap.get(fragmentTriples.get(j).triples[0]) != null;
                if(isAlreadyBorder)
                    continue;
-               VertexGraph srcVertex = this.verticies.get(fragmentTriples.get(j).triples[0]) ;
-               VertexGraph destVertex = this.verticies.get(fragmentTriples.get(j).triples[2]) ;
+               QueryStuff.VertexGraph srcVertex = this.verticies.get(fragmentTriples.get(j).triples[0]) ;
+               QueryStuff.VertexGraph destVertex = this.verticies.get(fragmentTriples.get(j).triples[2]) ;
                if(srcVertex)
                Integer foundPartition = codeToPartutpartitionMap.get(fragmentTriples.get(j).triples[0]);
                if(foundPartition == null){

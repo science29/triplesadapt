@@ -54,11 +54,11 @@ public class QueryGenrator {
     }
 
 /*
-    public ArrayList<Query> buildQueries(int numberOfQueries) {
+    public ArrayList<QueryStuff.Query> buildQueries(int numberOfQueries) {
         for(int i= 0 ; i<numberOfQueries ; i++){
             triplePatterns = new ArrayList<>();
             buildQuery();
-            Query query = new Query(triplePatterns , new Random().nextInt(maxQueryFrquency) +1 ,queryAnswer );
+            QueryStuff.Query query = new QueryStuff.Query(triplePatterns , new Random().nextInt(maxQueryFrquency) +1 ,queryAnswer );
             queries.add(query);
         }
         return queries;

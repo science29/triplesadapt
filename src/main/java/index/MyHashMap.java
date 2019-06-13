@@ -849,7 +849,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
              }
              count++;
              //TODO remove
-             if(count > 30000)
+             if(count > 100000)
                  break;
         }
         System.out.println("done, full load !");

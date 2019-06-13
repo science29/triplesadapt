@@ -1,5 +1,9 @@
+package QueryStuff;
+
+import QueryStuff.Query;
 import index.Dictionary;
 import index.MyHashMap;
+import start.MainUinAdapt;
 import triple.Triple;
 import triple.TriplePattern;
 
@@ -59,11 +63,11 @@ public class QueryGenrator {
     }
 
 /*
-    public ArrayList<Query> buildQueries(int numberOfQueries) {
+    public ArrayList<QueryStuff.Query> buildQueries(int numberOfQueries) {
         for(int i= 0 ; i<numberOfQueries ; i++){
             triplePatterns = new ArrayList();
             buildQuery();
-            Query query = new Query(triplePatterns , new Random().nextInt(maxQueryFrquency) +1 ,queryAnswer );
+            QueryStuff.Query query = new QueryStuff.Query(triplePatterns , new Random().nextInt(maxQueryFrquency) +1 ,queryAnswer );
             queries.add(query);
         }
         return queries;
@@ -116,9 +120,9 @@ public class QueryGenrator {
                 if(trialCount > 100) {
                     if(resultedVertices.size() < 3) {
                         if(countIgnore == 0)
-                            Main2.printBuffer(0,countIgnore+":ignoring samll query .."+resultedVertices.size());
+                            MainUinAdapt.printBuffer(0,countIgnore+":ignoring samll query .."+resultedVertices.size());
                         else
-                            Main2.printBuffer(1,countIgnore+":ignoring samll query .."+resultedVertices.size());
+                            MainUinAdapt.printBuffer(1,countIgnore+":ignoring samll query .."+resultedVertices.size());
                         countIgnore++;
                         //System.out.println("ignoring samll query ..");
                         return null;

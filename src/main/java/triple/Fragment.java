@@ -1,6 +1,11 @@
+package triple;
+
+import QueryStuff.AnnomizedTriple;
+import QueryStuff.Query;
+import QueryStuff.VertexGraph;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 public class Fragment {
 
@@ -8,7 +13,7 @@ public class Fragment {
      * The best is to start from the anomized query graph and genrate a fragment for each annom. query, then we could decrese the size of the fragment if necessay
      */
 
-    ArrayList<Triple> triples;
+    public ArrayList<Triple> triples;
     //int size = -1;
     int frequency= -1;
     Minterm minterm;
@@ -19,7 +24,7 @@ public class Fragment {
     ArrayList<Fragment> connectedFragments;
     ArrayList<Integer> connectionFrequency;
 
-    public Fragment( Minterm minterm){
+    public Fragment(Minterm minterm){
         this.minterm = minterm;
     }
     public Fragment(AnnomizedTriple annomizedTriple){
@@ -77,16 +82,16 @@ public class Fragment {
 
     }
 
-    public void  addConnectedFragment(Fragment fragment,int freq){
+    public void  addConnectedFragment(Fragment fragment, int freq){
         if(connectedFragments == null)
-            connectedFragments = new ArrayList<>();
+            connectedFragments = new ArrayList();
         connectedFragments.add(fragment);
         if(connectionFrequency == null)
             connectionFrequency.add(freq);
     }
 
     public void filterToDist(int dist, HashMap<Long, VertexGraph> vertexIndex) {
-        ArrayList<Triple> tempTripleFound = new ArrayList<>();
+        ArrayList<Triple> tempTripleFound = new ArrayList();
         for(int j=0 ;j<triples.size() ; j++){
             VertexGraph vs  = vertexIndex.get(triples.get(j).triples[0]);
             VertexGraph vo  = vertexIndex.get(triples.get(j).triples[2]);
