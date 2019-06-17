@@ -5,6 +5,7 @@ import triple.Triple;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import triple.Vertex;
+import util.temp2;
 
 import java.io.*;
 import java.util.*;
@@ -61,6 +62,8 @@ public class Main2 {
 
     public static void main(String[] args) {
 
+        temp2.work();
+        System.exit(0);
 
         System.out.println("starting ..");
         Main2 o = new Main2();
