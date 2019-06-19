@@ -67,6 +67,10 @@ public class HeatQuery {
        adjustTripleHeat(triple);
     }
 
+    private void anonymize(){
+        
+    }
+
 
     private void adjustTripleHeat(Triple triple){
         Integer heat = tripleHeatMap.get(triple);
@@ -88,7 +92,7 @@ public class HeatQuery {
 
 
 
-    public int getHeat(Long vertexID){
+    public int getFullVertexHeat(Long vertexID){
         if(vertexHeatMap.containsKey(vertexID))
             return vertexHeatMap.get(vertexID);
         return 0;
