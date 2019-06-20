@@ -95,10 +95,11 @@ try {
     filePaths.add("/home/keg/Desktop/BTC/n3/btc-13.n3");
     o.openIndexes();
     System.out.println("loading extra index in memory..");
-    o.OPxP.loadQueryTimeCahce();
+  //  o.OPxP.loadQueryTimeCahce(); was used till jun 2019
+
     //o.buildOppIndex();
 
-   // o.porcess(filePaths, quad);
+    o.porcess(filePaths, quad);
     //System.out.println("building extra indexes .. ");
     //o.buildSppIndex();
    /* System.out.println(" press any key to continue building extra indexes, press e to exit , press s to close indexes");
@@ -858,7 +859,11 @@ try {
         }
         tripleGraph = SPO;
        // op_S.close();
-
+        System.out.println("sorting indexes.. ");
+        System.out.println("spo");
+        OPS.sort(0,1);
+        System.out.println("op_s");
+        op_S.sort(0,-1);
 //        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);

@@ -5,6 +5,7 @@ import QueryStuff.VertexGraph;
 import org.mapdb.Atomic;
 import triple.Triple;
 import triple.TriplePattern;
+import triple.TriplePattern2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,14 +18,14 @@ public class HeatQuery {
     Graph queryGraph;
 
     HashMap<Long , Integer> vertexHeatMap;
-    HashMap<Triple , Integer> tripleHeatMap;
-    HashMap<Triple , Integer> annonmizedTripleHeatMap;
+    HashMap<TriplePattern2, Integer> tripleHeatMap;
+    HashMap<TriplePattern2 , Integer> annonmizedTripleHeatMap;
 
     public HeatQuery(Query query){
         queryGraph = new Graph();
         vertexHeatMap = new HashMap<Long, Integer>();
-        tripleHeatMap = new HashMap<Triple, Integer>();
-        annonmizedTripleHeatMap = new HashMap<Triple, Integer>();
+        tripleHeatMap = new HashMap<TriplePattern2, Integer>();
+        annonmizedTripleHeatMap = new HashMap<TriplePattern2, Integer>();
         addQuery(query);
     }
 
@@ -34,10 +35,10 @@ public class HeatQuery {
         Iterator it = answerMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            ArrayList<Triple> list = (ArrayList<Triple>) pair.getValue();
+            ArrayList<TriplePattern2> list = (ArrayList<TriplePattern2>) pair.getValue();
             for(int i = 0 ; i < list.size() ; i++){
-                Triple triple = list.get(i);
-                if(queryGraph.isExist(triple)) {
+                TriplePattern2 triplePattern = list.get(i);
+                if(queryGraph.isExist(triplePattern.getTriples())) {
                     addQuery(query);
                     return true;
                 }
@@ -52,19 +53,19 @@ public class HeatQuery {
         Iterator it = answerMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            ArrayList<Triple> list = (ArrayList<Triple>) pair.getValue();
+            ArrayList<TriplePattern2> list = (ArrayList<TriplePattern2>) pair.getValue();
             for(int i = 0 ; i < list.size() ; i++){
-                Triple triple = list.get(i);
-                queryGraph.add(triple);
-                adjustHeat(triple);
+                TriplePattern2 triplePattern = list.get(i);
+              //  queryGraph.add();
+               // adjustHeat(triple);
             }
         }
     }
 
-    private void adjustHeat(Triple triple){
-       adjustVertexHeat(triple.triples[0]);
-       adjustVertexHeat(triple.triples[1]);
-       adjustTripleHeat(triple);
+    private void adjustHeat(TriplePattern2 triplePattern){
+       adjustVertexHeat(triplePattern.getTriples()[0]);
+       adjustVertexHeat(triplePattern.getTriples()[1]);
+       adjustTripleHeat(triplePattern);
     }
 
     private void anonymize(){
@@ -72,12 +73,12 @@ public class HeatQuery {
     }
 
 
-    private void adjustTripleHeat(Triple triple){
-        Integer heat = tripleHeatMap.get(triple);
+    private void adjustTripleHeat(TriplePattern2 triplePattern){
+        Integer heat = tripleHeatMap.get(triplePattern);
         if(heat != null){
             heat++;
         }else{
-            tripleHeatMap.put(triple , 1);
+            tripleHeatMap.put(triplePattern , 1);
         }
     }
 
@@ -125,13 +126,13 @@ public class HeatQuery {
         }
 
 
-        public boolean isExist(Triple triple){
-            if(E.containsKey(triple.triples[0])) {
+        public boolean isExist(long [] triple){
+            if(E.containsKey(triple[0])) {
                // add(triple.triples[0] , triple.triples[1] , triple.triples[2]);
                 return true;
             }
 
-            if(E.containsKey(triple.triples[2])) {
+            if(E.containsKey(triple[2])) {
                // add(triple.triples[0] , triple.triples[1] , triple.triples[2]);
                 return true;
             }

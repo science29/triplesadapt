@@ -59,6 +59,35 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     public boolean queryTimeCacheEnabled = false;
 
 
+    public void sort(final int index1 , final int index2){
+        //iterate on all values
+        Iterator it = hashMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            pair.getKey() ;
+            ArrayList<Triple> tripleList = (ArrayList<Triple>)pair.getValue();
+            Collections.sort(tripleList, new Comparator<Triple>() {
+               // @Override
+                public int compare(Triple lhs, Triple rhs) {
+                    // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                    if(lhs.triples[index1] < rhs.triples[index1])
+                        return 1;
+                    if(lhs.triples[index1] > rhs.triples[index1])
+                        return -1;
+                    if(index2 == -1)
+                        return 0;
+                    if(lhs.triples[index2] < rhs.triples[index2])
+                        return 1;
+                    if(lhs.triples[index2] > rhs.triples[index2])
+                        return -1;
+                    return 0;
+                   // return lhs.customInt > rhs.customInt ? -1 : (lhs.customInt < rhs.customInt) ? 1 : 0;
+                }
+            });
+
+        }
+    }
+
     //   private int avgElemSize = 1 ;
     public MyHashMap(String fileName){
         super();
