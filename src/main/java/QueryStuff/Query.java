@@ -359,6 +359,7 @@ public class Query {
                 "?x5 <http://www.w3.org/2000/01/rdf-schema#subClassOf> ?x7." +
                 "?x7 <http://mpii.de/yago/resource/isPartOf> <http://mpii.de/yago/resource/wordnet_transportation_system_104473432>} ";*/
         triplePatterns = new ArrayList();
+        triplePatterns2 = new ArrayList<TriplePattern2>();
         String [] proj = spaql.split(" ");
         String s = spaql.split("\\{")[1];
         // s = s.replace("}", "");

@@ -713,7 +713,7 @@ try {
                 return;
             }
             try {
-                while (it.hasNext() /*&& count < 10000000*/) {
+                while (it.hasNext() && count < 10000000) {
                     if (count % 100000 == 0 || count == 2082) {
                         File stopFile = new File("/home/ahmed/stop");
                         if(stopFile.exists()){
@@ -1876,6 +1876,7 @@ try {
                 System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
             }catch (Exception e){
                 System.err.println("unable to parse query..");
+                e.printStackTrace();
               //  e.printStackTrace();
             }
         }
