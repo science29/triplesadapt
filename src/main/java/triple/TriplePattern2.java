@@ -22,6 +22,10 @@ public class TriplePattern2 {
     private ArrayList<TriplePattern2> rights;
     private ArrayList<TriplePattern2> lefts;
 
+    private MyHashMap<Long , ArrayList<Triple>> Pso;
+    private MyHashMap<String , ArrayList<Triple>> OPs;
+    private MyHashMap<String , ArrayList<Triple>> SPo;
+
     //int varaibles[] = new int[3];
 
     public TriplePattern2(long s , long p , long o){
@@ -36,6 +40,13 @@ public class TriplePattern2 {
         fixedTriples[0] = fixedTriples[0] ;
         fixedTriples[1] = fixedTriples[1];
         fixedTriples[2] = fixedTriples[2];
+    }
+
+    public void setIndexes(MyHashMap<Long , ArrayList<Triple>> Pso ,MyHashMap<String , ArrayList<Triple>> OPs ,
+                           MyHashMap<String , ArrayList<Triple>> SPo){
+        this.Pso = Pso;
+        this.OPs = OPs;
+        this.SPo = SPo;
     }
 
     public static long thisIsVariable(long varCode) {
@@ -66,6 +77,30 @@ public class TriplePattern2 {
         return  false;
     }
 
+    public boolean connectTriplePattern(TriplePattern2 triplePattern , boolean right , boolean left){
+        if(rights == null){
+            rights = new ArrayList<TriplePattern2>();
+            lefts = new ArrayList<TriplePattern2>();
+        }
+        if(right){
+            rights.add(triplePattern);
+            return true;
+        }
+        if(left){
+            lefts.add(triplePattern);
+            return true;
+        }
+        if(isVariable(triplePattern.triples[0]) &&  triplePattern.triples[0] == triples[0]){
+            lefts.add(triplePattern);
+            return true;
+        }
+        if(isVariable(triplePattern.triples[2]) &&  triplePattern.triples[2] == triples[2]){
+            rights.add(triplePattern);
+            return true;
+        }
+        return false;
+    }
+
     public boolean matches(Triple triple) {
         if(triple.triples[0] != triples[0] && !isVariable(triples[0])  )
             return false;
@@ -84,8 +119,8 @@ public class TriplePattern2 {
         if(isVariable(this.triples[0] ) && isVariable(this.triples[2])){
             if(!evaluatedStarted){
                 //try to get results from right
-                TriplePattern2 rPattern = getJoinPatternRight();
-                TriplePattern2 lPattern = getJoinPatternLeft();
+                TriplePattern2 rPattern = getJoinPattern(true);
+                TriplePattern2 lPattern = getJoinPattern(false);
 
                // LinkedList<Triple> left = getJoinPatternLeft().getResult();
                 if(rPattern != null && lPattern == null){
@@ -98,6 +133,21 @@ public class TriplePattern2 {
             }
         }
         evaluatedStarted = true;
+    }
+
+    private void mergeJoin(){
+        //TODO
+    }
+
+    private TriplePattern2 getJoinPattern(boolean right) {
+        ArrayList<TriplePattern2> list = rights;
+        if(!right)
+            list = lefts;
+        for(int i = 0 ; i < rights.size() ; i++){
+            if(!rights.get(i).isStarted())
+                return rights.get(i);
+        }
+        return null;
     }
 
     private void hashJoin(TriplePattern2 lPattern , TriplePattern2 rPattern) {

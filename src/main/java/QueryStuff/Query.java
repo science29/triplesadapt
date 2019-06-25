@@ -3,6 +3,7 @@ package QueryStuff;
 import index.Dictionary;
 import triple.Triple;
 import triple.TriplePattern;
+import triple.TriplePattern2;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -10,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Query {
     public ArrayList<TriplePattern> triplePatterns;
+    public ArrayList<TriplePattern2> triplePatterns2;
     public int queryFrquency;
     public ArrayList<TriplePattern> simpleAnswer;
     public ArrayList<ArrayList<TriplePattern>> fullAnswer;
@@ -493,7 +495,23 @@ public class Query {
         //TODO do this
 ///        triplePattern.setProjected(projected);
         triplePatterns.add(triplePattern);
+        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern);
+        triplePatterns2.add(triplePattern2);
+
+        connectTriplePatterns(triplePattern2);
         return true;
+    }
+
+
+    private void connectTriplePatterns(TriplePattern2 triplePattern){
+        for(int i = 0 ; i < triplePatterns.size() ; i++){
+            if(triplePatterns.get(i).triples[0] == triplePattern.getTriples()[0] &&
+                    TriplePattern2.isVariable(triplePattern.getTriples()[0]))
+                triplePattern.connectTriplePattern(triplePattern , false , true);
+            if(triplePatterns.get(i).triples[2] == triplePattern.getTriples()[2] &&
+                    TriplePattern2.isVariable(triplePattern.getTriples()[2]))
+                triplePattern.connectTriplePattern(triplePattern , true , false);
+        }
     }
 
     long nextVarcode = 1;
