@@ -134,13 +134,16 @@ public class TriplePattern2 {
         }
 
         evaluatedStarted = true;
+        TriplePattern2 next = getNextPattern();
+        if(next != null)
+            next.evaluatePatternHash();
     }
 
     private void mergeJoin() {
         //TODO
     }
 
-    private TriplePattern2 getJoinPattern(boolean right) {xx
+    private TriplePattern2 getJoinPattern(boolean right) {
         ArrayList<TriplePattern2> list = rights;
         if (!right)
             list = lefts;
@@ -149,6 +152,30 @@ public class TriplePattern2 {
                 return list.get(i);
         }
         return null;
+    }
+
+
+    private TriplePattern2 getNextPattern(){
+        //look in left and right find the non started pattern with the minimum selectivty
+        //assuming the  lists are already sorted for the  best  selectivity
+        TriplePattern2 rPattern = null;
+        for(int i = 0; i < rights.size() ; i++)
+            if(!rights.get(i).isStarted())
+                rPattern = rights.get(i);
+
+        TriplePattern2 lPattern = null;
+        for(int i = 0; i < lefts.size() ; i++)
+            if(!lefts.get(i).isStarted())
+                lPattern = lefts.get(i);
+
+        if(rPattern == null)
+            return lPattern;
+        if(lPattern == null)
+            return rPattern;
+        if(rPattern.getSelectivity() < lPattern.getSelectivity())
+            return rPattern;
+        return lPattern;
+
     }
 
     private void hashJoin(TriplePattern2 lPattern, TriplePattern2 rPattern) {
@@ -268,9 +295,12 @@ public class TriplePattern2 {
         return result;
     }
 
-    private boolean isStarted() {
+    public boolean isStarted() {
         return evaluatedStarted;
     }
 
 
+    public int getSelectivity() {
+        return Triple.extractPredicateSelectivity(triples[1]);
+    }
 }

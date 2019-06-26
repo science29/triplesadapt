@@ -61,11 +61,13 @@ public class MainUinAdapt {
     final static String outPutDirName = "bioportal";
     private IndexCollection indexCollection;
     private long skipToLine = 0;
+    private IndexesPool indexPool;
 
 
     public static void main(String[] args) {
 
 
+        System.out.println();
         System.out.println("starting ..");
         MainUinAdapt o = new MainUinAdapt();
 
@@ -692,6 +694,16 @@ try {
     ArrayList<String> header;
 
     public void porcess(ArrayList<String> filePathList, boolean quad) {
+
+        long m1 =checkMemory();
+        ArrayList<ArrayList<Integer>> testa = new ArrayList();
+        for(int i =0 ; i< 100000 ; i++) {
+            testa.add(new ArrayList<Integer>());
+        }
+        long m2 = checkMemory();
+        System.out.println("memory :"+(m2-m1)/100000.0);
+
+
         long test = 0;
         tripleToPartutPartitionMap = new HashMap();
         header = new ArrayList();
@@ -841,7 +853,7 @@ try {
                         tripleToPartutPartitionMap.put(code[0] + "p" + code[1] + "p" + code[2], -1);
                     }
 
-                    //          addToPOSIndex(tripleObj);
+                              addToPOSIndex(tripleObj);
                     //           addToSPOIndex(tripleObj);
                    // addToOPSIndex(new Triple(88,87,43));
                    // ArrayList<Triple> test2 = OPS.get(new Long(2));
@@ -864,6 +876,9 @@ try {
         OPS.sort(0,1);
         System.out.println("op_s");
         op_S.sort(0,-1);
+        indexPool = new IndexesPool();
+        indexPool.addIndex(IndexesPool.Pso , POS , "Pso");
+
 //        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
@@ -1863,7 +1878,7 @@ try {
                 StringBuilder extTime = new StringBuilder();
                 if(Query.sep()) {
                     Query spQuery_t = new Query(dictionary, query);
-                    spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
+                     spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
                     extTime = new StringBuilder();
                 }
                 long startTime = System.nanoTime();
@@ -1894,15 +1909,17 @@ try {
     }
 
 
-    private void checkMemory(){
+    private long checkMemory(){
         long rem =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         long max = Runtime.getRuntime().maxMemory();
         System.out.println(" app used memory: "+rem/1000000000 + " GB");
+        System.out.println(" app used memory: "+rem/1000 + " KB");
         if((max-rem)/1000 < 2000000) {
             System.out.println(" Low memory detected, exiting ... ");
             finish();
             System.exit(1);
         }
+        return rem/1000; //kB
     }
 
 

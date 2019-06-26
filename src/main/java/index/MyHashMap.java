@@ -59,6 +59,10 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     public boolean queryTimeCacheEnabled = false;
 
 
+
+
+
+
     public void sort(final int index1 , final int index2){
         //iterate on all values
         Iterator it = hashMap.entrySet().iterator();
@@ -87,6 +91,22 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
         }
     }
+
+
+    public MyHashMap(String name, HashMap<K, V> map) {
+        super();
+        try {
+            fileHashMap = new FileHashMap(HOME_DIR+fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        hashMap = map;
+        this.fileName = name;
+        this.indexType = new IndexType();
+        maxAllowedRamSize = MAX_SIZE_GB;
+        comressEnabled = false;
+    }
+
 
     //   private int avgElemSize = 1 ;
     public MyHashMap(String fileName){
@@ -250,6 +270,13 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     }
 
+    public V get(Long key1 , Long key2){
+        return get(getKey(key1 , key2));
+    }
+
+    private K getKey(Long key1, Long key2) {
+        return (K) (key1+""+key2);
+    }
 
 
     public static ArrayList<Triple> deSerializeArrayList(String value , ArrayList<Triple> tarr) {

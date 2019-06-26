@@ -1,6 +1,8 @@
 package QueryStuff;
 
 import index.Dictionary;
+import index.IndexesPool;
+import index.MyHashMap;
 import triple.Triple;
 import triple.TriplePattern;
 import triple.TriplePattern2;
@@ -240,6 +242,28 @@ public class Query {
     //    noMoreWork();
 
 
+    }
+
+
+    public void findQueryAnswer(IndexesPool indexes ){
+      //find the triplePattern to start with
+      //start executing and let it propogate.
+        Collections.sort(triplePatterns2, new Comparator<TriplePattern2>() {
+            // @Override
+            public int compare(TriplePattern2 lhs, TriplePattern2 rhs) {
+                // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                if(lhs.getSelectivity() < rhs.getSelectivity())
+                    return 1;
+                if(lhs.getSelectivity() > rhs.getSelectivity())
+                    return -1;
+                return 0;
+                // return lhs.customInt > rhs.customInt ? -1 : (lhs.customInt < rhs.customInt) ? 1 : 0;
+            }
+        });
+      for(int i =0 ; i < triplePatterns2.size() ; i++){
+          if(!triplePatterns2.get(i).isStarted())
+              triplePatterns2.get(i).evaluatePatternHash();
+      }
     }
 
 
