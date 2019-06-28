@@ -224,7 +224,7 @@ public class TriplePattern2 {
 
 
         TriplePattern2 pattern = rPattern;
-        if (lPattern == null) {
+        if (pattern == null) {
             pattern = lPattern;
             hisIndex = getHisJoinIndex(pattern);
             index = SPo;

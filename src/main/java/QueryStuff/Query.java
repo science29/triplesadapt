@@ -535,20 +535,28 @@ public class Query {
     private void connectTriplePatterns(TriplePattern2 triplePattern){
         for(int i = 0 ; i < triplePatterns2.size() ; i++){
             if(triplePatterns2.get(i).getTriples()[0] == triplePattern.getTriples()[0] &&
-                    TriplePattern2.isVariable(triplePattern.getTriples()[0]))
-                triplePatterns2.get(i).connectTriplePattern(triplePattern , false , true);
+                    TriplePattern2.isVariable(triplePattern.getTriples()[0])) {
+                triplePatterns2.get(i).connectTriplePattern(triplePattern, false, true);
+                triplePattern.connectTriplePattern(triplePatterns2.get(i), false, true);
+            }
             if(triplePatterns2.get(i).getTriples()[2] == triplePattern.getTriples()[2] &&
-                    TriplePattern2.isVariable(triplePattern.getTriples()[2]))
-                triplePatterns2.get(i).connectTriplePattern(triplePattern , true , false);
+                    TriplePattern2.isVariable(triplePattern.getTriples()[2])) {
+                triplePatterns2.get(i).connectTriplePattern(triplePattern, true, false);
+                triplePattern.connectTriplePattern(triplePatterns2.get(i), true, false);
+            }
 
 
             if(triplePatterns2.get(i).getTriples()[0] == triplePattern.getTriples()[2] &&
-                    TriplePattern2.isVariable(triplePattern.getTriples()[2]))
-                triplePatterns2.get(i).connectTriplePattern(triplePattern , false , true);
+                    TriplePattern2.isVariable(triplePattern.getTriples()[2])) {
+                triplePatterns2.get(i).connectTriplePattern(triplePattern, false, true);
+                triplePattern.connectTriplePattern(triplePatterns2.get(i), true, false);
+            }
 
             if(triplePatterns2.get(i).getTriples()[2] == triplePattern.getTriples()[0] &&
-                    TriplePattern2.isVariable(triplePattern.getTriples()[0]))
-                triplePatterns2.get(i).connectTriplePattern(triplePattern , true , false);
+                    TriplePattern2.isVariable(triplePattern.getTriples()[0])) {
+                triplePatterns2.get(i).connectTriplePattern(triplePattern, true, false);
+                triplePattern.connectTriplePattern(triplePatterns2.get(i), false, true);
+            }
 
         }
     }
