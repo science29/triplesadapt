@@ -1,5 +1,6 @@
 package triple;
 
+import index.IndexesPool;
 import index.MyHashMap;
 
 import java.util.ArrayList;
@@ -22,9 +23,9 @@ public class TriplePattern2 {
     private ArrayList<TriplePattern2> rights;
     private ArrayList<TriplePattern2> lefts;
 
-    private MyHashMap<Long, ArrayList<Triple>> Pso;
-    private MyHashMap<String, ArrayList<Triple>> OPs;
-    private MyHashMap<String, ArrayList<Triple>> SPo;
+    private MyHashMap<Integer, ArrayList<Triple>> Pso;
+    private MyHashMap<Integer, ArrayList<Triple>> OPs;
+    private MyHashMap<Integer, ArrayList<Triple>> SPo;
 
     private WithinIndex withinIndex ;
 
@@ -36,23 +37,20 @@ public class TriplePattern2 {
         withinIndex = new WithinIndex(0);
     }*/
 
-    public TriplePattern2(TriplePattern triplePattern) {
+    public TriplePattern2(TriplePattern triplePattern , IndexesPool indexesPool) {
         triples[0] = triplePattern.triples[0];
-        triples[1] = triplePattern.triples[0];
-        triples[2] = triplePattern.triples[0];
+        triples[1] = triplePattern.triples[1];
+        triples[2] = triplePattern.triples[2];
         fixedTriples[0] = fixedTriples[0];
         fixedTriples[1] = fixedTriples[1];
         fixedTriples[2] = fixedTriples[2];
 
         withinIndex = new WithinIndex(0);
+        Pso = indexesPool.getIndex(IndexesPool.Pso);
+        SPo = indexesPool.getIndex(IndexesPool.SPo);
+        OPs = indexesPool.getIndex(IndexesPool.OPs);
     }
 
-    public void setIndexes(MyHashMap<Long, ArrayList<Triple>> Pso, MyHashMap<String, ArrayList<Triple>> OPs,
-                           MyHashMap<String, ArrayList<Triple>> SPo) {
-        this.Pso = Pso;
-        this.OPs = OPs;
-        this.SPo = SPo;
-    }
 
     public static int thisIsVariable(int varCode) {
         return -varCode;
@@ -151,6 +149,7 @@ public class TriplePattern2 {
         ArrayList<TriplePattern2> list = rights;
         if (!right)
             list = lefts;
+        if(list != null)
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).isStarted())
                 return list.get(i);
@@ -163,12 +162,12 @@ public class TriplePattern2 {
         //look in left and right find the non started pattern with the minimum selectivty
         //assuming the  lists are already sorted for the  best  selectivity
         TriplePattern2 rPattern = null;
-        for(int i = 0; i < rights.size() ; i++)
+        for(int i = 0; rights !=null && i < rights.size() ; i++)
             if(!rights.get(i).isStarted())
                 rPattern = rights.get(i);
 
         TriplePattern2 lPattern = null;
-        for(int i = 0; i < lefts.size() ; i++)
+        for(int i = 0; lefts !=null && i < lefts.size() ; i++)
             if(!lefts.get(i).isStarted())
                 lPattern = lefts.get(i);
 
@@ -194,7 +193,7 @@ public class TriplePattern2 {
         }
 
         int hisIndex = 0;
-        MyHashMap<String, ArrayList<Triple>> index = OPs;
+        MyHashMap<Integer, ArrayList<Triple>> index = OPs;
 
 
         if (lPattern == null && rPattern == null) {
@@ -217,7 +216,11 @@ public class TriplePattern2 {
                 evaluatedStarted = true;
                 return;
             }
+
+            predicateEvaluate();
+            return;
         }
+
 
 
         TriplePattern2 pattern = rPattern;
@@ -248,7 +251,7 @@ public class TriplePattern2 {
 
     private void predicateEvaluate() {
         //Pso or Pos
-        MyHashMap<Long, ArrayList<Triple>> index = Pso;
+        MyHashMap<Integer, ArrayList<Triple>> index = Pso;
         result = index.get(triples[1]);
         evaluatedStarted = true;
 
@@ -301,7 +304,7 @@ public class TriplePattern2 {
         return -1;
     }
 
-    private List<Triple> getResult() {
+    public List<Triple> getResult() {
         return result;
     }
 

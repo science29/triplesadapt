@@ -1844,7 +1844,7 @@ try {
                 if (query.startsWith("g")) {
                     String s = query.replace("g","").trim();
                     double memPercent = 0;
-                    if(s.equals(""))
+                    if(!s.equals(""))
                         memPercent = Double.valueOf(s);
                     if(memPercent > 1)
                         memPercent = memPercent/100;

@@ -24,7 +24,7 @@ public class MainUinAdapt {
     private HashMap<Integer, ArrayList<Triple>> tripleGraph = new HashMap();//duplicate with graph , remove one!
     private ArrayList<Integer> vertecesID = new ArrayList();
     private HashMap<Integer, VertexGraph> verticies = new HashMap<Integer, VertexGraph>();;
-    private Dictionary dictionary = new Dictionary("dictionary");
+    private Dictionary dictionary = new Dictionary("dictionary_int");
     //private HashMap<Integer, String> reverseDictionary = new HashMap();
     Dictionary reverseDictionary = dictionary;
     private HashMap<Integer, ArrayList<VertexGraph>> distanceVertex;
@@ -69,7 +69,7 @@ public class MainUinAdapt {
 
         System.out.println();
         System.out.println("starting ..");
-        someTests();
+       // someTests();
         MainUinAdapt o = new MainUinAdapt();
 
 
@@ -1042,7 +1042,7 @@ try {
     private void readDictioanry() {
 
         System.out.println("reading dictionary from temp file");
-        dictionary = new Dictionary("dictionary");
+        dictionary = new Dictionary("dictionary_int");
     //    reverseDictionary = new HashMap();
         File file = new File("/home/ahmed/download/dictionary_temp.n3");
         LineIterator it = null;
@@ -1909,7 +1909,7 @@ try {
                 if (query.startsWith("g")) {
                     String s = query.replace("g","").trim();
                     double memPercent = 0;
-                    if(s.equals(""))
+                    if(!s.equals(""))
                         memPercent = Double.valueOf(s);
                     if(memPercent > 1)
                         memPercent = memPercent/100;
@@ -1929,7 +1929,8 @@ try {
                 long startTime = System.nanoTime();
                 Query spQuery = new Query(dictionary, query,indexPool);
                 long parseTime = System.nanoTime();
-                spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
+                //spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
+                spQuery.findQueryAnswer(indexPool);
                 long stopTime = System.nanoTime();
                 long elapsedTime = (stopTime - startTime) / 1000;
                 spQuery.printAnswers(reverseDictionary);

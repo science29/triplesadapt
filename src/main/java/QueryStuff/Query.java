@@ -266,6 +266,7 @@ public class Query {
           if(!triplePatterns2.get(i).isStarted())
               triplePatterns2.get(i).evaluatePatternHash();
       }
+
     }
 
 
@@ -522,22 +523,33 @@ public class Query {
         //TODO do this
 ///        triplePattern.setProjected(projected);
         triplePatterns.add(triplePattern);
-        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern );
+        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool);
+        connectTriplePatterns(triplePattern2);
         triplePatterns2.add(triplePattern2);
 
-        connectTriplePatterns(triplePattern2);
+
         return true;
     }
 
 
     private void connectTriplePatterns(TriplePattern2 triplePattern){
-        for(int i = 0 ; i < triplePatterns.size() ; i++){
-            if(triplePatterns.get(i).triples[0] == triplePattern.getTriples()[0] &&
+        for(int i = 0 ; i < triplePatterns2.size() ; i++){
+            if(triplePatterns2.get(i).getTriples()[0] == triplePattern.getTriples()[0] &&
                     TriplePattern2.isVariable(triplePattern.getTriples()[0]))
-                triplePattern.connectTriplePattern(triplePattern , false , true);
-            if(triplePatterns.get(i).triples[2] == triplePattern.getTriples()[2] &&
+                triplePatterns2.get(i).connectTriplePattern(triplePattern , false , true);
+            if(triplePatterns2.get(i).getTriples()[2] == triplePattern.getTriples()[2] &&
                     TriplePattern2.isVariable(triplePattern.getTriples()[2]))
-                triplePattern.connectTriplePattern(triplePattern , true , false);
+                triplePatterns2.get(i).connectTriplePattern(triplePattern , true , false);
+
+
+            if(triplePatterns2.get(i).getTriples()[0] == triplePattern.getTriples()[2] &&
+                    TriplePattern2.isVariable(triplePattern.getTriples()[2]))
+                triplePatterns2.get(i).connectTriplePattern(triplePattern , false , true);
+
+            if(triplePatterns2.get(i).getTriples()[2] == triplePattern.getTriples()[0] &&
+                    TriplePattern2.isVariable(triplePattern.getTriples()[0]))
+                triplePatterns2.get(i).connectTriplePattern(triplePattern , true , false);
+
         }
     }
 
@@ -556,10 +568,19 @@ public class Query {
     public void printAnswers(Dictionary reverseDictionary) {
         if(knownEmpty)
             return;
-        if (answerMap == null) {
+       /* if (answerMap == null) {
             System.err.println("No answer to print ..");
             return;
+        }*/
+
+        for(int i = 0 ; i< triplePatterns2.size() ; i++){
+            List<Triple> res = triplePatterns2.get(i).getResult();
+            for(int j=0 ; j < res.size() ; j++){
+                String str = reverseDictionary.get(res.get(j).triples[0]) + " "+reverseDictionary.get(res.get(j).triples[1])+" "+reverseDictionary.get(res.get(j).triples[2]);
+           //     System.out.println(str);
+            }
         }
+       /*
         int i = 0;
         //TODO this is not effceint enough
         while (true) {
@@ -579,7 +600,7 @@ public class Query {
             if (!found)
                 return;
             i++;
-        }
+        }*/
     }
 
     private void qeuryDone() {

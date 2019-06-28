@@ -22,10 +22,10 @@ public class IndexesPool {
     public final static int Ops = 11;
     public final static int OPs = 12;
 
-    HashMap<Integer, MyHashMap<KeyType,ArrayList<Triple>>> pool ;
+    HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>> pool ;
 
     public IndexesPool(){
-        pool = new HashMap<Integer, MyHashMap<KeyType,ArrayList<Triple>>>();
+        pool = new HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>>();
     }
 
     public void addIndex(MyHashMap index , int type){
@@ -33,7 +33,7 @@ public class IndexesPool {
     }
 
 
-    public MyHashMap<KeyType , ArrayList<Triple>> getIndex(int type){
+    public MyHashMap<Integer , ArrayList<Triple>> getIndex(int type){
         return pool.get(type);
     }
 

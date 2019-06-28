@@ -85,7 +85,7 @@ public class Dictionary{
     public HTreeMap getMap(){
         // Big map populated with data expired from cache
         HTreeMap onDisk = dbFile
-                .hashMap("onDisk"+fileName, Serializer.STRING,Serializer.LONG)
+                .hashMap("onDisk"+fileName, Serializer.STRING,Serializer.INTEGER)
                 .createOrOpen();
         // fast in-memory collection with limited size
         /*HTreeMap fastMap = dbMemory
