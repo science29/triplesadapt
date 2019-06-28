@@ -5,9 +5,9 @@ import java.util.HashMap;
 
 public class VertexGraph {
 
-   public long ID ;
-    public ArrayList<Long> edgesVertex;
-    private ArrayList<Long> edgesPredicate;
+   public int ID ;
+    public ArrayList<Integer> edgesVertex;
+    private ArrayList<Integer> edgesPredicate;
 
     public int partitionNumber ;
     public HashMap<Integer,Integer> linkedInPartitions;
@@ -19,7 +19,7 @@ public class VertexGraph {
 
     public HashMap<Integer,Integer> writenToPartitionsFilesMap ; //key is the partition while value is the tiple positioin ie 0 = s , 1 = p , 2=o
 
-    public VertexGraph(long id){
+    public VertexGraph(int id){
         ID = id;
         edgesVertex = new ArrayList();
         edgesPredicate = new ArrayList();
@@ -42,7 +42,7 @@ public class VertexGraph {
         return res;
     }
 
-    public void addEdge(long toVertexID , long prediacte){
+    public void addEdge(int toVertexID , int prediacte){
 
         edgesPredicate.add(prediacte);
         edgesVertex.add(toVertexID);

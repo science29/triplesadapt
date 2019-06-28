@@ -24,13 +24,14 @@ public class Query {
     public String partitionString = "";
     public String answerString = "";
 
-    private long startTime;
+    private int startTime;
 
     boolean knownEmpty = false;
 
-    private HashMap<String, Long> varNameMap = new HashMap();
+    private HashMap<String, Integer> varNameMap = new HashMap();
 
     private Dictionary dictionary ;
+    private IndexesPool indexPool;
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.triplePatterns = triplePattern;
@@ -41,21 +42,22 @@ public class Query {
     public HashMap<TriplePattern, ArrayList<Triple>> getAnswerMap(){
         return answerMap;
     }
-    public Query(Dictionary dictionary, String SPARQL) {
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool) {
         this.dictionary = dictionary;
+        this.indexPool = indexPool;
       //  startTime = System.nanoTime();
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
     }
 
 
-    public void findStringTriple(HashMap<Long, String> reverseDictionary) {
+    public void findStringTriple(HashMap<Integer, String> reverseDictionary) {
         for (int i = 0; i < triplePatterns.size(); i++) {
             triplePatterns.get(i).findStringTriple(reverseDictionary);
         }
     }
 
 
-    public void setQuerySPARQL(HashMap<Long, String> reverseDictionary, HashMap<String, String> prefixIndex, HashMap<Long, VertexGraph> verticies) {
+    public void setQuerySPARQL(HashMap<Integer, String> reverseDictionary, HashMap<String, String> prefixIndex, HashMap<Integer, VertexGraph> verticies) {
         SPARQL = "";
         String predicates = "";
         ArrayList<String> varsList = new ArrayList();
@@ -89,7 +91,7 @@ public class Query {
         }
         SPARQL = "select " + vars + " where {" + predicates + "}";
         for (int i = 0; i < simpleAnswer.size(); i++) {
-            long v = simpleAnswer.get(i).triples[0];
+            int v = simpleAnswer.get(i).triples[0];
             answerString = answerString + "    " + (reverseDictionary.get(simpleAnswer.get(i).triples[0]));
             partitionString = partitionString + " " + verticies.get(v).partitionNumber;
         }
@@ -156,8 +158,8 @@ public class Query {
 
 
     public static ArrayList<Triple> join(ArrayList<Triple> t1, ArrayList<Triple> t2, int i1, int i2) {
-        long match1 = t1.get(0).triples[i1];
-        long match2 = t2.get(0).triples[i2];
+        int match1 = t1.get(0).triples[i1];
+        int match2 = t2.get(0).triples[i2];
         ArrayList<Triple> res = new ArrayList();
         for (int j = 0; j < t1.size(); j++) {
             if (t1.get(j).triples[i2] == match2) {
@@ -223,21 +225,21 @@ public class Query {
         for (int i = 0; i < list.size() - 1; i += 2) {
             Triple triple1 = list.get(i);
            // answer.put(triplePattern1, triple1);
-            Triple triple2 = list.get(i + 1);
-           // answer.put(triplePattern2, triple2);
-         //   long next_o = triple2.triples[0];
+            Triple Triple = list.get(i + 1);
+           // answer.put(triplePattern2, Triple);
+         //   int next_o = Triple.triples[0];
 
-          //  long next_p = nextTripelPatern.triples[1];
+          //  int next_p = nextTripelPatern.triples[1];
           //  key = next_o + "" + next_p;
          //   ArrayList<Triple> list2 = opS.get(key);
 
-            //addToWorkToThreads(opS,nextTripelPatern, triple1 ,triple2);
-          boolean res =  findDeepAnswer(nextTripelPatern, triple2, opS);
+            //addToWorkToThreads(opS,nextTripelPatern, triple1 ,Triple);
+          boolean res =  findDeepAnswer(nextTripelPatern, Triple, opS);
           if(res){
               addToAnswerMap(triplePattern1, triple1);
-              addToAnswerMap(triplePattern2, triple2);
+              addToAnswerMap(triplePattern2, Triple);
           }
-            //answer.put(nextTripelPatern, triple2);
+            //answer.put(nextTripelPatern, Triple);
         }
     //    noMoreWork();
 
@@ -270,7 +272,7 @@ public class Query {
     private int threadIndex = 0;
     QueryWorker [] workers = new QueryWorker[8];
     int threadCount = 2;
-    private void addToWorkToThreads(HashMap<String, ArrayList<Triple>> Ops, TriplePattern triplePattern, Triple triple1, Triple triple2){
+    private void addToWorkToThreads(HashMap<String, ArrayList<Triple>> Ops, TriplePattern triplePattern, Triple triple1, Triple Triple){
         if(threadIndex == 0 && workers[0] == null) {
             workers[0] = new QueryWorker(Ops);
             workers[0].start();
@@ -279,7 +281,7 @@ public class Query {
             workers[threadIndex] = new QueryWorker(Ops, workers[0]);
             workers[threadIndex].start();
         }
-        workers[threadIndex].addWork(triplePattern , triple1 , triple2);
+        workers[threadIndex].addWork(triplePattern , triple1 , Triple);
         threadIndex++;
         if(threadIndex >= threadCount)
             threadIndex = 0;
@@ -292,11 +294,11 @@ public class Query {
         }
     }
 
-    private ArrayList<Triple> temp(HashMap<String, ArrayList<Triple>> opS , long o1 ,long p1 , long p2){
+    private ArrayList<Triple> temp(HashMap<String, ArrayList<Triple>> opS , int o1 ,int p1 , int p2){
         ArrayList<Triple> res = new ArrayList<Triple>();
         ArrayList<Triple> list = opS.get(o1 + "" + p1);
         for(int i= 0; i < list.size() ; i++){
-            long next_o = list.get(i).triples[0];
+            int next_o = list.get(i).triples[0];
             ArrayList<Triple> list2 = opS.get(next_o + "" + p2);
             for(int j =0; j<list2.size() ; j++)
                 res.add(list2.get(j));
@@ -305,8 +307,8 @@ public class Query {
     }
 
     private boolean findDeepAnswer(TriplePattern triplePattern, Triple triple, HashMap<String, ArrayList<Triple>> opS) {
-        long next_o = triple.triples[0];
-        long next_p = triplePattern.triples[1];
+        int next_o = triple.triples[0];
+        int next_p = triplePattern.triples[1];
         String key = next_o + "" + next_p;
         ArrayList<Triple> list = opS.get(key);
         if (list == null)
@@ -315,13 +317,13 @@ public class Query {
         boolean found = false;
         boolean matches;
         for (int i = 0; i < list.size(); i++) {
-            Triple triple2 = list.get(i);
-            matches = triplePattern.matches(triple2);
+            Triple Triple = list.get(i);
+            matches = triplePattern.matches(Triple);
             if(!matches)
                 continue;
             boolean res = true;
             if (nextTripelPatern != null)
-                res = findDeepAnswer(nextTripelPatern, triple2, opS);
+                res = findDeepAnswer(nextTripelPatern, Triple, opS);
             if (res) {
                 found = true;
                 addToAnswerMap(triplePattern, triple);
@@ -389,7 +391,7 @@ public class Query {
         // s = s.replace("}", "");
         boolean build = false, varStart = false;
         String last = "";
-        Long[] code = new Long[3];
+        Integer[] code = new Integer[3];
         boolean blackNode = false;
         boolean constantStart = false;
         boolean [] projectedFlags = new boolean[3];
@@ -459,7 +461,7 @@ public class Query {
                     last = "";
                     boolean res = addToTriplePatterns(code,projectedFlags);
                     index = 0;
-                    code[0] = (long)0;code[1] = (long)0;code[2] = (long)0;
+                    code[0] = (int)0;code[1] = (int)0;code[2] = (int)0;
                     if(!res)
                         return false;
                     break;
@@ -486,7 +488,7 @@ public class Query {
         for (int j = 0; j < patterns.length; j++) {
             String[] x = patterns[j].split(" ");
 
-            long ss, pp, oo;
+            int ss, pp, oo;
             try {
                 if (x[0].startsWith("?"))
                     ss = TriplePattern.thisIsVariable(getNunqieVarID(x[0]));
@@ -511,7 +513,7 @@ public class Query {
     }
 
 
-    private boolean addToTriplePatterns(Long[] code , boolean[] projected){
+    private boolean addToTriplePatterns(Integer[] code , boolean[] projected){
         if (code[0] == null || code[1] == null || code[2] == null) {
             System.err.println("query answer is empty");
             return false;
@@ -520,7 +522,7 @@ public class Query {
         //TODO do this
 ///        triplePattern.setProjected(projected);
         triplePatterns.add(triplePattern);
-        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern);
+        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern );
         triplePatterns2.add(triplePattern2);
 
         connectTriplePatterns(triplePattern2);
@@ -539,10 +541,10 @@ public class Query {
         }
     }
 
-    long nextVarcode = 1;
+    int nextVarcode = 1;
 
-    private long getNunqieVarID(String x) {
-        Long n = varNameMap.get(x);
+    private int getNunqieVarID(String x) {
+        Integer n = varNameMap.get(x);
         if (n == null) {
             n = nextVarcode++;
             varNameMap.put(x, n);
@@ -599,7 +601,7 @@ public class Query {
         private final HashMap<String, ArrayList<Triple>> opS;
         private Query.QueryWorker mainWorker;
         public BlockingQueue<Triple> sharedTriple1Queue;
-        public BlockingQueue<Triple> sharedTriple2Queue;
+        public BlockingQueue<Triple> sharedTripleQueue;
         public  BlockingQueue<TriplePattern> sharedPatternQueue;
         private boolean stop = false;
         private int doneCount;
@@ -610,7 +612,7 @@ public class Query {
             this.opS = opS;
             this.sharedPatternQueue =  new LinkedBlockingQueue<TriplePattern>();
             this.sharedTriple1Queue = new LinkedBlockingQueue<Triple>();
-            this.sharedTriple2Queue = new LinkedBlockingQueue<Triple>();
+            this.sharedTripleQueue = new LinkedBlockingQueue<Triple>();
             this.mainWorker = this;
         } 
 
@@ -618,11 +620,11 @@ public class Query {
             this.opS = opS;
             /*this.sharedPatternQueue = mainWorker.sharedPatternQueue;
             this.sharedTriple1Queue = mainWorker.sharedTriple1Queue;
-            this.sharedTriple2Queue = mainWorker.sharedTriple2Queue;*/
+            this.sharedTripleQueue = mainWorker.sharedTripleQueue;*/
 
             this.sharedPatternQueue =  new LinkedBlockingQueue<TriplePattern>();
             this.sharedTriple1Queue = new LinkedBlockingQueue<Triple>();
-            this.sharedTriple2Queue = new LinkedBlockingQueue<Triple>();
+            this.sharedTripleQueue = new LinkedBlockingQueue<Triple>();
             this.mainWorker = mainWorker;
         }
         
@@ -638,7 +640,7 @@ public class Query {
             if(sharedPatternQueue != null)
                 sharedPatternQueue.add(new TriplePattern(0,0,0) );
             sharedTriple1Queue.add(triple);
-            sharedTriple2Queue.add(triple );
+            sharedTripleQueue.add(triple );
         }
 
         public int getBufferSize(){
@@ -651,14 +653,14 @@ public class Query {
             if(sharedPatternQueue != null)
                 sharedPatternQueue.add(new TriplePattern(0,0,0) );
             sharedTriple1Queue.add(triple);
-            sharedTriple2Queue.add(triple );
+            sharedTripleQueue.add(triple );
         }
 
-        public void addWork(TriplePattern triplePattern , Triple triple1 , Triple triple2) {
+        public void addWork(TriplePattern triplePattern , Triple triple1 , Triple Triple) {
             try {
                 sharedPatternQueue.put(triplePattern);
                 sharedTriple1Queue.put(triple1);
-                sharedTriple2Queue.put(triple2);
+                sharedTripleQueue.put(Triple);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -668,15 +670,15 @@ public class Query {
                 try {
                     TriplePattern triplePattern = sharedPatternQueue.take();
                     Triple triple1 = sharedTriple1Queue.take();
-                    Triple triple2 = sharedTriple2Queue.take();
+                    Triple Triple = sharedTripleQueue.take();
                     if(triple1.triples[0] == 0 && mainWorker != null) {
                         mainWorker.imDone();
                         return;
                     }
-                    boolean res = findDeepAnswer(triplePattern, triple2, opS);
+                    boolean res = findDeepAnswer(triplePattern, Triple, opS);
                     if(res && !stop) {
                         addToAnswerMap(triplePattern, triple1);
-                        addToAnswerMap(triplePattern, triple2);
+                        addToAnswerMap(triplePattern, Triple);
                     }
                     
                     //System.out.println("Consumed: "+ num + ":by thread:"+threadNo);

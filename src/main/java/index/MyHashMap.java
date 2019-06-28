@@ -4,7 +4,9 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
+import sun.security.krb5.internal.ktab.KeyTab;
 import triple.Triple;
+import triple.TriplePattern2;
 import util.FileHashMap;
 
 import java.io.*;
@@ -35,10 +37,10 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private double elemSize = 0;
 
     private double maxAllowedRamSize ;
-    private final long fac = 16;
-    private final long MAX_SIZE_GB =  fac*1000000000;
-    private long n = 1;
-    private final long GB =  n*1000000000;
+    private final int fac = 16;
+    private final int MAX_SIZE_GB =  fac*1000000000;
+    private int n = 1;
+    private final int GB =  n*1000000000;
 
     public  IndexType indexType ;
     public  IndexType extraIndexType = null;
@@ -57,14 +59,16 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private MyHashMap<K, V>.Consumer consumer;
     private HashMap<K, V> queryTimeCache;
     public boolean queryTimeCacheEnabled = false;
+    private boolean sorted = false;
 
 
-
-
-
+    public boolean isSorted(){
+        return sorted;
+    }
 
     public void sort(final int index1 , final int index2){
         //iterate on all values
+        sorted = true;
         Iterator it = hashMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
@@ -270,13 +274,16 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     }
 
-    public V get(Long key1 , Long key2){
-        return get(getKey(key1 , key2));
+    public V get(Integer key1 , Integer key2 , int sortedIndex , TriplePattern2.WithinIndex withinIndex){
+        ArrayList<Triple> triples = (ArrayList<Triple>)get(key1);
+        int fIndex = binarySearch(triples ,sortedIndex, key2);
+        withinIndex.index = fIndex;
+        return (V) triples;
     }
 
-    private K getKey(Long key1, Long key2) {
-        return (K) (key1+""+key2);
-    }
+
+
+
 
 
     public static ArrayList<Triple> deSerializeArrayList(String value , ArrayList<Triple> tarr) {
@@ -285,7 +292,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         String elems[] = value.split(ELEME_SEPERATOR);
         for (int i = 0; i < elems.length; i++) {
             String tripleStrA[] = elems[i].split(TRIPLES_SEPERATOR );
-            Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
+            Triple ttriple = new Triple(Integer.valueOf(tripleStrA[0]), Integer.valueOf(tripleStrA[1]), Integer.valueOf(tripleStrA[2]));
             tarr.add(ttriple);
         }
         return tarr;
@@ -298,7 +305,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         String elems[] = serial.split("ELEME_SEPERATOR");
         for (int i = 0; i < elems.length; i++) {
             String tripleStrA[] = elems[i].split(TRIPLES_SEPERATOR);
-            Triple ttriple = new Triple(Long.valueOf(tripleStrA[0]), Long.valueOf(tripleStrA[1]), Long.valueOf(tripleStrA[2]));
+            Triple ttriple = new Triple(Integer.valueOf(tripleStrA[0]), Integer.valueOf(tripleStrA[1]), Integer.valueOf(tripleStrA[2]));
             tarr.add(ttriple);
         }
         return  tarr;*/
@@ -500,7 +507,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private void tempCheck(ArrayList<Triple> tarr, ArrayList<Triple> chList) {
 
         Collections.sort(tarr, new Comparator<Triple>() {
-            @Override
+
             public int compare(Triple lhs, Triple rhs) {
                 // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
                 if(lhs.triples[0] < rhs.triples[0] )
@@ -550,7 +557,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         final int tindex = uIndex;
         //sort
         Collections.sort(list, new Comparator<Triple>() {
-            @Override
+
             public int compare(Triple lhs, Triple rhs) {
                 // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
                 if(lhs.triples[tindex] < rhs.triples[tindex] )
@@ -565,11 +572,11 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         stringBuilder.append(list.get(0).triples[0]);stringBuilder.append("c");
         stringBuilder.append(list.get(0).triples[1]);stringBuilder.append("c");
         stringBuilder.append(list.get(0).triples[2]);stringBuilder.append("c");
-        long prev = list.get(0).triples[uIndex];
-        long base = prev;
+        int prev = list.get(0).triples[uIndex];
+        int base = prev;
         boolean saving = false;
         for(int i=1 ; i<list.size() ; i++) {
-            long now = list.get(i).triples[uIndex];
+            int now = list.get(i).triples[uIndex];
             if(now-prev == 1 && i < list.size() - 1 && i>1) {
                 saving = true;
                 prev = now;
@@ -687,15 +694,15 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 secondFixedIndex = ii;
         }
         String [] arrIni = record.split(COMPRESSED_SEPERATOR);
-        Triple triple = new Triple(Long.valueOf(arrIni[1]) , Long.valueOf(arrIni[2]) ,Long.valueOf(arrIni[3]));
+        Triple triple = new Triple(Integer.valueOf(arrIni[1]) , Integer.valueOf(arrIni[2]) ,Integer.valueOf(arrIni[3]));
         if(resLsit == null)
             resLsit = new ArrayList<Triple>();
         resLsit.add(triple);
         String [] arr = record.split("a");
-        long base = triple.triples[uIndex];
+        int base = triple.triples[uIndex];
         for(int i = 1 ; i < arr.length ; i++){
             try{
-                long val =  Long.valueOf(arr[i]);
+                int val =  Integer.valueOf(arr[i]);
                 Triple triple1 = new Triple(0,0, 0);
                 triple1.triples[uIndex] = val+base;
                 triple1.triples[firstFixedIndex] = triple.triples[firstFixedIndex];
@@ -703,8 +710,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 resLsit.add(triple1);
             }catch (NumberFormatException e){
                 String [] arr2 = arr[i].split(":");
-                long from = Long.valueOf(arr2[0])+base;
-                long to = Long.valueOf(arr2[1])+base;
+                int from = Integer.valueOf(arr2[0])+base;
+                int to = Integer.valueOf(arr2[1])+base;
                 for( ; from<=to ; from++){
                     Triple triple1 = new Triple(0,0, 0);
                     triple1.triples[uIndex] = from;
@@ -801,7 +808,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     }
 
     private Serializer<K> findTypeKey(K obj) {
-        if(obj instanceof  Long)
+        if(obj instanceof  Integer)
             return (Serializer<K>) Serializer.LONG;
         if(obj instanceof  Integer)
             return (Serializer<K>) Serializer.INTEGER;
@@ -813,7 +820,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     }
 
     private Serializer<V> findTypeVal(V obj) {
-        if(obj instanceof  Long)
+        if(obj instanceof  Integer)
             return (Serializer<V>) Serializer.LONG;
         if(obj instanceof  Integer)
             return (Serializer<V>) Serializer.INTEGER;
@@ -971,6 +978,45 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
             }
         }
     }
+
+
+
+    public static int binarySearch(ArrayList<Triple> arr,int index, int key){
+        int last = arr.size()-1;
+        int first = 0;
+        int mid = (first + last)/2;
+        while( first <= last ){
+            if ( arr.get(mid).triples[index] < key ){
+                first = mid + 1;
+            }else if (arr.get(mid).triples[index]  == key ){
+               // System.out.println("Element is found at index: " + mid);
+                int found = arr.get(mid).triples[index];
+                int t = mid;
+                while( t > 0 && arr.get(t-1).triples[index] == found ){
+                    t--;
+                }
+                return t;
+            }else{
+                last = mid - 1;
+            }
+            mid = (first + last)/2;
+        }
+        if ( first > last ){
+            return -1;
+           // System.out.println("Element is not found!");
+        }
+        return -1;
+    }
+
+    private final static int keyLength = 4;
+
+
+
+
+
+
+
+
 
 
 }

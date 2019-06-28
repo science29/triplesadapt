@@ -19,13 +19,13 @@ public class IndexesPool {
 
     public final static int Osp = 9;
     public final static int OSp = 10;
-    public final static int Opo = 11;
-    public final static int OPo = 12;
+    public final static int Ops = 11;
+    public final static int OPs = 12;
 
-    HashMap<Integer , MyHashMap> pool ;
+    HashMap<Integer, MyHashMap<KeyType,ArrayList<Triple>>> pool ;
 
     public IndexesPool(){
-        pool = new HashMap<Integer, MyHashMap>();
+        pool = new HashMap<Integer, MyHashMap<KeyType,ArrayList<Triple>>>();
     }
 
     public void addIndex(MyHashMap index , int type){
@@ -33,12 +33,12 @@ public class IndexesPool {
     }
 
 
-    public HashMap getIndex(int type){
+    public MyHashMap<KeyType , ArrayList<Triple>> getIndex(int type){
         return pool.get(type);
     }
 
-    public void addIndex(int type, HashMap<Long, ArrayList<Triple>> map , String name ) {
-        MyHashMap<Long , ArrayList<Triple>> cov = new MyHashMap<Long, ArrayList<Triple>>(name , map);
+    public void addIndex(int type, HashMap<Integer, ArrayList<Triple>> map , String name ) {
+        MyHashMap<Integer , ArrayList<Triple>> cov = new MyHashMap<Integer, ArrayList<Triple>>(name , map);
         addIndex(cov , type);
     }
 }

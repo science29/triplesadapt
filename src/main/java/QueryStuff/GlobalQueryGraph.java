@@ -4,6 +4,7 @@ import QueryStuff.Query;
 import QueryStuff.VertexGraph;
 import index.VertexGraphIndex;
 import triple.Triple;
+import triple.Triple;
 import triple.TriplePattern;
 import triple.Vertex;
 
@@ -29,12 +30,12 @@ public class GlobalQueryGraph {
     ArrayList<Query>  queries;
     ArrayList<AnnomizedTriple> annomizedTriples;
 
-    HashMap<Long,ArrayList<Triple> > POS;
-    HashMap<Long,ArrayList<Triple> > SPO;
-    HashMap<Long,ArrayList<Triple> > OPS;
-    HashMap<Long, VertexGraph> vertexIndex;
+    HashMap<Integer,ArrayList<Triple> > POS;
+    HashMap<Integer,ArrayList<Triple> > SPO;
+    HashMap<Integer,ArrayList<Triple> > OPS;
+    HashMap<Integer, VertexGraph> vertexIndex;
 
-   public GlobalQueryGraph(ArrayList<Query> queries, int normallizationThreshold, HashMap<Long, ArrayList<Triple>> pos, HashMap<Long, ArrayList<Triple>> spo, HashMap<Long, ArrayList<Triple>> ops, HashMap<Long, VertexGraph> VertexIndex){
+   public GlobalQueryGraph(ArrayList<Query> queries, int normallizationThreshold, HashMap<Integer, ArrayList<Triple>> pos, HashMap<Integer, ArrayList<Triple>> spo, HashMap<Integer, ArrayList<Triple>> ops, HashMap<Integer, VertexGraph> VertexIndex){
        this.queries = queries;
        this.annomizedQueries = new ArrayList();
        //copying the queries into annomized query
@@ -54,7 +55,7 @@ public class GlobalQueryGraph {
 
    private void annomize(){
        //do the annmization
-       HashMap<Long , Integer> constants = new HashMap();
+       HashMap<Integer , Integer> constants = new HashMap();
        for(int i= 0; i<queries.size() ; i++)
            for(int j = 0; j<queries.get(i).triplePatterns.size() ; j++)
                for(int k =0 ; k< queries.get(i).triplePatterns.get(j).triples.length ; k++) {
@@ -62,7 +63,7 @@ public class GlobalQueryGraph {
                    if(k == 1)
                        continue;
                    if (queries.get(i).triplePatterns.get(j).triples[k] != TriplePattern.thisIsVariable) {
-                       long key = queries.get(i).triplePatterns.get(j).triples[k];
+                       int key = queries.get(i).triplePatterns.get(j).triples[k];
                        if (constants.containsKey(key)) {
                            constants.replace(key, constants.get(key) + queries.get(i).queryFrquency);
                        } else
@@ -123,8 +124,8 @@ public class GlobalQueryGraph {
                int match = 0;
                for (int k = 0; k < queries.get(i).triplePatterns.get(j).triples.length; k++) {
                    if (queries.get(i).triplePatterns.get(j).triples[k] != TriplePattern.thisIsVariable) {
-                       long keyQuery = queries.get(i).triplePatterns.get(j).triples[k];
-                       long keyTriple = triple.triples[k];
+                       int keyQuery = queries.get(i).triplePatterns.get(j).triples[k];
+                       int keyTriple = triple.triples[k];
                        if (keyQuery != keyTriple)
                            break;
                    }
@@ -140,14 +141,14 @@ public class GlobalQueryGraph {
         return annomizedTriples;
     }
 
-    public static void setDynamicWeights(ArrayList<Query> queries, HashMap<Long, ArrayList<Triple>> tripleGraph, VertexGraphIndex graph, HashMap<Long, ArrayList<Triple>> POS) {
+    public static void setDynamicWeights(ArrayList<Query> queries, HashMap<Integer, ArrayList<Triple>> tripleGraph, VertexGraphIndex graph, HashMap<Integer, ArrayList<Triple>> POS) {
        for(int i=0 ; i<queries.size() ; i++){
           Query query = queries.get(i);
           try {
               for (int j = 0; j < query.simpleAnswer.size(); j++) {
                   TriplePattern answer = query.simpleAnswer.get(j);
-                  long s = answer.triples[0];
-                  long o = answer.triples[2];
+                  int s = answer.triples[0];
+                  int o = answer.triples[2];
                   ArrayList<Vertex> graph_O_ListTothis_S = graph.get(s);
                   if(graph_O_ListTothis_S == null)
                       continue;

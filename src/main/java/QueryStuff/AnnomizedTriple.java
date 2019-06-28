@@ -33,7 +33,7 @@ public class AnnomizedTriple{
         connectetionFrequency.put(triple,frequency);
     }
 
-    public void createFragment(HashMap<Long, ArrayList<Triple>> pos, HashMap<Long, ArrayList<Triple>> osp, HashMap<Long, ArrayList<Triple>> sop , HashMap<Long, VertexGraph> vertexIndex){
+    public void createFragment(HashMap<Integer, ArrayList<Triple>> pos, HashMap<Integer, ArrayList<Triple>> osp, HashMap<Integer, ArrayList<Triple>> sop , HashMap<Integer, VertexGraph> vertexIndex){
         System.out.print("creating fragment ..");
         fragment = new Fragment(this) ;
         fragment.generateFromAnomTriple(pos , osp ,sop);

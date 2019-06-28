@@ -4,17 +4,17 @@ import java.util.HashMap;
 
 public class TriplePattern {
     public final static int thisIsVariable = -1;
-    public long triples[]= new long[3];
+    public int triples[]= new int[3];
     public String stringTriple[] = new String[3] ;
-    public long fixedTriples[] = new long[3];
-    public HashMap<Long , Integer> variablesIndex;
+    public int fixedTriples[] = new int[3];
+    public HashMap<Integer , Integer> variablesIndex;
     public String tempID ; //for debug purpose only
 
 
 
     //int varaibles[] = new int[3];
 
-    public TriplePattern(long s ,long p , long o){
+    public TriplePattern(int s ,int p , int o){
         triples[0] = s ;
         triples[1] = p;
         triples[2] = o;
@@ -23,18 +23,18 @@ public class TriplePattern {
         fixedTriples[2] = o;
     }
 
-    public static long thisIsVariable(long varCode) {
+    public static int thisIsVariable(int varCode) {
         return -varCode;
     }
 
 
-    public void findStringTriple(HashMap<Long,String> reverseDictionary) {
+    public void findStringTriple(HashMap<Integer,String> reverseDictionary) {
         this.stringTriple[0] = reverseDictionary.get(triples[0]);
         this.stringTriple[1] = reverseDictionary.get(triples[1]);
         this.stringTriple[2] = reverseDictionary.get(triples[2]);
     }
 
-    public static boolean isVariable(long code) {
+    public static boolean isVariable(int code) {
         if(code < 0)
             return true;
         return  false;

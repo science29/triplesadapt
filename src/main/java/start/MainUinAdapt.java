@@ -18,23 +18,23 @@ import java.util.regex.PatternSyntaxException;
 
 public class MainUinAdapt {
 
-    private static final long BASE_PREDICATE_CODE = 1000000000;
+    private static final int BASE_PREDICATE_CODE = 1000000000;
     private VertexGraphIndex graph = new VertexGraphIndex("graph");
 
-    private HashMap<Long, ArrayList<Triple>> tripleGraph = new HashMap();//duplicate with graph , remove one!
-    private ArrayList<Long> vertecesID = new ArrayList();
-    private HashMap<Long, VertexGraph> verticies = new HashMap<Long, VertexGraph>();;
+    private HashMap<Integer, ArrayList<Triple>> tripleGraph = new HashMap();//duplicate with graph , remove one!
+    private ArrayList<Integer> vertecesID = new ArrayList();
+    private HashMap<Integer, VertexGraph> verticies = new HashMap<Integer, VertexGraph>();;
     private Dictionary dictionary = new Dictionary("dictionary");
-    //private HashMap<Long, String> reverseDictionary = new HashMap();
+    //private HashMap<Integer, String> reverseDictionary = new HashMap();
     Dictionary reverseDictionary = dictionary;
     private HashMap<Integer, ArrayList<VertexGraph>> distanceVertex;
-    private HashMap<Long, Long> PredicatesAsSubject;
-    private long edgesCount = 0;
+    private HashMap<Integer, Integer> PredicatesAsSubject;
+    private int edgesCount = 0;
     private static final int PARTITION_COUNT = 2;
 
-    private HashMap<Long, ArrayList<Triple>> POS;
-    private MyHashMap<Long, ArrayList<Triple>> SPO;
-    private MyHashMap<Long, ArrayList<Triple>> OPS;
+    private MyHashMap<Integer, ArrayList<Triple>> POS;
+    private MyHashMap<Integer, ArrayList<Triple>> SPO;
+    private MyHashMap<Integer, ArrayList<Triple>> OPS;
     private MyHashMap<String, ArrayList<Triple>> sp_O;
     private MyHashMap<String, ArrayList<Triple>> op_S;
     private MyHashMap<String, ArrayList<Triple>> SPxP = new MyHashMap("SPxP");
@@ -60,7 +60,7 @@ public class MainUinAdapt {
     // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
     private IndexCollection indexCollection;
-    private long skipToLine = 0;
+    private int skipToLine = 0;
     private IndexesPool indexPool;
 
 
@@ -69,7 +69,9 @@ public class MainUinAdapt {
 
         System.out.println();
         System.out.println("starting ..");
+        someTests();
         MainUinAdapt o = new MainUinAdapt();
+
 
         //o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
         //13 14 9 2
@@ -184,7 +186,7 @@ try {
         if (OPS == null)
             OPS = new MyHashMap("OPS" , new IndexType(1,1,0) );
 
-        OPS.open(new Long(5),list);
+        OPS.open(new Integer(5),list);
 
 
           if (op_S == null)
@@ -209,7 +211,7 @@ try {
     }
 
     private void setPartitionNumberInVertices(LineIterator it) {
-        long count = 1;
+        int count = 1;
         while (it.hasNext()) {
             String line = it.nextLine();
             int n = Integer.valueOf(line);
@@ -233,7 +235,7 @@ try {
         }
     }
 
-    private HashMap<Long, VertexGraph> toBeCheckedVertexes; // this is the list of non boraders vertex that need to be checked if they have been written before the border ones
+    private HashMap<Integer, VertexGraph> toBeCheckedVertexes; // this is the list of non boraders vertex that need to be checked if they have been written before the border ones
 
     private void readOutput(String filePath, int partitionCount, boolean includeFragments) {
         toBeCheckedVertexes = new HashMap();
@@ -286,7 +288,7 @@ try {
                     outBuff[r].newLine();
                 }
 
-            long count = 1;
+            int count = 1;
             while (it.hasNext()) {
                 String line = it.nextLine();
                 int n = Integer.valueOf(line);
@@ -368,7 +370,7 @@ try {
             try {
                 //first write all the remaining triples at the end
                 for (int j = 0; j < partitionCount; j++) {
-                    long g = 2;
+                    int g = 2;
                     String ss = reverseDictionary.get(g);
                     String endTriple = ss + " " + "x:isOwnedBy" + " \"" + "ahmed_alghezi" + "\"";
                     outBuff[j].write(endTriple + " .");
@@ -385,7 +387,7 @@ try {
                     }
                 }
 
-                HashMap<String, Long> writtenTripleFragment = new HashMap();
+                HashMap<String, Integer> writtenTripleFragment = new HashMap();
                 //write the fragments if required:
                 if (includeFragments) {
                     if (queryGraph == null) {
@@ -430,7 +432,7 @@ try {
 
                 if (includeCompressed) {
                     for (int k = 0; k < partitionCount; k++) {//add the triple of fragment to all partitions excepts the owner one
-                        long g = 2;
+                        int g = 2;
                         String ss = reverseDictionary.get(g);
                         String endTriple = ss + " " + "x:isOwnedBy" + " \"" + "compressed_tripless" + "\"";
                         outBuff[k].write(endTriple + " .");
@@ -466,7 +468,7 @@ try {
 
     }
 
-    private boolean isBorder(long vid) {
+    private boolean isBorder(int vid) {
         int sp = verticies.get(vid).partitionNumber;
         ArrayList<Vertex> v = graph.get(vid);
         for (int i = 0; i < v.size(); i++) {
@@ -491,7 +493,7 @@ try {
         System.out.println("done ");
     }
 /*
-    private void setVertexVisted(long v) {
+    private void setVertexVisted(int v) {
        QueryStuff.VertexGraph vertexGraph = verticies.get(v);
        if(vertexGraph.dist == -1)
            vertexGraph.dist = -2;
@@ -504,7 +506,7 @@ try {
         for (int i = 0; i < vertecesID.size(); i++) {
             VertexGraph vertexGraph = verticies.get(vertecesID.get(i));
             for (int j = 0; j < vertexGraph.edgesVertex.size(); j++) {
-                long toVertexID = vertexGraph.edgesVertex.get(j);
+                int toVertexID = vertexGraph.edgesVertex.get(j);
                 VertexGraph toVertex = verticies.get(toVertexID);
                 if (toVertex.partitionNumber == -1) {
                     System.err.println("error setting the distance ..the partition number is not set ... please check if the partitions number are set ..");
@@ -531,7 +533,7 @@ try {
             for (int j = 0; j < prevVertices.size(); j++) {
                 VertexGraph edgeVert = prevVertices.get(j);
                 for (int k = 0; k < edgeVert.edgesVertex.size(); k++) {
-                    long vid = edgeVert.edgesVertex.get(k);
+                    int vid = edgeVert.edgesVertex.get(k);
                     VertexGraph v = verticies.get(vid);
                     if (v.dist == -1) {
                         v.dist = edgeVert.dist + 1;
@@ -545,8 +547,8 @@ try {
     }
 
 
-    private ArrayList<Long> findSubjectVertexList() {
-        ArrayList<Long> res = new ArrayList();
+    private ArrayList<Integer> findSubjectVertexList() {
+        ArrayList<Integer> res = new ArrayList();
         for (int i = 0; i < vertecesID.size(); i++) {
             ArrayList<Vertex> ves = graph.get(vertecesID.get(i));
             for (int j = 0; j < ves.size(); j++)
@@ -604,13 +606,13 @@ try {
         System.out.println("done writing...");
     }
 
-    private long edgesWritten = 0;
-    private HashMap<Long, HashMap<Long, Vertex>> graphMap = new HashMap();
-    private HashMap<Long, String> tempIntToStringMap = new HashMap();
+    private int edgesWritten = 0;
+    private HashMap<Integer, HashMap<Integer, Vertex>> graphMap = new HashMap();
+    private HashMap<Integer, String> tempIntToStringMap = new HashMap();
     double progressRatio = 0;
-    long toBigListDetected = 0;
+    int toBigListDetected = 0;
 
-    private String buildVertixString(ArrayList<Vertex> vees, long currentVertexID, boolean weighting) {
+    private String buildVertixString(ArrayList<Vertex> vees, int currentVertexID, boolean weighting) {
         if (vees.size() == 0)
             return "";
         if (vees.size() > 100000)
@@ -619,7 +621,7 @@ try {
         String res = "";
         StringBuilder stringBuilder = new StringBuilder();
         boolean first = true;
-        // HashMap<Long, Long> map = new HashMap();
+        // HashMap<Integer, Integer> map = new HashMap();
         for (int i = 0; i < vees.size(); i++) {
             int weight = 1;
             if (!weighting) {
@@ -631,7 +633,7 @@ try {
                     }
 
 
-                    HashMap<Long, Vertex> otherMap = graphMap.get(vees.get(i).v);
+                    HashMap<Integer, Vertex> otherMap = graphMap.get(vees.get(i).v);
                     if (otherMap == null) {
                         otherMap = new HashMap();
                         for (int k = 0; k < other.size(); k++) {
@@ -655,7 +657,7 @@ try {
             String weightStr = null;//tempIntToStringMap.get(weight);
             if (weightStr == null) {
                 weightStr = weight + "";
-                tempIntToStringMap.put((long) weight, weightStr);
+                tempIntToStringMap.put((int) weight, weightStr);
             }
             /*
             String destVertexID = tempIntToStringMap.get(vees.get(i).v);
@@ -694,23 +696,13 @@ try {
     ArrayList<String> header;
 
     public void porcess(ArrayList<String> filePathList, boolean quad) {
-
-        long m1 =checkMemory();
-        ArrayList<ArrayList<Integer>> testa = new ArrayList();
-        for(int i =0 ; i< 100000 ; i++) {
-            testa.add(new ArrayList<Integer>());
-        }
-        long m2 = checkMemory();
-        System.out.println("memory :"+(m2-m1)/100000.0);
-
-
-        long test = 0;
+        int test = 0;
         tripleToPartutPartitionMap = new HashMap();
         header = new ArrayList();
         PredicatesAsSubject = new HashMap();
-        long[] code = new long[3];
-        long nextCode = 1;
-        long nextPredicateCode = BASE_PREDICATE_CODE;
+        int[] code = new int[3];
+        int nextCode = 1;
+        int nextPredicateCode = BASE_PREDICATE_CODE;
         Integer errCount = 0;
         Integer errSolved = 0;
         int duplicateCount = 0;
@@ -853,17 +845,20 @@ try {
                         tripleToPartutPartitionMap.put(code[0] + "p" + code[1] + "p" + code[2], -1);
                     }
 
-                              addToPOSIndex(tripleObj);
+                    addToPOSIndex(tripleObj);
+                    addToOPSIndex(tripleObj);
+                    addToSPOIndex(tripleObj);
+
                     //           addToSPOIndex(tripleObj);
                    // addToOPSIndex(new Triple(88,87,43));
-                   // ArrayList<Triple> test2 = OPS.get(new Long(2));
-                    addToOPSIndex(tripleObj);
+                   // ArrayList<Triple> test2 = OPS.get(new Integer(2));
+
                    // if(test == 0)
                      //   test = code[2];
                   //  ArrayList<Triple> test3 = OPS.get(test);
                     //addTosp_OIndex(tripleObj);
 
-                    addToOp_SIndex(tripleObj);
+                   // addToOp_SIndex(tripleObj);
                 }
             } finally {
                 LineIterator.closeQuietly(it);
@@ -873,11 +868,14 @@ try {
        // op_S.close();
         System.out.println("sorting indexes.. ");
         System.out.println("spo");
-        OPS.sort(0,1);
+        OPS.sort(1,0);
         System.out.println("op_s");
         op_S.sort(0,-1);
+        POS.sort(2,0);
         indexPool = new IndexesPool();
         indexPool.addIndex(IndexesPool.Pso , POS , "Pso");
+        indexPool.addIndex(IndexesPool.OPs , OPS , "OPs");
+        indexPool.addIndex(IndexesPool.SPo , SPO , "SPo");
 
 //        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
@@ -895,7 +893,53 @@ try {
 
     }
 
-    private boolean buildGraph(long[] code,ArrayList<Vertex> v) {
+
+    private static void someTests(){
+        long m1 =checkMemory();
+        ArrayList<ArrayList<Triple>> testa = new ArrayList();
+        HashMap<Long , ArrayList<Triple>> mapInteger = new HashMap<Long , ArrayList<Triple>>();
+        HashMap<KeyType , ArrayList<Triple>> mapKey = new HashMap<KeyType , ArrayList<Triple>>();
+
+        for(int i =0 ; i< 1000000 ; i++) {
+            long ran = new Random().nextLong();
+            KeyType k = new KeyType(ran);
+            mapInteger.put(ran , new ArrayList<Triple>());
+            mapKey.put(k , new ArrayList<Triple>());
+        }
+
+        long startTime = System.nanoTime();
+        for(int i =0 ; i< 100000 ; i++) {
+
+            mapKey.get(new KeyType(i));
+        }
+
+        long stopTime = System.nanoTime();
+        long elapsedTime = (stopTime - startTime) / 1000;
+        System.out.println("time:"+elapsedTime);
+
+
+
+
+
+
+        startTime = System.nanoTime();
+        for(int i =0 ; i< 100000 ; i++) {
+            mapInteger.get(i);
+        }
+        stopTime = System.nanoTime();
+        elapsedTime = (stopTime - startTime) / 1000;
+        System.out.println("time:"+elapsedTime);
+
+
+
+        for(int i =0 ; i< 100000 ; i++) {
+            testa.add(new ArrayList<Triple>());
+        }
+        long m2 = checkMemory();
+        System.out.println("memory :"+(m2-m1)/100000.0);
+    }
+
+    private boolean buildGraph(int[] code,ArrayList<Vertex> v) {
         /*v = graph.get(code[0]);
         boolean duplicateFlag = false;
         for (int i = 0; i < v.size(); i++)
@@ -912,13 +956,13 @@ try {
         return true;
     }
 
-    private void addToGraph(long code, ArrayList<Vertex> v) {
+    private void addToGraph(int code, ArrayList<Vertex> v) {
         //graph.put(code, v);
     }
 
-    private void addToVertexGraph(long [] code){
+    private void addToVertexGraph(int [] code){
         if(verticies == null)
-            verticies = new HashMap<Long, VertexGraph>();
+            verticies = new HashMap<Integer, VertexGraph>();
         //this code to create an extra graph vertex which should be used in the graph algo, obviously this is redenednt situ to the created vertext in the latter code block
         VertexGraph savedVertex = verticies.get(code[0]);
         if (savedVertex == null) {
@@ -1011,7 +1055,7 @@ try {
         while (it.hasNext()) {
             String line = it.nextLine();
             String[] strArr = line.split(" powerx1983s ");
-            Long key = Long.valueOf(strArr[1]);
+            Integer key = Integer.valueOf(strArr[1]);
             dictionary.put(strArr[0], key);
           //  reverseDictionary.put(key, strArr[0]);
         }
@@ -1231,7 +1275,7 @@ try {
     private void addTosp_OIndex(Triple triple) {
         if (sp_O == null)
             sp_O = new MyHashMap("sp_O");
-        long code[] = triple.triples;
+        int code[] = triple.triples;
         String key = code[0] + "" + code[1];
         addToIndex(sp_O, triple, key);
 
@@ -1241,7 +1285,7 @@ try {
     private void addToOp_SIndex(Triple triple) {
         if (op_S == null)
             op_S = new MyHashMap("op_S",new IndexType(1,0,0) , false);
-        long code[] = triple.triples;
+        int code[] = triple.triples;
         String key = code[2] + "" + code[1];
         op_S.addTripleLazy(key,triple);
         //addToIndex(op_S, triple, key);
@@ -1282,7 +1326,7 @@ try {
 
     private void addToPOSIndex(Triple triple) {
         if (POS == null)
-            POS = new HashMap();
+            POS = new MyHashMap("POS");
         //triple.triple triple = new triple.triple(code[0], code[1], code[2]);
         if (POS.containsKey(triple.triples[1])) {
             POS.get(triple.triples[1]).add(triple);
@@ -1294,7 +1338,7 @@ try {
     }
 
     private void addToSPOIndex(Triple triple) {
-        long code[] = triple.triples;
+        int code[] = triple.triples;
         if (SPO == null)
             SPO = new MyHashMap("SPO");
         if (SPO.containsKey(code[0])) {
@@ -1307,7 +1351,7 @@ try {
     }
 
     private void addToOPSIndex(Triple triple) {
-        long code[] = triple.triples;
+        int code[] = triple.triples;
         if (OPS == null)
             OPS = new MyHashMap("OPS" , new IndexType(1,1,0) );
         OPS.addTripleLazy(code[2] , triple);
@@ -1402,29 +1446,29 @@ try {
     private void buildSppIndex() {
         SPxP = new MyHashMap("SPxP");
         for (int i = 0; i < vertecesID.size(); i++) {
-            long s = vertecesID.get(i);
+            int s = vertecesID.get(i);
             ArrayList<Triple> connectedTriples = SPO.get(s);
             if (connectedTriples == null)
                 continue;
             for (int j = 0; j < connectedTriples.size(); j++) {
                 Triple triple1 = connectedTriples.get(j);
-                long o = triple1.triples[2];
-                long p1 = triple1.triples[1];
+                int o = triple1.triples[2];
+                int p1 = triple1.triples[1];
                 if (!SPO.containsKey(o))
                     continue;
                 ArrayList<Triple> connectedTriples2 = SPO.get(o);
                 for (int k = 0; k < connectedTriples2.size(); k++) {
-                    Triple triple2 = connectedTriples2.get(k);
-                    long p2 = triple2.triples[1];
+                    Triple Triple = connectedTriples2.get(k);
+                    int p2 = Triple.triples[1];
                     String key = s + "" + p1 + "" + p2;
                     addToIndex(SPxP, triple1, key);
-                    addToIndex(SPxP, triple2, key);
+                    addToIndex(SPxP, Triple, key);
                         /*
                         ArrayList<Triple> tripleList = SPxP.get(key);
                         if(tripleList == null)
                             tripleList = new ArrayList();
                         tripleList.add(triple1);
-                        tripleList.add(triple2);
+                        tripleList.add(Triple);
                         SPxP.put(key , tripleList);*/
                 }
             }
@@ -1435,13 +1479,13 @@ try {
 
     private void buildOppIndex() {
         //iterate over the OPS index
-        long totalSize = OPS.size()+1;
-        long cnt = 0;
+        int totalSize = OPS.size()+1;
+        int cnt = 0;
         //first iterate over OPS cache
         Iterator it = OPS.cacheEntrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            Long O = (Long) pair.getKey();
+            Integer O = (Integer) pair.getKey();
             ArrayList<Triple> list1 = (ArrayList<Triple>)pair.getValue();
             addToOppIndex(O,list1);
             cnt++;
@@ -1454,7 +1498,7 @@ try {
         it = OPS.fastEntrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            Long O = (Long) pair.getKey();
+            Integer O = (Integer) pair.getKey();
             ArrayList<Triple> list1 = OPS.deCompressedHyprid((String)pair.getValue());
             addToOppIndex(O,list1);
             cnt++;
@@ -1471,26 +1515,26 @@ try {
 
 
     private int oppsCurrentCount = 0;
-    private void addToOppIndex(Long O ,ArrayList<Triple> list1) {
+    private void addToOppIndex(Integer O ,ArrayList<Triple> list1) {
         for (int i = 0; i < list1.size(); i++) {
             Triple triple1 = list1.get(i);
-            long P1 = triple1.triples[1];
-            long s = triple1.triples[0];
+            int P1 = triple1.triples[1];
+            int s = triple1.triples[0];
             //check each s as o in the OPS
             ArrayList<Triple> list2 = OPS.get(s);
             if (list2 == null)
                 continue;
             for (int j = 0; j < list2.size(); j++) {
-                Triple triple2 = list2.get(j);
-                long P2 = triple2.triples[1];
+                Triple Triple = list2.get(j);
+                int P2 = Triple.triples[1];
                 String key = O + "" + P1 + "" + P2;
                 addToQueryCandidate(key);
                 OPxP.addTripleLazy(key,triple1);
-                OPxP.addTripleLazy(key,triple2);
+                OPxP.addTripleLazy(key,Triple);
                // addToIndexTemp(OPxP, triple1, key);
-               //addToIndexTemp(OPxP, triple2, key);
+               //addToIndexTemp(OPxP, Triple, key);
                 //addToIndex(OPxP, triple1, key);
-                // addToIndex(OPxP, triple2, key);
+                // addToIndex(OPxP, Triple, key);
 
                 if(oppsCurrentCount % 100000 == 0) {
                     for (int m = 0; m < 50; m++)
@@ -1529,20 +1573,20 @@ try {
         Iterator it = OPS.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            Long O = (Long) pair.getKey();
+            Integer O = (Integer) pair.getKey();
             ArrayList<Triple> list1 = (ArrayList<Triple>) pair.getValue();
             for (Triple triple1 : list1) {
-                long P1 = triple1.triples[1];
-                long s = triple1.triples[0];
+                int P1 = triple1.triples[1];
+                int s = triple1.triples[0];
                 //check each s as o in the OPS
                 ArrayList<Triple> list2 = OPS.get(s);
                 if (list2 == null)
                     continue;
-                for (Triple triple2 : list2) {
-                    long P2 = triple2.triples[1];
+                for (Triple Triple : list2) {
+                    int P2 = Triple.triples[1];
                     String key = O + "" + P1 + "" + P2;
                     addToIndex(OPxP, triple1, key);
-                    addToIndex(OPxP, triple2, key);
+                    addToIndex(OPxP, Triple, key);
                 }
             }
         }
@@ -1558,8 +1602,8 @@ try {
     }
 
 
-    private HashMap<Long, Integer> codeToPartutpartitionMap;
-    private HashMap<Long, Long> borderCodesPartutMap;
+    private HashMap<Integer, Integer> codeToPartutpartitionMap;
+    private HashMap<Integer, Integer> borderCodesPartutMap;
 
     private void writePartutPartitions(int partitionCount) {
 
@@ -1634,16 +1678,16 @@ try {
 
         }
 
-        HashMap<Long, ArrayList<String>> ooohAnotherMap = new HashMap();
+        HashMap<Integer, ArrayList<String>> ooohAnotherMap = new HashMap();
         Iterator it = tripleToPartutPartitionMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             Integer partNo = (Integer) pair.getValue();
 
             try {
-                long s = Long.valueOf(((String) pair.getKey()).split("p")[0]);
-                long p = Long.valueOf(((String) pair.getKey()).split("p")[1]);
-                long o = Long.valueOf(((String) pair.getKey()).split("p")[2]);
+                int s = Integer.valueOf(((String) pair.getKey()).split("p")[0]);
+                int p = Integer.valueOf(((String) pair.getKey()).split("p")[1]);
+                int o = Integer.valueOf(((String) pair.getKey()).split("p")[2]);
 
                 String tripleLine = reverseDictionary.get(s) + " " + reverseDictionary.get(p) + " " + reverseDictionary.get(o);
                 if (!tripleLine.endsWith("."))
@@ -1681,7 +1725,7 @@ try {
             }
             //now write the triple to this partition
             Map.Entry pair = (Map.Entry) it.next();
-            Long p = (Long) pair.getKey();
+            Integer p = (Integer) pair.getKey();
             ArrayList<String> tripleLines = (ArrayList<String>) pair.getValue();
             for (int i = 0; i < tripleLines.size(); i++) {
                 String line = tripleLines.get(i);
@@ -1725,7 +1769,7 @@ try {
 
         }
 
-        // now we assign all the triples which does not belong to a fragment
+        // now we assign all the triples which does not beint to a fragment
 
         for (int j = 0; j < verticies.size(); j++) {
             VertexGraph vertex = verticies.get(j);
@@ -1756,7 +1800,7 @@ try {
     public void convertNqToN3(String sourceFile, String destFile , boolean append) {
         boolean quad = true;
         int err = 0;
-        int longTextErr = 0;
+        int intTextErr = 0;
         int linesWrittenCount = 0;
         File file = new File(sourceFile);
         LineIterator it = null;
@@ -1799,7 +1843,7 @@ try {
                 //write the triple to bufferfile
                 String tripleStr = triple[0] + " " + triple[1] + " " + triple[2];
                 if (triple[0].length() > 150) {
-                    longTextErr++;
+                    intTextErr++;
                     continue;
                 }
                // if (linesWrittenCount > 1220 ){
@@ -1825,12 +1869,12 @@ try {
             ex.printStackTrace();
 
         }
-        System.out.println("convertion Done, writen" + linesWrittenCount + " .. errors:" + err + " ,long text error:" + longTextErr);
+        System.out.println("convertion Done, writen" + linesWrittenCount + " .. errors:" + err + " ,int text error:" + intTextErr);
 
     }
 
-    private boolean ignoreCovertedLine(long count) {
-        long[] arr = {543466, 1347540, 1347541, 1347548, 1347551, 3845831, 4102660, 4368091, 6007830};
+    private boolean ignoreCovertedLine(int count) {
+        int[] arr = {543466, 1347540, 1347541, 1347548, 1347551, 3845831, 4102660, 4368091, 6007830};
         for (int i = 0; i < arr.length; i++) {
             if (count == arr[i] - 1 || count == arr[i])
                 return true;
@@ -1841,7 +1885,7 @@ try {
 
     private void listenToQuery() {
         /*
-        long a = 2;
+        int a = 2;
         dictionary = new HashMap();
             dictionary.put("<http://mpii.de/yago/resource/describes>",a++);
             dictionary.put("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>",a++);
@@ -1877,12 +1921,13 @@ try {
                 }
                 StringBuilder extTime = new StringBuilder();
                 if(Query.sep()) {
-                    Query spQuery_t = new Query(dictionary, query);
-                     spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
+                    Query spQuery_t = new Query(dictionary, query ,indexPool);
+                     //spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
+                    spQuery_t.findQueryAnswer(indexPool);
                     extTime = new StringBuilder();
                 }
                 long startTime = System.nanoTime();
-                Query spQuery = new Query(dictionary, query);
+                Query spQuery = new Query(dictionary, query,indexPool);
                 long parseTime = System.nanoTime();
                 spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
                 long stopTime = System.nanoTime();
@@ -1909,15 +1954,15 @@ try {
     }
 
 
-    private long checkMemory(){
+    private static long checkMemory(){
         long rem =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         long max = Runtime.getRuntime().maxMemory();
         System.out.println(" app used memory: "+rem/1000000000 + " GB");
         System.out.println(" app used memory: "+rem/1000 + " KB");
         if((max-rem)/1000 < 2000000) {
             System.out.println(" Low memory detected, exiting ... ");
-            finish();
-            System.exit(1);
+            //finish();
+           // System.exit(1);
         }
         return rem/1000; //kB
     }

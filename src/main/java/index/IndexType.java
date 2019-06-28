@@ -30,9 +30,9 @@ public class IndexType {
 
 
     public IndexType(TriplePattern triplePattern) {
-        long sub = triplePattern.triples[0];
-        long pro = triplePattern.triples[1];
-        long obj = triplePattern.triples[2];
+        int sub = triplePattern.triples[0];
+        int pro = triplePattern.triples[1];
+        int obj = triplePattern.triples[2];
         int s,o,p;
         if(!TriplePattern.isVariable(sub))
             s = 1;
@@ -58,9 +58,9 @@ public class IndexType {
     }
 
     public static Integer getCode(TriplePattern triplePattern){
-        long sub = triplePattern.triples[0];
-        long pro = triplePattern.triples[1];
-        long obj = triplePattern.triples[2];
+        int sub = triplePattern.triples[0];
+        int pro = triplePattern.triples[1];
+        int obj = triplePattern.triples[2];
 
         if(!TriplePattern.isVariable(sub))
             sub = 100;

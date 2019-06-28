@@ -3,17 +3,17 @@ package triple;
 public class Triple {
 
     public final static int SELECTIVITY_BITS = 4;
-    public long triples[]= new long[3];
+    public int triples[]= new int[3];
     public static int DATA_TYPE_BITS = 64;
     //int varaibles[] = new int[3];
 
-    public Triple(long s ,long p , long o){
+    public Triple(int s ,int p , int o){
         triples[0] = s ;
         triples[1] = p;
         triples[2] = o;
     }
 
-    public void embedSelectivity( long selectivity){
+    public void embedSelectivity( int selectivity){
         int position = DATA_TYPE_BITS - SELECTIVITY_BITS -2;
         triples[1] = (triples[1]<<position) + selectivity;
     }

@@ -10,13 +10,13 @@ import java.util.List;
 public class TriplePattern2 {
     public final static int thisIsVariable = -1;
 
-    private long triples[] = new long[3];
+    private int triples[] = new int[3];
     public String stringTriple[] = new String[3];
-    public long fixedTriples[] = new long[3];
+    public int fixedTriples[] = new int[3];
     public HashMap<Long, Integer> variablesIndex;
     public String tempID; //for debug purpose only
 
-    private Triple triple;
+
 
     private List<Triple> result;
     private ArrayList<TriplePattern2> rights;
@@ -26,12 +26,15 @@ public class TriplePattern2 {
     private MyHashMap<String, ArrayList<Triple>> OPs;
     private MyHashMap<String, ArrayList<Triple>> SPo;
 
+    private WithinIndex withinIndex ;
+
     //int varaibles[] = new int[3];
 
-    public TriplePattern2(long s, long p, long o) {
+    /*public TriplePattern2(int s, int p, int o) {
 
-        triple = new Triple(s, p, o);
-    }
+        //triple = new Triple(s, p, o);
+        withinIndex = new WithinIndex(0);
+    }*/
 
     public TriplePattern2(TriplePattern triplePattern) {
         triples[0] = triplePattern.triples[0];
@@ -40,6 +43,8 @@ public class TriplePattern2 {
         fixedTriples[0] = fixedTriples[0];
         fixedTriples[1] = fixedTriples[1];
         fixedTriples[2] = fixedTriples[2];
+
+        withinIndex = new WithinIndex(0);
     }
 
     public void setIndexes(MyHashMap<Long, ArrayList<Triple>> Pso, MyHashMap<String, ArrayList<Triple>> OPs,
@@ -49,15 +54,15 @@ public class TriplePattern2 {
         this.SPo = SPo;
     }
 
-    public static long thisIsVariable(long varCode) {
+    public static int thisIsVariable(int varCode) {
         return -varCode;
     }
 
-    public void setTriples(long[] triples) {
+    public void setTriples(int[] triples) {
         this.triples = triples;
     }
 
-    public long[] getTriples() {
+    public int[] getTriples() {
         return triples;
     }
 
@@ -71,7 +76,7 @@ public class TriplePattern2 {
         this.stringTriple[2] = reverseDictionary.get(triples[2]);
     }
 
-    public static boolean isVariable(long code) {
+    public static boolean isVariable(int code) {
         if (code < 0)
             return true;
         return false;
@@ -132,7 +137,6 @@ public class TriplePattern2 {
         } else {
             //TODO nothing to do here?
         }
-
         evaluatedStarted = true;
         TriplePattern2 next = getNextPattern();
         if(next != null)
@@ -188,29 +192,35 @@ public class TriplePattern2 {
             System.err.println("hash index requires setting indexes");
             return;
         }
-        TriplePattern2 pattern = rPattern;
+
         int hisIndex = 0;
         MyHashMap<String, ArrayList<Triple>> index = OPs;
+
+
         if (lPattern == null && rPattern == null) {
             if (!isVariable(triples[0])) {
                 index = SPo;
-                List<Triple> list = index.get(triples[0], triples[1]);
+                withinIndex.index = 0;
+                List<Triple> list = index.get(triples[0], triples[1] , 1,withinIndex);
                 if (list != null && list.size() > 0)
                     result = list;
                 evaluatedStarted = true;
                 return;
             }
-
-            if (!isVariable(triples[0])) {
+            if (!isVariable(triples[2])) {
                 index = OPs;
-                List<Triple> list = index.get(triples[2], triples[1]);
+                withinIndex.index = 0;
+                List<Triple> list = index.get(triples[2], triples[1],1,withinIndex);
+                result.clear();
                 if (list != null && list.size() > 0)
-                    result = list;
+                    result.addAll(withinIndex.index ,list);
                 evaluatedStarted = true;
                 return;
             }
-
         }
+
+
+        TriplePattern2 pattern = rPattern;
         if (lPattern == null) {
             pattern = lPattern;
             hisIndex = getHisJoinIndex(pattern);
@@ -225,7 +235,7 @@ public class TriplePattern2 {
         //}
         for (int i = 0; i < right.size(); i++) {
             Triple rTriple = right.get(i);
-            long val = rTriple.triples[hisIndex];
+            int val = rTriple.triples[hisIndex];
             if (val == 0)
                 continue;
             List<Triple> list = index.get(val);
@@ -302,5 +312,13 @@ public class TriplePattern2 {
 
     public int getSelectivity() {
         return Triple.extractPredicateSelectivity(triples[1]);
+    }
+
+
+    public class WithinIndex{
+        public int index ;
+        public WithinIndex(int index){
+            this.index = index;
+        }
     }
 }

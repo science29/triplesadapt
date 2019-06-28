@@ -53,7 +53,7 @@ public class Fragment {
 
 
     //curently only for the property  ...
-    public void generateFromGraph(HashMap<Long,ArrayList<Triple> > POS){
+    public void generateFromGraph(HashMap<Integer,ArrayList<Triple> > POS){
         ArrayList<Prediacte> predicates = minterm.prediactesList;
         //currnetly only consider the 1st predicate
         Prediacte prediacte = predicates.get(0);
@@ -68,7 +68,7 @@ public class Fragment {
         }*/
     }
 
-    public void generateFromAnomTriple(HashMap<Long,ArrayList<Triple> > POS , HashMap<Long,ArrayList<Triple> > OSP , HashMap<Long,ArrayList<Triple> > SOP){
+    public void generateFromAnomTriple(HashMap<Integer,ArrayList<Triple> > POS , HashMap<Integer,ArrayList<Triple> > OSP , HashMap<Integer,ArrayList<Triple> > SOP){
         ArrayList<Triple> ss = null ;
         ArrayList<Triple> pp = null ;
         ArrayList<Triple> oo = null ;
@@ -90,7 +90,7 @@ public class Fragment {
             connectionFrequency.add(freq);
     }
 
-    public void filterToDist(int dist, HashMap<Long, VertexGraph> vertexIndex) {
+    public void filterToDist(int dist, HashMap<Integer, VertexGraph> vertexIndex) {
         ArrayList<Triple> tempTripleFound = new ArrayList();
         for(int j=0 ;j<triples.size() ; j++){
             VertexGraph vs  = vertexIndex.get(triples.get(j).triples[0]);

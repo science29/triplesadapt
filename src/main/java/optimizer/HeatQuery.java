@@ -17,13 +17,13 @@ public class HeatQuery {
 
     Graph queryGraph;
 
-    HashMap<Long , Integer> vertexHeatMap;
+    HashMap<Integer , Integer> vertexHeatMap;
     HashMap<TriplePattern2, Integer> tripleHeatMap;
     HashMap<TriplePattern2 , Integer> annonmizedTripleHeatMap;
 
     public HeatQuery(Query query){
         queryGraph = new Graph();
-        vertexHeatMap = new HashMap<Long, Integer>();
+        vertexHeatMap = new HashMap<Integer, Integer>();
         tripleHeatMap = new HashMap<TriplePattern2, Integer>();
         annonmizedTripleHeatMap = new HashMap<TriplePattern2, Integer>();
         addQuery(query);
@@ -82,7 +82,7 @@ public class HeatQuery {
         }
     }
 
-    private void adjustVertexHeat(Long vertex){
+    private void adjustVertexHeat(Integer vertex){
         Integer heat = vertexHeatMap.get(vertex);
         if(heat != null){
             heat++;
@@ -93,7 +93,7 @@ public class HeatQuery {
 
 
 
-    public int getFullVertexHeat(Long vertexID){
+    public int getFullVertexHeat(Integer vertexID){
         if(vertexHeatMap.containsKey(vertexID))
             return vertexHeatMap.get(vertexID);
         return 0;
@@ -102,16 +102,16 @@ public class HeatQuery {
 
 
     private class Graph{
-        ArrayList<Long> V;
-        HashMap<Long , ArrayList<Triple>> E;
-        HashMap<String , Long > edgesMap;
+        ArrayList<Integer> V;
+        HashMap<Integer , ArrayList<Triple>> E;
+        HashMap<String , Integer > edgesMap;
 
 
         public Graph(){
-            V = new ArrayList<Long>();
+            V = new ArrayList<Integer>();
         }
 
-        public void add(Long s, Long p , Long o){
+        public void add(Integer s, Integer p , Integer o){
             String key = s+","+o;
             if(!edgesMap.containsKey(key)){
                 edgesMap.put(key , p);
@@ -126,7 +126,7 @@ public class HeatQuery {
         }
 
 
-        public boolean isExist(long [] triple){
+        public boolean isExist(int [] triple){
             if(E.containsKey(triple[0])) {
                // add(triple.triples[0] , triple.triples[1] , triple.triples[2]);
                 return true;
@@ -153,9 +153,9 @@ public class HeatQuery {
         }
     }
     /*private class Edge{
-        Long o;
-        Long p;
-        public Edge(long o , long p){
+        Integer o;
+        Integer p;
+        public Edge(int o , int p){
             this.e = e;
             this.p = p;
         }

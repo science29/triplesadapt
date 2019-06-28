@@ -73,7 +73,7 @@ public class VertexGraphIndex {
     }
 
 
-    public ArrayList<Vertex> get(Long key){
+    public ArrayList<Vertex> get(Integer key){
         return normalMap.get(key);
         //return (ArrayList<Vertex>) fastMap.get(key);
     }

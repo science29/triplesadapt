@@ -1272,17 +1272,17 @@ public class Main3 {
                     continue;
                 ArrayList<Triple> connectedTriples2 = SPO.get(o);
                 for (int k = 0; k < connectedTriples2.size(); k++) {
-                    Triple triple2 = connectedTriples2.get(k);
-                    long p2 = triple2.triples[1];
+                    Triple Triple = connectedTriples2.get(k);
+                    long p2 = Triple.triples[1];
                     String key = s + "" + p1 + "" + p2;
                     addToIndex(SPxP, triple1, key);
-                    addToIndex(SPxP, triple2, key);
+                    addToIndex(SPxP, Triple, key);
 
                         ArrayList<Triple> tripleList = SPxP.get(key);
                         if(tripleList == null)
                             tripleList = new ArrayList();
                         tripleList.add(triple1);
-                        tripleList.add(triple2);
+                        tripleList.add(Triple);
                         SPxP.put(key , tripleList);
                 }
             }
@@ -1307,11 +1307,11 @@ public class Main3 {
                 if (list2 == null)
                     continue;
                 for (int j = 0; j < list2.size(); j++) {
-                    Triple triple2 = list2.get(j);
-                    long P2 = triple2.triples[1];
+                    Triple Triple = list2.get(j);
+                    long P2 = Triple.triples[1];
                     String key = O + "" + P1 + "" + P2;
                     addToIndex(OPxP, triple1, key);
-                    addToIndex(OPxP, triple2, key);
+                    addToIndex(OPxP, Triple, key);
                 }
 
             }

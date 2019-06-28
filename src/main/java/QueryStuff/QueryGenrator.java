@@ -44,15 +44,15 @@ public class QueryGenrator {
     private int numberOfNodes;
     private int maxNumberofEdges;
     private int numberOfVaribles;
-    private HashMap<Long , VertexGraph> graph;
-    private HashMap<Long,ArrayList<Triple> > tripleGraph;
+    private HashMap<Integer , VertexGraph> graph;
+    private HashMap<Integer,ArrayList<Triple> > tripleGraph;
     private ArrayList<TriplePattern> queryAnswer;
     private ArrayList<TriplePattern> triplePatterns;
     private ArrayList<Query> queries;
     private int maxQueryFrquency;
 
 
-    public QueryGenrator(int numberOfNodes, int maxNumberofEdges, HashMap<Long , VertexGraph> graph , int numberOfVaribles, HashMap<Long,ArrayList<Triple> > tripleGraph , int maxQueryFrquency){
+    public QueryGenrator(int numberOfNodes, int maxNumberofEdges, HashMap<Integer , VertexGraph> graph , int numberOfVaribles, HashMap<Integer,ArrayList<Triple> > tripleGraph , int maxQueryFrquency){
         this.numberOfNodes = numberOfNodes;
         this.maxNumberofEdges = maxNumberofEdges;
         this.graph = graph;
@@ -89,10 +89,10 @@ public class QueryGenrator {
     int countIgnore = 0;
     private ArrayList<TriplePattern> buildHeavyQuery(){
         int processedNode = 0;
-        Queue<Long> toProcess = new ArrayDeque();
-        ArrayList<Long> resultedVertices = new ArrayList();
+        Queue<Integer> toProcess = new ArrayDeque();
+        ArrayList<Integer> resultedVertices = new ArrayList();
         int s = graph.size();
-        long stratingNode;
+        int stratingNode;
         VertexGraph startingVertexGraph;
         int trialCount =0;
         do {
@@ -104,11 +104,11 @@ public class QueryGenrator {
             }
         }while (startingVertexGraph == null ||  graph.get(stratingNode).edgesVertex.size() == 0);
         toProcess.add(stratingNode);
-        HashMap<Long, Long> vistedVertices = new HashMap();
+        HashMap<Integer, Integer> vistedVertices = new HashMap();
         while(toProcess.size() > 0 && resultedVertices.size() < numberOfNodes) {
-            Long toProcessVertex = toProcess.remove();
+            Integer toProcessVertex = toProcess.remove();
             vistedVertices.put(toProcessVertex,toProcessVertex);
-            ArrayList<Long> v = graph.get(toProcessVertex).edgesVertex;
+            ArrayList<Integer> v = graph.get(toProcessVertex).edgesVertex;
             resultedVertices.add(toProcessVertex);
             Random ran = new Random();
             int index ;
@@ -145,7 +145,7 @@ public class QueryGenrator {
 
     }
 
-    public static ArrayList<String> buildFastHeavyQuery(MyHashMap<String, ArrayList<Triple>> OPxP, HashMap<Long, ArrayList<Triple>> OPS, long max_id, Dictionary reverseDicitionary, ArrayList<String> queryKeys, double memPercent){
+    public static ArrayList<String> buildFastHeavyQuery(MyHashMap<String, ArrayList<Triple>> OPxP, HashMap<Integer, ArrayList<Triple>> OPS, int max_id, Dictionary reverseDicitionary, ArrayList<String> queryKeys, double memPercent){
         if(queryKeys == null)
             return null ;
         if(queryKeys.size() == 0)
@@ -157,15 +157,15 @@ public class QueryGenrator {
             ArrayList<TriplePattern> locTriplePatterns = new ArrayList();
             for(int i=0 ; i < list.size() ; i+=2){
                 Triple triple1 = list.get(i);
-                Triple triple2 = list.get(i+1);
-                long s = triple2.triples[0];
+                Triple Triple = list.get(i+1);
+                int s = Triple.triples[0];
                 ArrayList<Triple> list2 = OPS.get(s);
                 if(list2!=null){
                     Triple triple3 = list2.get(0);
                     TriplePattern triplePattern3 = new TriplePattern(-3,triple3.triples[1],-2);
-                    TriplePattern triplePattern2 = new TriplePattern(-2,triple2.triples[1],-1);
+                    TriplePattern triplePattern2 = new TriplePattern(-2,Triple.triples[1],-1);
                     TriplePattern triplePattern1 = new TriplePattern(-1,triple1.triples[1],triple1.triples[2]);
-                    String tkey = triple1.triples[2]+""+triple1.triples[1]+""+triple2.triples[1];
+                    String tkey = triple1.triples[2]+""+triple1.triples[1]+""+Triple.triples[1];
                     ArrayList<Triple> listtt = OPxP.get(tkey);
                     triplePattern1.tempID = tkey;triplePattern2.tempID = tkey;triplePattern3.tempID = tkey;
                     locTriplePatterns.add(triplePattern1);
@@ -181,20 +181,20 @@ public class QueryGenrator {
         while(it.hasNext()){
             ArrayList<TriplePattern> locTriplePatterns = new ArrayList();
             Map.Entry pair = (Map.Entry)it.next();
-           // Long O = (Long) pair.getKey();
+           // Integer O = (Integer) pair.getKey();
            // ArrayList<Triple> list = (ArrayList<Triple>) pair.getValue();
             ArrayList<Triple> list =  OPxP.getArrayList((String) pair.getValue());
             for(int i=0 ; i < list.size() ; i+=2){
                 Triple triple1 = list.get(i);
-                Triple triple2 = list.get(i+1);
-                long s = triple2.triples[0];
+                Triple Triple = list.get(i+1);
+                int s = Triple.triples[0];
                 ArrayList<Triple> list2 = OPS.get(s);
                 if(list2!=null){
                     Triple triple3 = list2.get(0);
                     TriplePattern triplePattern3 = new TriplePattern(-3,triple3.triples[1],-2);
-                    TriplePattern triplePattern2 = new TriplePattern(-2,triple2.triples[1],-1);
+                    TriplePattern triplePattern2 = new TriplePattern(-2,Triple.triples[1],-1);
                     TriplePattern triplePattern1 = new TriplePattern(-1,triple1.triples[1],triple1.triples[2]);
-                    String tkey = triple1.triples[2]+""+triple1.triples[1]+""+triple2.triples[1];
+                    String tkey = triple1.triples[2]+""+triple1.triples[1]+""+Triple.triples[1];
                     ArrayList<Triple> listtt = OPxP.get(tkey);
                     triplePattern1.tempID = tkey;triplePattern2.tempID = tkey;triplePattern3.tempID = tkey;
                     locTriplePatterns.add(triplePattern1);
@@ -222,7 +222,7 @@ public class QueryGenrator {
     }
 
     private static ArrayList<String> getHeavyQuerykeys(MyHashMap<String, ArrayList<Triple>> OPxP, double memPercent) {
-      /*  long max_key = 1000000;
+      /*  int max_key = 1000000;
         boolean up = false;
         if(dictionary.containsKey(max_key))
             up = true;
@@ -241,7 +241,7 @@ public class QueryGenrator {
         }*/
         ArrayList<String> keys = new ArrayList();
         ArrayList<String> backupKeys = new ArrayList();
-        long cnt = 0;
+        int cnt = 0;
         Random random = new Random();
         //Iterator it = OPxP.entrySet().iterator();
         boolean memItActive = false;
@@ -252,7 +252,7 @@ public class QueryGenrator {
         }
         while(keys.size() < 50 && it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
-            long choice = random.nextInt(10000);
+            int choice = random.nextInt(10000);
             if(choice == 100) {
                 String key = (String) pair.getKey();
                 keys.add(key);
@@ -279,13 +279,13 @@ public class QueryGenrator {
     /*
         private ArrayList<triple.TriplePattern> buildQuery(){
             int processedNode = 0;
-            Queue<Long> toProcess = new ArrayDeque();
-            ArrayList<Long> resultedVertices = new ArrayList();
+            Queue<Integer> toProcess = new ArrayDeque();
+            ArrayList<Integer> resultedVertices = new ArrayList();
            int s = graph.size();
-           long stratingNode = new Random().nextInt(s) + 1;
+           int stratingNode = new Random().nextInt(s) + 1;
             toProcess.add(stratingNode);
             while(toProcess.size() > 0 && resultedVertices.size() < numberOfNodes) {
-                Long toProcessVertex = toProcess.remove();
+                Integer toProcessVertex = toProcess.remove();
                 ArrayList<triple.Vertex> v = graph.get(toProcessVertex);
                 int currentMaxEdges = new Random().nextInt(maxNumberofEdges) + 1;
                 resultedVertices.add(toProcessVertex);
@@ -309,9 +309,9 @@ public class QueryGenrator {
 
         }
     */
-    private ArrayList<TriplePattern> processQueryGraph(ArrayList<Long> resultedVertices , boolean heavy){
+    private ArrayList<TriplePattern> processQueryGraph(ArrayList<Integer> resultedVertices , boolean heavy){
         for(int i= 0 ; i< resultedVertices.size() ; i++){
-            long l = resultedVertices.get(i);
+            int l = resultedVertices.get(i);
             ArrayList<Triple> triples = tripleGraph.get(l);
             if(triples == null)
                 continue;
@@ -319,8 +319,8 @@ public class QueryGenrator {
             for(int j=0 ; j<triples.size() ; j++){
                 int matchCount = 0;
                 for(int k= 0 ; k<resultedVertices.size() ; k++) {
-                    long r = resultedVertices.get(k);
-                    long t = triples.get(j).triples[2];
+                    int r = resultedVertices.get(k);
+                    int t = triples.get(j).triples[2];
                     if (r == t) {
                         triplePatterns.add(new TriplePattern(triples.get(j).triples[0], triples.get(j).triples[1], triples.get(j).triples[2]));
                         matchCount++;
@@ -343,7 +343,7 @@ public class QueryGenrator {
         //for each tripel you have three choices: s is var , o is var , or s&o are vars
         //randomly select one of the choices until the number of vars is satisfied
         int assigneVra = 0;
-        HashMap<Long , Integer> variablesIndex  = new HashMap<Long , Integer>();
+        HashMap<Integer , Integer> variablesIndex  = new HashMap<Integer , Integer>();
         for(int i=0 ; i<triplePatterns.size() ; i++){
             int varS = 0 , varO = 0;
             triplePatterns.get(i).variablesIndex = variablesIndex;

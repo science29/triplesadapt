@@ -22,14 +22,14 @@ public class Dictionary{
     private DB dbFileReverse;
     HTreeMap fastMap;
     HTreeMap reverseFastMap;
-    HashMap<String,Long> cache = new HashMap<String, Long>();
-    HashMap<Long,String> reverseCache = new HashMap<Long, String>();
+    HashMap<String,Integer> cache = new HashMap<String, Integer>();
+    HashMap<Integer,String> reverseCache = new HashMap<Integer, String>();
 
-    HashMap<String,Long> cache2 = new HashMap<String, Long>();
-    HashMap<Long,String> reverseCache2 = new HashMap<Long, String>();
+    HashMap<String,Integer> cache2 = new HashMap<String, Integer>();
+    HashMap<Integer,String> reverseCache2 = new HashMap<Integer, String>();
 
-    HashMap<String,Long> mainWriteCache = cache;
-    HashMap<Long,String> mainWriteReverseCache = reverseCache;
+    HashMap<String,Integer> mainWriteCache = cache;
+    HashMap<Integer,String> mainWriteReverseCache = reverseCache;
 
     private final String HOME_DIR = "/home/ahmed/";
     private boolean cacheEnabled = true;
@@ -112,7 +112,7 @@ public class Dictionary{
     private int maxCacheSize = 10000000;
     private int minCacheSize = 500000;
     private double factor = 2;
-    private boolean addToCache(String key, Long value){
+    private boolean addToCache(String key, Integer value){
         if(cacheEnabled){
             mainWriteCache.put(key ,value);
             mainWriteReverseCache.put(value , key);
@@ -137,10 +137,10 @@ public class Dictionary{
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry) it.next();
             String key = (String) pair.getKey();
-            Long val = (Long) pair.getValue();
+            Integer val = (Integer) pair.getValue();
             put(key , val);
         }
-        cache = new HashMap<String, Long>();
+        cache = new HashMap<String, Integer>();
         cacheEnabled = true;
     }
 
@@ -148,7 +148,7 @@ public class Dictionary{
 
     }
 
-    public void put(String key, Long value) {
+    public void put(String key, Integer value) {
        // normalMap.put(key,value);
         if(!addToCache(key,value)) {
             fastMap.put(key, value);
@@ -156,20 +156,20 @@ public class Dictionary{
         }
     }
 
-    public void put(Long value ,String key) {
+    public void put(Integer value ,String key) {
         //TODO nothing here yet
     }
 
 
-    public Long get(String key){
-       // return (Long)normalMap.get(key);
-        Long val = getFromCache(key);
+    public Integer get(String key){
+       // return (Integer)normalMap.get(key);
+        Integer val = getFromCache(key);
        if(val != null)
            return val;
-       return (Long) fastMap.get(key);
+       return (Integer) fastMap.get(key);
     }
 
-    public String get(Long key){
+    public String get(Integer key){
         String val = getFromCache(key);
         if(val != null)
             return val;
@@ -177,16 +177,16 @@ public class Dictionary{
     }
 
 
-    private Long getFromCache(String key) {
+    private Integer getFromCache(String key) {
         if(!cacheEnabled)
             return null;
-        Long val = cache.get(key);
+        Integer val = cache.get(key);
         if(val != null)
             return val;
         return cache2.get(key);
     }
 
-    private String getFromCache(Long key) {
+    private String getFromCache(Integer key) {
         if(!cacheEnabled)
             return null;
         String val = reverseCache.get(key);
@@ -204,7 +204,7 @@ public class Dictionary{
         return fastMap.containsKey(key);
     }
 
-    public boolean containsKey(Long key) {
+    public boolean containsKey(Integer key) {
         //return normalMap.containsKey(key);
         if(cacheEnabled && reverseCache.containsKey(key))
             return true;
@@ -213,7 +213,7 @@ public class Dictionary{
 
 
 
-    public Set<Map.Entry<String,Long>> entrySet() {
+    public Set<Map.Entry<String,Integer>> entrySet() {
         //return normalMap.entrySet();
         return fastMap.entrySet();
     }
@@ -235,18 +235,18 @@ public class Dictionary{
 
 
     class Consumer extends Thread /*implements Runnable*/{
-        private BlockingQueue<Long> sharedValQueue;
+        private BlockingQueue<Integer> sharedValQueue;
         private  BlockingQueue<String> sharedkeyQueue;
         public boolean stop = false;
 
 
         public Consumer() {
-            this.sharedValQueue = new LinkedBlockingQueue<Long>(maxCacheSize*2);
+            this.sharedValQueue = new LinkedBlockingQueue<Integer>(maxCacheSize*2);
             this.sharedkeyQueue =  new LinkedBlockingQueue<String>(maxCacheSize*2);
         }
 
 
-        public void add(String key , Long val){
+        public void add(String key , Integer val){
             try {
                 sharedkeyQueue.put(key);
                 sharedValQueue.put(val);
@@ -257,7 +257,7 @@ public class Dictionary{
         public void run() {
             while(!stop){
                 try {
-                    Long val = sharedValQueue.take();
+                    Integer val = sharedValQueue.take();
                     String key = sharedkeyQueue.take();
                     put(key, val);
                     //System.out.println("Consumed: "+ num + ":by thread:"+threadNo);

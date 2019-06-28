@@ -1101,14 +1101,14 @@ public class Main2 {
                         continue;
                     ArrayList<Triple> connectedTriples2 = SPO.get(o);
                     for(int k = 0; k< connectedTriples2.size() ; k++){
-                        Triple triple2 = connectedTriples2.get(k);
-                        long p2 = triple2.triples[1];
+                        Triple Triple = connectedTriples2.get(k);
+                        long p2 = Triple.triples[1];
                         String key = s+""+p1+""+p2;
                         ArrayList<Triple> tripleList = SPxP.get(key);
                         if(tripleList == null)
                             tripleList = new ArrayList<>();
                         tripleList.add(triple1);
-                        tripleList.add(triple2);
+                        tripleList.add(Triple);
                         SPxP.put(key , tripleList);
                     }
             }
