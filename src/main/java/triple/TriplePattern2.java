@@ -20,6 +20,7 @@ public class TriplePattern2 {
 
 
     private List<Triple> result;
+    private ResultTriple resultTriple;
     private ArrayList<TriplePattern2> rights;
     private ArrayList<TriplePattern2> lefts;
 
@@ -117,7 +118,7 @@ public class TriplePattern2 {
 
     private boolean evaluatedStarted = false;
 
-    public void evaluatePatternHash() {
+    public void evaluatePatternHash(TriplePattern2 callerPattern) {
         if (result == null)
             result = new LinkedList<Triple>();
         if (!evaluatedStarted) {
@@ -131,14 +132,14 @@ public class TriplePattern2 {
                     mergeJoin();
                     return;
                 }*/
-            hashJoin(rPattern, lPattern);
+            hashJoin(callerPattern);
         } else {
             //TODO nothing to do here?
         }
         evaluatedStarted = true;
         TriplePattern2 next = getNextPattern();
         if(next != null)
-            next.evaluatePatternHash();
+            next.evaluatePatternHash(this);
     }
 
     private void mergeJoin() {
@@ -181,7 +182,7 @@ public class TriplePattern2 {
 
     }
 
-    private void hashJoin(TriplePattern2 lPattern, TriplePattern2 rPattern) {
+    private void hashJoin(TriplePattern2 callerPattern) {
 
         if (isVariable(triples[1])) {
             System.out.println(" the hash index supports only constant properties");
@@ -196,7 +197,7 @@ public class TriplePattern2 {
         MyHashMap<Integer, ArrayList<Triple>> index = OPs;
 
 
-        if (lPattern == null && rPattern == null) {
+        if (callerPattern == null) {
             if (!isVariable(triples[0])) {
                 index = SPo;
                 withinIndex.index = 0;
@@ -222,30 +223,40 @@ public class TriplePattern2 {
         }
 
 
-
-        TriplePattern2 pattern = rPattern;
-        if (pattern == null) {
-            pattern = lPattern;
-            hisIndex = getHisJoinIndex(pattern);
-            index = SPo;
+        if(isVariable(triples[0])){
+            if(triples[0] == callerPattern.triples[2]){
+                index = SPo;
+                hisIndex = 2;
+            }else if(triples[0] == callerPattern.triples[0]){
+                index = SPo;
+                hisIndex = 0;
+            }
+        }else if(isVariable(triples[2])) {
+            if (triples[2] == callerPattern.triples[0]) {
+                index = OPs;
+                hisIndex = 0;
+            } else if (triples[2] == callerPattern.triples[2]) {
+                index = SPo;
+                hisIndex = 2;
+            }
         }
-        List<Triple> right = pattern.getResult();
-        //use the SPs
-        // TriplePattern2 lJPattern = getJoinPatternLeft(pattern);
-        //  if(lJPattern == null){
-        //TODO we are done in the left direction
-        //    return;
-        //}
-        for (int i = 0; i < right.size(); i++) {
-            Triple rTriple = right.get(i);
-            int val = rTriple.triples[hisIndex];
-            if (val == 0)
+        List<Triple> hisRes = callerPattern.getResult();
+        for (int i = 0; i < hisRes.size(); i++) {
+            Triple hisTriple = hisRes.get(i);
+            int hisVal = hisTriple.triples[hisIndex];
+            int p = triples[1];
+            if (hisVal == 0)
                 continue;
-            List<Triple> list = index.get(val);
+            List<Triple> list = index.get(hisVal,p,1,withinIndex);
             if (list != null && list.size() > 0)
-                result.addAll(list);
+            for(int j= withinIndex.index ; j<list.size() ; j++) {
+                Triple t = list.get(j);
+                if(t.triples[1] != p)
+                    break;
+                result.add(t);
+            }
             else
-                pattern.purne(rTriple, i, right.size());
+                callerPattern.purne(hisTriple, i, hisRes.size());
         }
     }
 
@@ -261,9 +272,9 @@ public class TriplePattern2 {
         int mySize = lefts.size();
         if (evaluatedStarted && result.size() > index) {
             Triple triple = result.get(index);
-            if (rTriple.triples[0] == rTriple.triples[0]
-                    && rTriple.triples[1] == rTriple.triples[1] &&
-                    rTriple.triples[2] == rTriple.triples[2])
+            if (rTriple.triples[0] == triple.triples[0]
+                    && rTriple.triples[1] == triple.triples[1] &&
+                    rTriple.triples[2] == triple.triples[2])
                 result.remove(index);
         } else {
             int strtIndex = mySize - index;
