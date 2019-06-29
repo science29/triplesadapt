@@ -1923,14 +1923,14 @@ try {
                 if(Query.sep()) {
                     Query spQuery_t = new Query(dictionary, query ,indexPool);
                      //spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
-                    spQuery_t.findQueryAnswer(indexPool);
+                    spQuery_t.findQueryAnswer();
                     extTime = new StringBuilder();
                 }
                 long startTime = System.nanoTime();
                 Query spQuery = new Query(dictionary, query,indexPool);
                 long parseTime = System.nanoTime();
                 //spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
-                spQuery.findQueryAnswer(indexPool);
+                spQuery.findQueryAnswer();
                 long stopTime = System.nanoTime();
                 long elapsedTime = (stopTime - startTime) / 1000;
                 spQuery.printAnswers(reverseDictionary);

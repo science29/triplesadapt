@@ -2,7 +2,7 @@ package QueryStuff;
 
 import index.Dictionary;
 import index.IndexesPool;
-import index.MyHashMap;
+import triple.ResultTriple;
 import triple.Triple;
 import triple.TriplePattern;
 import triple.TriplePattern2;
@@ -32,6 +32,7 @@ public class Query {
 
     private Dictionary dictionary ;
     private IndexesPool indexPool;
+    private ArrayList<ResultTriple> results;
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.triplePatterns = triplePattern;
@@ -247,7 +248,7 @@ public class Query {
     }
 
 
-    public void findQueryAnswer(IndexesPool indexes ){
+    public ArrayList<ResultTriple> findQueryAnswer(){
       //find the triplePattern to start with
       //start executing and let it propogate.
         Collections.sort(triplePatterns2, new Comparator<TriplePattern2>() {
@@ -262,11 +263,14 @@ public class Query {
                 // return lhs.customInt > rhs.customInt ? -1 : (lhs.customInt < rhs.customInt) ? 1 : 0;
             }
         });
+         results = new ArrayList<ResultTriple>();
       for(int i =0 ; i < triplePatterns2.size() ; i++){
-          if(!triplePatterns2.get(i).isStarted())
-              triplePatterns2.get(i).evaluatePatternHash();
+          if(!triplePatterns2.get(i).isStarted()) {
+              ResultTriple resultTriple = triplePatterns2.get(i).evaluatePatternHash(null);
+              results.add(resultTriple);
+          }
       }
-
+        return results;
     }
 
 
@@ -576,18 +580,33 @@ public class Query {
     public void printAnswers(Dictionary reverseDictionary) {
         if(knownEmpty)
             return;
+        if(results != null){
+            for(int i =0 ; i < results.size() ; i++){
+                ResultTriple vResultTriple = results.get(i);
+                while (vResultTriple != null){
+                    ResultTriple hResultTriple = vResultTriple;
+                    while(hResultTriple != null) {
+                        Triple triple = hResultTriple.getTriple();
+                        String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
+                        System.out.println(str+" . ");
+                        hResultTriple = hResultTriple.getLeft();
+                    }
+                }
+            }
+        }
+
        /* if (answerMap == null) {
             System.err.println("No answer to print ..");
             return;
         }*/
 
-        for(int i = 0 ; i< triplePatterns2.size() ; i++){
+      /*  for(int i = 0 ; i< triplePatterns2.size() ; i++){
             List<Triple> res = triplePatterns2.get(i).getResult();
             for(int j=0 ; j < res.size() ; j++){
                 String str = reverseDictionary.get(res.get(j).triples[0]) + " "+reverseDictionary.get(res.get(j).triples[1])+" "+reverseDictionary.get(res.get(j).triples[2]);
            //     System.out.println(str);
             }
-        }
+        }*/
        /*
         int i = 0;
         //TODO this is not effceint enough

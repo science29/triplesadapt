@@ -276,7 +276,11 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     public V get(Integer key1 , Integer key2 , int sortedIndex , TriplePattern2.WithinIndex withinIndex){
         ArrayList<Triple> triples = (ArrayList<Triple>)get(key1);
+        if(triples == null)
+            return null;
         int fIndex = binarySearch(triples ,sortedIndex, key2);
+        if(fIndex == -1)
+            return null;
         withinIndex.index = fIndex;
         return (V) triples;
     }
