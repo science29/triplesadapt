@@ -17,10 +17,11 @@ public class TriplePattern2 {
     public String tempID; //for debug purpose only
 
 
-
     //private List<Triple> result;
     private ResultTriple resultTriple;
     private ResultTriple headResultTriple;
+    public int resultTripleShifLeft = 0;
+    public int resultTripleShifRight = 0;
     private ArrayList<TriplePattern2> rights;
     private ArrayList<TriplePattern2> lefts;
 
@@ -28,7 +29,9 @@ public class TriplePattern2 {
     private MyHashMap<Integer, ArrayList<Triple>> OPs;
     private MyHashMap<Integer, ArrayList<Triple>> SPo;
 
-    private WithinIndex withinIndex ;
+    private WithinIndex withinIndex;
+    private int tempResultCnt = 0;
+    private boolean goingLeft;
 
     //int varaibles[] = new int[3];
 
@@ -38,7 +41,7 @@ public class TriplePattern2 {
         withinIndex = new WithinIndex(0);
     }*/
 
-    public TriplePattern2(TriplePattern triplePattern , IndexesPool indexesPool) {
+    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool) {
         triples[0] = triplePattern.triples[0];
         triples[1] = triplePattern.triples[1];
         triples[2] = triplePattern.triples[2];
@@ -119,28 +122,50 @@ public class TriplePattern2 {
     private boolean evaluatedStarted = false;
 
     public ResultTriple evaluatePatternHash(TriplePattern2 callerPattern) {
-       // if (result == null)
-       //     result = new LinkedList<Triple>();
+        // if (result == null)
+        //     result = new LinkedList<Triple>();
         if (!evaluatedStarted) {
             //try to get results from right
             TriplePattern2 rPattern = getJoinPattern(true);
             TriplePattern2 lPattern = getJoinPattern(false);
             if (rPattern != null)
                 lPattern = null;
+            if (callerPattern == null && rPattern != null && rPattern.isStarted())
+                callerPattern = rPattern;
             // LinkedList<Triple> left = getJoinPatternLeft().getResult();
                /* if(rPattern != null && lPattern == null){
                     mergeJoin();
                     return;
                 }*/
+            //   System.out.println("hash join triple:"+triples[0]+" "+triples[1]+" "+triples[2]);
             hashJoin(callerPattern);
         } else {
             //TODO nothing to do here?
         }
         evaluatedStarted = true;
-        TriplePattern2 next = getNextPattern();
-        if(next != null)
-           return next.evaluatePatternHash(this);
-
+        while (true) {
+            TriplePattern2 next = getNextPattern();
+            if (next == null)
+                break;
+            headResultTriple = next.evaluatePatternHash(this);
+            if (next.resultTripleShifLeft != 0) {
+                if (!goingLeft) {
+                    resultTripleShifLeft += (next.resultTripleShifLeft + 1);
+                    resultTripleShifRight = 0;
+                } else {
+                    resultTripleShifRight += (next.resultTripleShifLeft + 1);
+                    resultTripleShifLeft = 0;
+                }
+            } else {
+                if (!goingLeft) {
+                    resultTripleShifLeft += (next.resultTripleShifRight + 1);
+                    resultTripleShifRight = 0;
+                } else {
+                    resultTripleShifRight += (next.resultTripleShifRight + 1);
+                    resultTripleShifLeft = 0;
+                }
+            }
+        }
         return headResultTriple;
 
     }
@@ -153,39 +178,44 @@ public class TriplePattern2 {
         ArrayList<TriplePattern2> list = rights;
         if (!right)
             list = lefts;
-        if(list != null)
-        for (int i = 0; i < list.size(); i++) {
-            if (list.get(i).isStarted())
-                return list.get(i);
-        }
+        if (list != null)
+            for (int i = 0; i < list.size(); i++) {
+                if (list.get(i).isStarted())
+                    return list.get(i);
+            }
         return null;
     }
 
 
-    private TriplePattern2 getNextPattern(){
+    private TriplePattern2 getNextPattern() {
         //look in left and right find the non started pattern with the minimum selectivty
         //assuming the  lists are already sorted for the  best  selectivity
         TriplePattern2 rPattern = null;
-        for(int i = 0; rights !=null && i < rights.size() ; i++)
-            if(!rights.get(i).isStarted())
+        for (int i = 0; rights != null && i < rights.size(); i++)
+            if (!rights.get(i).isStarted())
                 rPattern = rights.get(i);
 
         TriplePattern2 lPattern = null;
-        for(int i = 0; lefts !=null && i < lefts.size() ; i++)
-            if(!lefts.get(i).isStarted())
+        for (int i = 0; lefts != null && i < lefts.size(); i++)
+            if (!lefts.get(i).isStarted())
                 lPattern = lefts.get(i);
 
-        if(rPattern == null)
+        goingLeft = true;
+        if (rPattern == null)
             return lPattern;
-        if(lPattern == null)
+        if (lPattern == null) {
+            goingLeft = false;
             return rPattern;
-        if(rPattern.getSelectivity() < lPattern.getSelectivity())
+        }
+        if (rPattern.getSelectivity() < lPattern.getSelectivity()) {
+            goingLeft = false;
             return rPattern;
+        }
         return lPattern;
 
     }
 
-    private void hashJoin(TriplePattern2 callerPattern) {
+    private void hashJoin(TriplePattern2 callerPattern , boolean parallel) {
 
         if (isVariable(triples[1])) {
             System.out.println(" the hash index supports only constant properties");
@@ -204,25 +234,27 @@ public class TriplePattern2 {
             if (!isVariable(triples[0])) {
                 index = SPo;
                 withinIndex.index = 0;
-                List<Triple> list = index.get(triples[0], triples[1] , 1,withinIndex);
+                List<Triple> list = index.get(triples[0], triples[1], 1, withinIndex);
                 if (list != null && list.size() > 0) {
-               //     result = list;
+                    //     result = list;
                     headResultTriple = new ResultTriple(list);
                     resultTriple = headResultTriple;
-                }
+                }/*else
+                    System.out.println("no result here");*/
                 evaluatedStarted = true;
                 return;
             }
             if (!isVariable(triples[2])) {
                 index = OPs;
                 withinIndex.index = 0;
-                List<Triple> list = index.get(triples[2], triples[1],1,withinIndex);
-              //  result.clear();
+                List<Triple> list = index.get(triples[2], triples[1], 1, withinIndex);
+                //  result.clear();
                 if (list != null && list.size() > 0) {
-               //     result.addAll(withinIndex.index, list);
+                    //     result.addAll(withinIndex.index, list);
                     headResultTriple = new ResultTriple(list);
                     resultTriple = headResultTriple;
-                }
+                }/*else
+                    System.out.println("no result here");*/
                 evaluatedStarted = true;
                 return;
             }
@@ -230,16 +262,15 @@ public class TriplePattern2 {
             return;
         }
 
-
-        if(isVariable(triples[0])){
-            if(triples[0] == callerPattern.triples[2]){
+        if (isVariable(triples[0])) {
+            if (triples[0] == callerPattern.triples[2]) {
                 index = SPo;
                 hisIndex = 2;
-            }else if(triples[0] == callerPattern.triples[0]){
+            } else if (triples[0] == callerPattern.triples[0]) {
                 index = SPo;
                 hisIndex = 0;
             }
-        }else if(isVariable(triples[2])) {
+        } else if (isVariable(triples[2])) {
             if (triples[2] == callerPattern.triples[0]) {
                 index = OPs;
                 hisIndex = 0;
@@ -248,20 +279,29 @@ public class TriplePattern2 {
                 hisIndex = 2;
             }
         }
-        //List<Triple> hisRes = callerPattern.getResult();
+
+        servers.parallelStream().forEach((server) -> {
+            serverData.put(server.getIdentifier(), server.fetchData());
+        });
+
         ResultTriple hisResultTriple = callerPattern.getHeadResultTriple();
-        while (hisResultTriple != null){
-            Triple hisTriple = hisResultTriple.triple;
+        while (hisResultTriple != null) {
+            Triple hisTriple = callerPattern.getShiftedResultPattern(hisResultTriple);
             int hisVal = hisTriple.triples[hisIndex];
             int p = triples[1];
             if (hisVal == 0)
                 continue;
-            List<Triple> list = index.get(hisVal,p,1,withinIndex);
+            List<Triple> list = index.get(hisVal, p, 1, withinIndex);
             if (list != null && list.size() > 0) {
-                if(headResultTriple == null){
+                if (headResultTriple == null) {
                     headResultTriple = new ResultTriple(list.get(withinIndex.index));
-                    withinIndex.index++;
                     resultTriple = headResultTriple;
+                    if (hisIndex == 2)
+                        resultTriple.left = hisResultTriple;
+                    else
+                        resultTriple.right = hisResultTriple;
+                    withinIndex.index++;
+                    tempResultCnt++;
                 }
                 for (int j = withinIndex.index; j < list.size(); j++) {
                     Triple t = list.get(j);
@@ -270,15 +310,35 @@ public class TriplePattern2 {
                     //result.add(t);
                     resultTriple.down = new ResultTriple(t);
                     resultTriple = resultTriple.down;
-                    resultTriple.left = hisResultTriple;//TODO right or left ?
+                    if (hisIndex == 2)
+                        resultTriple.left = hisResultTriple;
+                    else
+                        resultTriple.right = hisResultTriple;
+                    tempResultCnt++;
                 }
             }
-      //      else
-         //       callerPattern.purne(hisTriple, i, hisRes.size());
+            //      else
+            //       callerPattern.purne(hisTriple, i, hisRes.size());
             hisResultTriple = hisResultTriple.down;
         }
+        /*if (resultTriple == null||  headResultTriple == null)
+            System.out.println("no result here");
+        else
+            System.out.println("result size "+tempResultCnt);*/
+
     }
 
+    private Triple getShiftedResultPattern(ResultTriple hisResultTriple) {
+        for (int i = 0; resultTripleShifLeft > 0 && i < resultTripleShifLeft; i++) {
+            hisResultTriple = hisResultTriple.left;
+        }
+
+        for (int i = 0; resultTripleShifRight > 0 && i < resultTripleShifRight; i++) {
+            hisResultTriple = hisResultTriple.right;
+        }
+
+        return hisResultTriple.triple;
+    }
 
 
     private void predicateEvaluate() {
@@ -348,7 +408,18 @@ public class TriplePattern2 {
 
 
     public int getSelectivity() {
-        return Triple.extractPredicateSelectivity(triples[1]);
+        int tempSelec = 0;
+        if (isVariable(triples[0]))
+            tempSelec++;
+        if (isVariable(triples[2]))
+            tempSelec++;
+        if (!isVariable(triples[1]) && tempSelec > 1) {
+            tempSelec++;
+            tempSelec += Pso.get(triples[1]).size();
+        }
+        return tempSelec;
+        //TODO:
+        //  return Triple.extractPredicateSelectivity(triples[1]);
     }
 
     public ResultTriple getResultTriple() {
@@ -360,9 +431,10 @@ public class TriplePattern2 {
     }
 
 
-    public class WithinIndex{
-        public int index ;
-        public WithinIndex(int index){
+    public class WithinIndex {
+        public int index;
+
+        public WithinIndex(int index) {
             this.index = index;
         }
     }

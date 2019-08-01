@@ -276,6 +276,61 @@ public class QueryGenrator {
         return keys;
     }
 
+
+    public static  ArrayList<String> buildFastHeavyQueryZero(Dictionary reverseDicitionary , MyHashMap<Integer , ArrayList<Triple>> OPS, int numbderOfQuereies , int requiredDepth ){
+        long maximum_trial = 1000000;
+        int count = 0;
+        Random random = new Random();
+        ArrayList<Triple> res = null;
+        ArrayList<ArrayList<Triple>> finalRes = new ArrayList<ArrayList<Triple>>();
+        while(finalRes.size() < numbderOfQuereies && count < maximum_trial){
+            int nextKey = random.nextInt(OPS.size());
+            res = getDeepStep(nextKey , OPS , null , requiredDepth);
+            if(res.size() >= requiredDepth) {
+                finalRes.add(res);
+            }
+            count++;
+        }
+
+        ArrayList<String> quereisStrList = new ArrayList();
+        for(int i = 0 ; i < finalRes.size() ; i++) {
+            ArrayList<Triple> resIn = finalRes.get(i);
+            String predicates ="";
+            String predicatesFull ="";
+            String vars = "?x1 ?x2 ?x3 ?x4 ";
+            //for (int jj = resIn.size() - 1; resIn != null && jj >= 0; jj--) {
+            for (int jj = 0; jj < resIn.size(); jj++) {
+                //   int ch = new Random().nextInt(quereis.size()) + 1;
+                Triple triple = resIn.get(jj);
+                if(jj == resIn.size() - 1)
+                    predicates = "?x"+jj +" "+ reverseDicitionary.get(triple.triples[1]) + " " + reverseDicitionary.get(triple.triples[2]) +"." +predicates;
+                else
+                    predicates = "?x"+jj +" "+ reverseDicitionary.get(triple.triples[1]) + " ?x"+(jj+1) +" . "+ predicates;
+                predicatesFull = reverseDicitionary.get(triple.triples[0])+" " + reverseDicitionary.get(triple.triples[1]) + " "+reverseDicitionary.get(triple.triples[2]) +"." + predicatesFull;
+            }
+            String SPARQL = "select " + vars + " where {" + predicates + "}";
+            String SPARQLfull = "select " + vars + " where {" + predicatesFull + "}";
+            quereisStrList.add(SPARQL);
+            quereisStrList.add(SPARQLfull);
+        }
+        return quereisStrList;
+    }
+
+    private static ArrayList<Triple> getDeepStep(int key , MyHashMap<Integer , ArrayList<Triple>> OPS ,ArrayList<Triple> res , int requiredDepth){
+        if(res == null)
+            res = new ArrayList<Triple>();
+        ArrayList<Triple> list = OPS.get(key);
+        if(res.size() >= requiredDepth || list == null)
+            return res;
+        for(int i =0 ; i<list.size() ; i++){
+           res.add(list.get(i));
+            getDeepStep(list.get(i).triples[0] , OPS ,res,requiredDepth);
+            if(res.size() >= requiredDepth)
+                return res;
+            res.remove(list.get(i));
+        }
+        return res;
+    }
     /*
         private ArrayList<triple.TriplePattern> buildQuery(){
             int processedNode = 0;

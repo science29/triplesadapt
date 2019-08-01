@@ -51,14 +51,14 @@ public class Query {
     }
 
 
-    public void findStringTriple(HashMap<Integer, String> reverseDictionary) {
+    public void findStringTriple(Dictionary reverseDictionary) {
         for (int i = 0; i < triplePatterns.size(); i++) {
             triplePatterns.get(i).findStringTriple(reverseDictionary);
         }
     }
 
 
-    public void setQuerySPARQL(HashMap<Integer, String> reverseDictionary, HashMap<String, String> prefixIndex, HashMap<Integer, VertexGraph> verticies) {
+    public void setQuerySPARQL(Dictionary reverseDictionary, HashMap<String, String> prefixIndex, HashMap<Integer, VertexGraph> verticies) {
         SPARQL = "";
         String predicates = "";
         ArrayList<String> varsList = new ArrayList();
@@ -249,15 +249,16 @@ public class Query {
 
 
     public ArrayList<ResultTriple> findQueryAnswer(){
+
       //find the triplePattern to start with
       //start executing and let it propogate.
         Collections.sort(triplePatterns2, new Comparator<TriplePattern2>() {
             // @Override
             public int compare(TriplePattern2 lhs, TriplePattern2 rhs) {
                 // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
-                if(lhs.getSelectivity() < rhs.getSelectivity())
-                    return 1;
                 if(lhs.getSelectivity() > rhs.getSelectivity())
+                    return 1;
+                if(lhs.getSelectivity() < rhs.getSelectivity())
                     return -1;
                 return 0;
                 // return lhs.customInt > rhs.customInt ? -1 : (lhs.customInt < rhs.customInt) ? 1 : 0;
@@ -266,6 +267,7 @@ public class Query {
          results = new ArrayList<ResultTriple>();
       for(int i =0 ; i < triplePatterns2.size() ; i++){
           if(!triplePatterns2.get(i).isStarted()) {
+             // System.out.println("selectivity: "+triplePatterns2.get(i).getSelectivity());
               ResultTriple resultTriple = triplePatterns2.get(i).evaluatePatternHash(null);
               results.add(resultTriple);
           }
@@ -484,6 +486,14 @@ public class Query {
                 default:
                     if (build || varStart)
                         last = last + c;
+                    else{//we look for prefix
+                      String co = detectPrefix(s , i);
+                      if(co != null) {
+                          code[index++] = dictionary.get(co);
+                          i += (co.length() -1);
+                          break;
+                      }
+                    }
             }
         }
         System.err.println("error parsing query");
@@ -517,6 +527,23 @@ public class Query {
         }*/
     }
 
+
+    private String detectPrefix(String s , int startIndex ){
+        String temp = "";
+        boolean prefixDetected = false;
+        for(int j = startIndex ; j < s.length() ; j++ ){
+            if(s.charAt(j) == ':')
+                prefixDetected = true;
+            if(s.charAt(j) == ' ' || s.charAt(j) == '}' || s.charAt(j) == '.') {
+                if (prefixDetected)
+                   return temp;
+                else
+                    return null;
+            }
+            temp += s.charAt(j);
+        }
+        return null;
+    }
 
     private boolean addToTriplePatterns(Integer[] code , boolean[] projected){
         if (code[0] == null || code[1] == null || code[2] == null) {
@@ -577,22 +604,32 @@ public class Query {
     }
 
 
-    public void printAnswers(Dictionary reverseDictionary) {
+    public void printAnswers(Dictionary reverseDictionary , boolean silent) {
         if(knownEmpty)
             return;
         if(results != null){
+            int count = 0;
             for(int i =0 ; i < results.size() ; i++){
                 ResultTriple vResultTriple = results.get(i);
-                while (vResultTriple != null){
-                    ResultTriple hResultTriple = vResultTriple;
-                    while(hResultTriple != null) {
+                if (vResultTriple == null)
+                    break;
+                do {
+                    ResultTriple hResultTriple = vResultTriple.getFarLeft();
+                    while (hResultTriple != null) {
                         Triple triple = hResultTriple.getTriple();
-                        String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
-                        System.out.println(str+" . ");
-                        hResultTriple = hResultTriple.getLeft();
+                        if(!silent) {
+                            String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
+                            System.out.print(str + " . ");
+                        }
+                        hResultTriple = hResultTriple.getRight();
                     }
-                }
+                    if(!silent)
+                        System.out.println();
+                    count++;
+                    vResultTriple = vResultTriple.getDown();
+                }while (vResultTriple != null);
             }
+            System.out.println("Total result size="+count);
         }
 
        /* if (answerMap == null) {
@@ -634,7 +671,7 @@ public class Query {
         long stopTime = System.nanoTime();
         long elapsedTime = (stopTime - startTime) / 1000;
         System.out.println("query time threads :"+elapsedTime);
-        printAnswers(dictionary);
+        printAnswers(dictionary,false);
     }
 
     public static boolean sep() {

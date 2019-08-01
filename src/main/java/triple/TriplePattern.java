@@ -1,5 +1,7 @@
 package triple;
 
+import index.Dictionary;
+
 import java.util.HashMap;
 
 public class TriplePattern {
@@ -28,7 +30,7 @@ public class TriplePattern {
     }
 
 
-    public void findStringTriple(HashMap<Integer,String> reverseDictionary) {
+    public void findStringTriple(Dictionary reverseDictionary) {
         this.stringTriple[0] = reverseDictionary.get(triples[0]);
         this.stringTriple[1] = reverseDictionary.get(triples[1]);
         this.stringTriple[2] = reverseDictionary.get(triples[2]);

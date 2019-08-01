@@ -27,7 +27,9 @@ public class ResultTriple {
         for(int i =1 ; i < result.size() ; i++){
             ResultTriple resultTriple = new ResultTriple(result.get(i));
             prev.down = resultTriple;
-            prev = resultTriple;
+            prev = prev.down;
+            if(this.down == null)
+                this.down = resultTriple;
         }
     }
 
@@ -53,5 +55,21 @@ public class ResultTriple {
 
     public ResultTriple getLeft() {
         return left;
+    }
+
+    public ResultTriple getDown() {
+        return down;
+    }
+
+    public ResultTriple getFarLeft() {
+        if(left == null)
+            return null;
+        if(left.left == null)
+            return left;
+        return left.getFarLeft();
+    }
+
+    public ResultTriple getRight() {
+        return right;
     }
 }

@@ -25,11 +25,11 @@ public class Dictionary{
     HashMap<String,Integer> cache = new HashMap<String, Integer>();
     HashMap<Integer,String> reverseCache = new HashMap<Integer, String>();
 
-    HashMap<String,Integer> cache2 = new HashMap<String, Integer>();
-    HashMap<Integer,String> reverseCache2 = new HashMap<Integer, String>();
+    //HashMap<String,Integer> cache2 = new HashMap<String, Integer>();
+   // HashMap<Integer,String> reverseCache2 = new HashMap<Integer, String>();
 
-    HashMap<String,Integer> mainWriteCache = cache;
-    HashMap<Integer,String> mainWriteReverseCache = reverseCache;
+    //HashMap<String,Integer> mainWriteCache = cache;
+    //HashMap<Integer,String> mainWriteReverseCache = reverseCache;
 
     private final String HOME_DIR = "/home/ahmed/";
     private boolean cacheEnabled = true;
@@ -72,9 +72,9 @@ public class Dictionary{
 
     public Dictionary(String fileName){
         this.fileName = fileName;
-
        /* if (file.exists())
             file.delete();*/
+       if(fileName != null)
         open();
 
     }
@@ -109,13 +109,13 @@ public class Dictionary{
 
 
 
-    private int maxCacheSize = 10000000;
+    private int maxCacheSize = 1000000000;
     private int minCacheSize = 500000;
     private double factor = 2;
     private boolean addToCache(String key, Integer value){
         if(cacheEnabled){
-            mainWriteCache.put(key ,value);
-            mainWriteReverseCache.put(value , key);
+            cache.put(key ,value);
+            reverseCache.put(value , key);
             if(cache.size() > maxCacheSize){
                 writeCacheToPersist();
                 maxCacheSize =(int)(((double)maxCacheSize)/factor);
@@ -156,6 +156,7 @@ public class Dictionary{
         }
     }
 
+    @Deprecated
     public void put(Integer value ,String key) {
         //TODO nothing here yet
     }
@@ -181,20 +182,15 @@ public class Dictionary{
         if(!cacheEnabled)
             return null;
         Integer val = cache.get(key);
-        if(val != null)
-            return val;
-        return cache2.get(key);
+        return val;
     }
 
     private String getFromCache(Integer key) {
         if(!cacheEnabled)
             return null;
         String val = reverseCache.get(key);
-        if(val != null)
-            return val;
-        return reverseCache2.get(key);
+        return val;
     }
-
 
 
     public boolean containsKey(String key) {

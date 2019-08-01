@@ -95,8 +95,9 @@ public class MainUinAdapt {
 
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
-    filePaths.add("/home/keg/Desktop/BTC/n3/btc-2.n3");
-    filePaths.add("/home/keg/Desktop/BTC/n3/btc-13.n3");
+    //filePaths.add("/home/keg/Desktop/BTC/n3/btc-2.n3");
+   // filePaths.add("/home/keg/Desktop/BTC/n3/btc-13.n3");
+    filePaths.add("/home/keg/rdf3x-0.3.7/bin/yago.n3");
     o.openIndexes();
     System.out.println("loading extra index in memory..");
   //  o.OPxP.loadQueryTimeCahce(); was used till jun 2019
@@ -864,6 +865,7 @@ try {
                 LineIterator.closeQuietly(it);
             }
         }
+     //
         tripleGraph = SPO;
        // op_S.close();
         System.out.println("sorting indexes.. ");
@@ -1166,6 +1168,28 @@ try {
                 linet[0] = line;
                 return item;
         }
+        String []arr = line.split(":");
+        if(arr.length > 0){
+            for(int i = 0 ; i < header.size() ; i++){
+                if(prefix.containsKey(arr[0])){
+                    char endChar;
+                    if(line.contains(" "))
+                        endChar = ' ';
+                    else if(line.contains("}"))
+                        endChar = '}';
+                    else if(line.contains("."))
+                        endChar = '.';
+                    else
+                        return null;
+                    item = line.substring(0,line.indexOf(endChar)+1);
+                    line = line.substring(line.indexOf(endChar)+1);
+                    linet[0] = line;
+                    return item.trim();
+
+                }
+                    return line;
+            }
+        }
         return null;
     }
 
@@ -1370,11 +1394,15 @@ try {
         QueryGenrator queryGenrator = new QueryGenrator(5, 4, verticies, 4, tripleGraph, 40);
         //ArrayList<QueryStuff.Query> queries = queryGenrator.buildQueries(10);
         ArrayList<Query> queries = queryGenrator.buildHeavyQueries(10);
+
+        putStringTripleInQueries(queries);
+        writeQueriesToFile(queries);
+
         return queries;
     }
 
 
-    /*
+
     private void putStringTripleInQueries(ArrayList<QueryStuff.Query> queries) {
         for (int i = 0; i < queries.size(); i++) {
             queries.get(i).findStringTriple(reverseDictionary);
@@ -1382,7 +1410,7 @@ try {
         }
         //  writeQueriesToFile(queries);
     }
-*/
+
 
     private void writePalinQueriesToFile(ArrayList<String> queries) {
         BufferedWriter bw = null;
@@ -1914,7 +1942,8 @@ try {
                     if(memPercent > 1)
                         memPercent = memPercent/100;
 
-                    ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(OPxP, OPS, vertecesID.size(), reverseDictionary, queryKeys , memPercent);
+                    /*ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(OPxP, OPS, vertecesID.size(), reverseDictionary, queryKeys , memPercent);*/
+                    ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQueryZero(reverseDictionary , OPS , 4 , 4);
                     writePalinQueriesToFile(HeaveyQueries);
                     System.out.println("done ..queries written to file..");
                     continue;
@@ -1933,7 +1962,7 @@ try {
                 spQuery.findQueryAnswer();
                 long stopTime = System.nanoTime();
                 long elapsedTime = (stopTime - startTime) / 1000;
-                spQuery.printAnswers(reverseDictionary);
+                spQuery.printAnswers(reverseDictionary , false);
                 System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
             }catch (Exception e){
                 System.err.println("unable to parse query..");

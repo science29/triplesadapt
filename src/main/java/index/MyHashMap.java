@@ -49,8 +49,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     public boolean onlyDiskGet = false;
     public boolean diskMemPut = false;
-
-
+    private boolean onlyMem = true;
+    private boolean sorted = false;
 
     private final String HOME_DIR = "/home/ahmed/";
     private DB dbMemory;
@@ -59,7 +59,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private MyHashMap<K, V>.Consumer consumer;
     private HashMap<K, V> queryTimeCache;
     public boolean queryTimeCacheEnabled = false;
-    private boolean sorted = false;
+
+
 
 
     public boolean isSorted(){
@@ -79,15 +80,15 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 public int compare(Triple lhs, Triple rhs) {
                     // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
                     if(lhs.triples[index1] < rhs.triples[index1])
-                        return 1;
-                    if(lhs.triples[index1] > rhs.triples[index1])
                         return -1;
+                    if(lhs.triples[index1] > rhs.triples[index1])
+                        return 1;
                     if(index2 == -1)
                         return 0;
                     if(lhs.triples[index2] < rhs.triples[index2])
-                        return 1;
-                    if(lhs.triples[index2] > rhs.triples[index2])
                         return -1;
+                    if(lhs.triples[index2] > rhs.triples[index2])
+                        return 1;
                     return 0;
                    // return lhs.customInt > rhs.customInt ? -1 : (lhs.customInt < rhs.customInt) ? 1 : 0;
                 }
@@ -99,13 +100,16 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     public MyHashMap(String name, HashMap<K, V> map) {
         super();
-        try {
-            fileHashMap = new FileHashMap(HOME_DIR+fileName);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(!onlyMem) {
+            try {
+                fileHashMap = new FileHashMap(HOME_DIR + fileName);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            this.fileName = name;
         }
         hashMap = map;
-        this.fileName = name;
+
         this.indexType = new IndexType();
         maxAllowedRamSize = MAX_SIZE_GB;
         comressEnabled = false;
@@ -115,13 +119,15 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     //   private int avgElemSize = 1 ;
     public MyHashMap(String fileName){
         super();
-        try {
-            fileHashMap = new FileHashMap(HOME_DIR+fileName);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(!onlyMem) {
+            try {
+                fileHashMap = new FileHashMap(HOME_DIR + fileName);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            this.fileName = fileName;
         }
         hashMap = new HashMap();
-        this.fileName = fileName;
         this.indexType = new IndexType();
         maxAllowedRamSize = MAX_SIZE_GB;
         comressEnabled = false;
@@ -242,6 +248,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     @Override
     public V get(Object key) {
         //todo fix this
+        if(onlyMem)
+            return this.hashMap.get(key);
         if(this.onlyDiskGet)
             return fileHashMap.get(key);
         if(queryTimeCacheEnabled) {
@@ -434,7 +442,11 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     }
 
 
-    public void addTripleLazy(K key, Triple triple){
+    public void addTripleLazy(K key, Triple triple) {
+        if (onlyMem){
+            addTripletoList(key, triple);
+            return;
+        }
        //waring no get is allowed
         if(consumer == null){
             consumer =new Consumer();
@@ -863,7 +875,9 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     @Override
     public int size() {
-        return hashMap.size()+fileHashMap.size();
+        if(!onlyMem)
+            return hashMap.size()+fileHashMap.size();
+        return hashMap.size();
     }
 
     public double getSizeGB(){
