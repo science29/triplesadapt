@@ -12,6 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Query {
+    private static final boolean DEEP_PROCESSING = true ;
     public ArrayList<TriplePattern> triplePatterns;
     public ArrayList<TriplePattern2> triplePatterns2;
     public int queryFrquency;
@@ -265,10 +266,13 @@ public class Query {
             }
         });
          results = new ArrayList<ResultTriple>();
+         if(DEEP_PROCESSING)
+             results.add(triplePatterns2.get(0).evaluatePatternHash(null , true));
+         else
       for(int i =0 ; i < triplePatterns2.size() ; i++){
           if(!triplePatterns2.get(i).isStarted()) {
              // System.out.println("selectivity: "+triplePatterns2.get(i).getSelectivity());
-              ResultTriple resultTriple = triplePatterns2.get(i).evaluatePatternHash(null);
+              ResultTriple resultTriple = triplePatterns2.get(i).evaluatePatternHash(null , false);
               results.add(resultTriple);
           }
       }
