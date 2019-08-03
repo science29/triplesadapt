@@ -1,5 +1,6 @@
 package triple;
 
+import QueryStuff.QueryExecuter;
 import index.IndexesPool;
 import index.MyHashMap;
 
@@ -357,7 +358,7 @@ public class TriplePattern2 {
     }
 
 
-    private void startDeepEvaluationParallel(ArrayList<Triple> list){
+    public void startDeepEvaluationParallel(ArrayList<Triple> list){
         Stream<Triple> stream = list.stream();
         stream.parallel().forEach(triple -> {
             ResultTriple resultTriple = joinLeftRigth(triple , this);
@@ -367,6 +368,43 @@ public class TriplePattern2 {
         });
     }
 
+    /**
+     * called form consumer produce thread
+     * @param list
+     * @param from
+     * @param to
+     */
+    public void startWorkerDeepEvaluationParallel(ArrayList<Triple> list, int from, int to) {
+        for(int i = from ; i <= to ; i++){
+            ResultTriple resultTriple = joinLeftRigth(list.get(i) , this);
+            if(resultTriple != null){
+                connectResultTriple(resultTriple);
+            }
+        }
+    }
+
+    public void startDeepEvaluationParallel(ArrayList<Triple> list, ArrayList<QueryExecuter> threadPool , ExecuterCompleteListener listener){
+        int from = 0 , to = 0;
+        int step =  list.size() /  threadPool.size() ;
+        for(int i = 0 ; i < threadPool.size() ; i++){
+            to = from + step;
+            if(to >= list.size())
+                to = list.size() -1;
+            threadPool.get(i).addWork(this, list, from, to, new QueryExecuter.CompleteListener() {
+                @Override
+                public void onComplete() {
+                    workerDone(threadPool.size() , listener);
+                }
+            });
+            from = to +1;
+        }
+    }
+    private int doneCount = 0;
+    private synchronized  void workerDone(int total , ExecuterCompleteListener listener ){
+        doneCount++;
+        if(doneCount >= total)
+            listener.onComplete();
+    }
 
     private ResultTriple hashJoinDeep(TriplePattern2 callPattern, Triple hisTriple , int hisIndex , MyHashMap<Integer, ArrayList<Triple>> index){
         int hisVal = hisTriple.triples[hisIndex];
@@ -564,11 +602,17 @@ public class TriplePattern2 {
     }
 
 
+
+
     public class WithinIndex {
         public int index;
 
         public WithinIndex(int index) {
             this.index = index;
         }
+    }
+
+    public interface ExecuterCompleteListener{
+        void onComplete();
     }
 }
