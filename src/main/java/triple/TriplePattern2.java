@@ -261,9 +261,9 @@ public class TriplePattern2 {
                 evaluatedStarted = true;
                 return;
             }
-            predicateEvaluate();
+            ArrayList<Triple> list = predicateEvaluate(!deep);
             if(deep)
-                startDeepEvaluationParallel();
+                startDeepEvaluation(list);
             return;
         }
 
@@ -333,126 +333,126 @@ public class TriplePattern2 {
 
 
 
-    private void startDeepEvaluation() {
-        ResultTriple resultTriple = headResultTriple;
-        ResultTriple finalReslut = null, newOne = null , pointer = null;
-        do{
-            boolean stop = false;
-            ResultTriple my = new ResultTriple(resultTriple.triple);
-            for(int i = 0 ; i < lefts.size() ; i++){
-                newOne = lefts.get(i).hashJoinDeep(this , my ,0 ,OPs);
-                if(newOne == null) {
-                    stop = true;
-                    break;
-                }
-            }
-            if(!stop)
-            for(int i = 0 ; i < rights.size() ; i++){
-                newOne = rights.get(i).hashJoinDeep(this ,my,2 ,SPo);
-            }
-            if(newOne != null) {
-                if (finalReslut == null) {
-                    pointer = newOne;
-                    finalReslut = newOne;
-                }
-                else {
-                    pointer.down = newOne;
-                    pointer = newOne;
-                }
-            }
-            resultTriple = resultTriple.down;
-        }while (resultTriple != null);
-
-        headResultTriple =  finalReslut;
+    private void startDeepEvaluation(ArrayList<Triple> list) {
+        for(int j = 0 ; j < list.size() ; j++) {
+            ResultTriple resultTriple = joinLeftRigth(list.get(j), this);
+            if (resultTriple != null)
+                connectResultTriple(resultTriple);
+        }
     }
 
-    ResultTriple finalReslut = null , pointer = null;
+    ResultTriple finalReslut = null , pointerC = null;
     private synchronized void connectResultTriple(ResultTriple newOne){
         if(newOne != null) {
             if (finalReslut == null) {
-                pointer = newOne;
+                pointerC = newOne;
                 finalReslut = newOne;
                 headResultTriple =  finalReslut;
             }
             else {
-                pointer.down = newOne;
-                pointer = newOne;
+                pointerC.down = newOne;
+                pointerC = newOne;
             }
         }
     }
 
 
-    private void startDeepEvaluationParallel(){
-        ResultTriple pointer = headResultTriple;
-        ArrayList<ResultTriple> list = new ArrayList<>();
-        while (pointer !=null){
-            list.add(pointer);
-            pointer = pointer.down;
-        }
-        Stream<ResultTriple> stream = list.stream();
-        stream.parallel().forEach(resultTriple -> {
-            boolean stop = false;
-            ResultTriple newOne = null;
-            ResultTriple my = new ResultTriple(resultTriple.triple);
-            for(int i = 0 ; i < lefts.size() ; i++){
-                newOne = lefts.get(i).hashJoinDeep(this , my ,0 ,OPs);
-                if(newOne == null) {
-                    stop = true;
-                    break;
-                }
+    private void startDeepEvaluationParallel(ArrayList<Triple> list){
+        Stream<Triple> stream = list.stream();
+        stream.parallel().forEach(triple -> {
+            ResultTriple resultTriple = joinLeftRigth(triple , this);
+            if(resultTriple != null){
+                connectResultTriple(resultTriple);
             }
-            if(!stop)
-                for(int i = 0 ; i < rights.size() ; i++){
-                    newOne = rights.get(i).hashJoinDeep(this ,my,2 ,SPo);
-                }
-            if(newOne != null)
-                connectResultTriple(newOne);
         });
     }
 
 
-    private ResultTriple hashJoinDeep(TriplePattern2 callPattern, ResultTriple hisResultTriple , int hisIndex , MyHashMap<Integer, ArrayList<Triple>> index){
-        int hisVal = hisResultTriple.triple.triples[hisIndex];
+    private ResultTriple hashJoinDeep(TriplePattern2 callPattern, Triple hisTriple , int hisIndex , MyHashMap<Integer, ArrayList<Triple>> index){
+        int hisVal = hisTriple.triples[hisIndex];
         int p = triples[1];
         if (hisVal == 0)
             return null;
         List<Triple> list = index.get(hisVal, p, 1, withinIndex);
         if (list != null && list.size() > 0) {
+            ResultTriple myHeadResultTriple = null , myPointer = null;
             for (int j = withinIndex.index; j < list.size(); j++) {
                 Triple t = list.get(j);
                 if (t.triples[1] != p)
                     break;
-                //result.add(t);
-                ResultTriple deepTripleResult = null;
-                ResultTriple myResultTriple = new ResultTriple(t);
-                for(int i = 0 ; i < lefts.size() ; i++){
-                    TriplePattern2 pattern = lefts.get(i);
-                    if(pattern.equals(callPattern))
-                        continue;
-                    deepTripleResult = pattern.hashJoinDeep(this , myResultTriple ,0,OPs);
-                    if(deepTripleResult == null)
-                        return null;
+                ResultTriple myResultTriple = joinLeftRigth(t,callPattern );
+                if(myHeadResultTriple == null) {
+                    myHeadResultTriple = myResultTriple;
+                    myPointer = myResultTriple;
                 }
-                for(int i = 0 ; i < rights.size() ; i++){
-                    TriplePattern2 pattern = rights.get(i);
-                    if(pattern.equals(callPattern))
-                        continue;
-                    deepTripleResult = pattern.hashJoinDeep(this , myResultTriple ,2,SPo);
-                    if(deepTripleResult == null)
-                        return null;
+                else{
+                    myPointer.down = myResultTriple;
+                    myPointer = myPointer.down;
                 }
-                if(hisIndex == 0) {
-                    hisResultTriple.left = myResultTriple;//TODO problem of more than one
+                /*if(hisIndex == 0) {
+                    hisResultTriple.left = myResultTriple
                     myResultTriple.right = hisResultTriple;
                 }
                 else{
-                    hisResultTriple.right = myResultTriple;//TODO problem of more than one
+                    hisResultTriple.right = myResultTriple;
                     myResultTriple.left = hisResultTriple;
-                }
+                }*/
             }
+            return myHeadResultTriple;
         }else
             return null;
-        return hisResultTriple;
+
+    }
+
+
+
+    private ResultTriple joinLeftRigth(Triple t , TriplePattern2 callPattern ){
+        //result.add(t);
+        ResultTriple myResultTriple = null;
+        ResultTriple deepLeftTripleResult = null , deepRightTripleResult = null;
+        // ResultTriple myResultTriple = new ResultTriple(t);
+        ResultTriple headLeft = null , headRight = null;
+        for(int i = 0; i < lefts.size() ; i++){
+            TriplePattern2 pattern = lefts.get(i);
+            if(pattern.equals(callPattern))
+                continue;
+            deepLeftTripleResult = pattern.hashJoinDeep(this , t ,0,OPs);
+            if(deepLeftTripleResult == null)
+                return null;
+            if(myResultTriple == null)
+                myResultTriple = new ResultTriple(t);
+            if( i == 0) {
+                myResultTriple.left = deepRightTripleResult;
+                headLeft = deepRightTripleResult;
+            }
+            else {
+                myResultTriple.left.down = deepRightTripleResult;
+                myResultTriple.left = myResultTriple.left.down;
+            }
+        }
+        for(int i = 0; i < rights.size() ; i++){
+            TriplePattern2 pattern = rights.get(i);
+            if(pattern.equals(callPattern))
+                continue;
+            deepRightTripleResult = pattern.hashJoinDeep(this , t ,2,SPo);
+            if(deepRightTripleResult == null)
+                return null;
+            if(myResultTriple == null)
+                myResultTriple = new ResultTriple(t);
+            if( i == 0) {
+                myResultTriple.right = deepRightTripleResult;
+                headRight = deepRightTripleResult;
+            }
+            else {
+                myResultTriple.right.down = deepRightTripleResult;
+                myResultTriple.right = myResultTriple.right.down;
+            }
+        }
+        if(myResultTriple == null)
+            myResultTriple = new ResultTriple(t);
+        myResultTriple.left = headLeft;
+        myResultTriple.right = headRight;
+        return myResultTriple;
     }
 
 
@@ -470,13 +470,17 @@ public class TriplePattern2 {
     }
 
 
-    private void predicateEvaluate() {
+    private ArrayList<Triple> predicateEvaluate(boolean createHeadResult) {
         //Pso or Pos
         MyHashMap<Integer, ArrayList<Triple>> index = Pso;
         //result = index.get(triples[1]);
-        headResultTriple = new ResultTriple(index.get(triples[1]));
-        resultTriple = headResultTriple;
+        ArrayList<Triple> list = index.get(triples[1]);
+        if(createHeadResult) {
+            headResultTriple = new ResultTriple(list);
+            resultTriple = headResultTriple;
+        }
         evaluatedStarted = true;
+        return list;
     }
 
 
