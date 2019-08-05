@@ -1,5 +1,6 @@
 package triple;
 
+import QueryStuff.ExecutersPool;
 import QueryStuff.QueryExecuter;
 import index.IndexesPool;
 import index.MyHashMap;
@@ -34,6 +35,7 @@ public class TriplePattern2 {
     private WithinIndex withinIndex;
     private int tempResultCnt = 0;
     private boolean goingLeft;
+    private ExecutersPool executerPool;
 
     //int varaibles[] = new int[3];
 
@@ -120,6 +122,10 @@ public class TriplePattern2 {
         return true;
     }
 
+
+    public void setExecutorPool(ExecutersPool executorPool){
+        this.executerPool = executorPool;
+    }
 
     private boolean evaluatedStarted = false;
 
@@ -243,8 +249,7 @@ public class TriplePattern2 {
                     //     result = list;
                     headResultTriple = new ResultTriple(list);
                     resultTriple = headResultTriple;
-                }/*else
-                    System.out.println("no result here");*/
+                }
                 evaluatedStarted = true;
                 return;
             }
@@ -264,7 +269,9 @@ public class TriplePattern2 {
             }
             ArrayList<Triple> list = predicateEvaluate(!deep);
             if(deep)
-                startDeepEvaluation(list);
+               // startDeepEvaluation(list);
+                //startDeepEvaluationParallel(list);
+                startPoolDeepEvaluationParallel(list);
             return;
         }
 
@@ -383,28 +390,35 @@ public class TriplePattern2 {
         }
     }
 
-    public void startDeepEvaluationParallel(ArrayList<Triple> list, ArrayList<QueryExecuter> threadPool , ExecuterCompleteListener listener){
+    public void startPoolDeepEvaluationParallel(ArrayList<Triple> list){
         int from = 0 , to = 0;
-        int step =  list.size() /  threadPool.size() ;
-        for(int i = 0 ; i < threadPool.size() ; i++){
+        ArrayList<QueryExecuter> threadsList = executerPool.getThreadPool();
+        int step =  list.size() / threadsList.size() ;
+        for(int i = 0 ; i < threadsList.size() ; i++){
             to = from + step;
             if(to >= list.size())
                 to = list.size() -1;
-            threadPool.get(i).addWork(this, list, from, to, new QueryExecuter.CompleteListener() {
+            threadsList.get(i).addWork(this, list, from, to, new QueryExecuter.CompleteListener() {
                 @Override
                 public void onComplete() {
-                    workerDone(threadPool.size() , listener);
+                    workerDone(threadsList.size());
                 }
             });
             from = to +1;
         }
     }
+
+
     private int doneCount = 0;
-    private synchronized  void workerDone(int total , ExecuterCompleteListener listener ){
+    private synchronized  void workerDone(int total){
         doneCount++;
         if(doneCount >= total)
-            listener.onComplete();
+            executerPool.finalListener.onComplete();
     }
+
+
+
+
 
     private ResultTriple hashJoinDeep(TriplePattern2 callPattern, Triple hisTriple , int hisIndex , MyHashMap<Integer, ArrayList<Triple>> index){
         int hisVal = hisTriple.triples[hisIndex];
@@ -460,11 +474,11 @@ public class TriplePattern2 {
             if(myResultTriple == null)
                 myResultTriple = new ResultTriple(t);
             if( i == 0) {
-                myResultTriple.left = deepRightTripleResult;
-                headLeft = deepRightTripleResult;
+                myResultTriple.left = deepLeftTripleResult;
+                headLeft = deepLeftTripleResult;
             }
             else {
-                myResultTriple.left.down = deepRightTripleResult;
+                myResultTriple.left.down = deepLeftTripleResult;
                 myResultTriple.left = myResultTriple.left.down;
             }
         }
@@ -490,6 +504,8 @@ public class TriplePattern2 {
             myResultTriple = new ResultTriple(t);
         myResultTriple.left = headLeft;
         myResultTriple.right = headRight;
+        if(headLeft != null)
+            headLeft.right = myResultTriple;
         return myResultTriple;
     }
 

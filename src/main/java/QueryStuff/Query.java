@@ -12,7 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Query {
-    private static final boolean DEEP_PROCESSING = true ;
+    private static final boolean DEEP_PROCESSING = false ;
     public ArrayList<TriplePattern> triplePatterns;
     public ArrayList<TriplePattern2> triplePatterns2;
     public int queryFrquency;
@@ -34,6 +34,7 @@ public class Query {
     private Dictionary dictionary ;
     private IndexesPool indexPool;
     private ArrayList<ResultTriple> results;
+    private ExecutersPool executersPool;
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.triplePatterns = triplePattern;
@@ -249,8 +250,13 @@ public class Query {
     }
 
 
-    public ArrayList<ResultTriple> findQueryAnswer(){
+    public void findQueryAnswer(ExecutersPool executersPool , TriplePattern2.ExecuterCompleteListener executerCompleteListener){
+        this.executersPool = executersPool;
+        executersPool.setFinalListener(executerCompleteListener);
+        findQueryAnswer();
+    }
 
+    public ArrayList<ResultTriple> findQueryAnswer(){
       //find the triplePattern to start with
       //start executing and let it propogate.
         Collections.sort(triplePatterns2, new Comparator<TriplePattern2>() {
@@ -266,8 +272,10 @@ public class Query {
             }
         });
          results = new ArrayList<ResultTriple>();
-         if(DEEP_PROCESSING)
-             results.add(triplePatterns2.get(0).evaluatePatternHash(null , true));
+         if(DEEP_PROCESSING) {
+             triplePatterns2.get(0).setExecutorPool(executersPool);
+             results.add(triplePatterns2.get(0).evaluatePatternHash(null, true));
+         }
          else
       for(int i =0 ; i < triplePatterns2.size() ; i++){
           if(!triplePatterns2.get(i).isStarted()) {
@@ -278,6 +286,8 @@ public class Query {
       }
         return results;
     }
+
+
 
 
     private int threadIndex = 0;
@@ -317,6 +327,7 @@ public class Query {
         return res;
     }
 
+    @Deprecated
     private boolean findDeepAnswer(TriplePattern triplePattern, Triple triple, HashMap<String, ArrayList<Triple>> opS) {
         int next_o = triple.triples[0];
         int next_p = triplePattern.triples[1];
@@ -343,6 +354,7 @@ public class Query {
         return found;
     }
 
+    @Deprecated
     private void addToAnswerMap(TriplePattern triplePattern, Triple triple) {
         if (answerMap == null)
             answerMap = new HashMap();
@@ -389,7 +401,7 @@ public class Query {
         return firstNotSeen;
     }
 
-
+    @Deprecated
     public boolean parseSparqlChain(String spaql, index.Dictionary dictionary) {
         /*" select  ?x1 ?x3 ?x5 ?x7 where " +
                 "{?x1 <http://mpii.de/yago/resource/describes> ?x3.?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x5." +
@@ -685,7 +697,7 @@ public class Query {
         return false;
     }
 
-
+@Deprecated
     class QueryWorker extends Thread /*implements Runnable*/{
         private final HashMap<String, ArrayList<Triple>> opS;
         private Query.QueryWorker mainWorker;

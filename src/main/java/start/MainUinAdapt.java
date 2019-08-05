@@ -6,6 +6,7 @@ import index.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import triple.Triple;
+import triple.TriplePattern2;
 import triple.Vertex;
 
 import java.io.BufferedWriter;
@@ -1924,6 +1925,7 @@ try {
 
 
         Scanner scanner = new Scanner(System.in);
+        ExecutersPool executersPool = new ExecutersPool(7);
         while (true) {
             try {
                 System.out.println("Please enter Sparql QueryStuff.Query:");
@@ -1964,6 +1966,17 @@ try {
                 long elapsedTime = (stopTime - startTime) / 1000;
                 spQuery.printAnswers(reverseDictionary , false);
                 System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
+
+                /*spQuery.findQueryAnswer(executersPool, new TriplePattern2.ExecuterCompleteListener() {
+                    @Override
+                    public void onComplete() {
+                        long stopTime = System.nanoTime();
+                        long elapsedTime = (stopTime - startTime) / 1000;
+                        spQuery.printAnswers(reverseDictionary , false);
+                        System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
+                    }
+                });*/
+
             }catch (Exception e){
                 System.err.println("unable to parse query..");
                 e.printStackTrace();
