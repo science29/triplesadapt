@@ -16,6 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Dictionary{
 
+    private final boolean ONLY_MEMORY = true;
     private final String fileName;
     private DB dbMemory;
     private DB dbFile;
@@ -74,15 +75,16 @@ public class Dictionary{
         this.fileName = fileName;
        /* if (file.exists())
             file.delete();*/
-       if(fileName != null)
-        open();
+       if(!ONLY_MEMORY)
+           if(fileName != null)
+               open();
 
     }
 
 
 
 
-    public HTreeMap getMap(){
+    private HTreeMap getMap(){
         // Big map populated with data expired from cache
         HTreeMap onDisk = dbFile
                 .hashMap("onDisk"+fileName, Serializer.STRING,Serializer.INTEGER)
@@ -162,13 +164,17 @@ public class Dictionary{
     }
 
 
+
+
     public Integer get(String key){
-       // return (Integer)normalMap.get(key);
         Integer val = getFromCache(key);
-       if(val != null)
+       if(val != null) {
            return val;
-       return (Integer) fastMap.get(key);
+       }else
+            return (Integer) fastMap.get(key);
     }
+
+
 
     public String get(Integer key){
         String val = getFromCache(key);
@@ -197,6 +203,8 @@ public class Dictionary{
         //return normalMap.containsKey(key);
         if(cacheEnabled && cache.containsKey(key))
             return true;
+        if(ONLY_MEMORY)
+            return false;
         return fastMap.containsKey(key);
     }
 
@@ -204,6 +212,8 @@ public class Dictionary{
         //return normalMap.containsKey(key);
         if(cacheEnabled && reverseCache.containsKey(key))
             return true;
+        if(ONLY_MEMORY)
+            return false;
         return reverseFastMap.containsKey(key);
     }
 
@@ -227,7 +237,19 @@ public class Dictionary{
 
     }
 
-
+    public void reLoad() {
+        Iterator it = cache.entrySet().iterator();
+        int count = 0;
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry) it.next();
+            String key = (String) pair.getKey();
+            Integer val = (Integer) pair.getValue();
+            if(val == -112234)
+                System.out.println("error diction");
+            count++;
+        }
+        System.out.println("loaded "+count+ " item.");
+    }
 
 
     class Consumer extends Thread /*implements Runnable*/{

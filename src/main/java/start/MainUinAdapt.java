@@ -875,6 +875,7 @@ try {
         System.out.println("op_s");
         op_S.sort(0,-1);
         POS.sort(2,0);
+        SPO.sort(1,2);
         indexPool = new IndexesPool();
         indexPool.addIndex(IndexesPool.Pso , POS , "Pso");
         indexPool.addIndex(IndexesPool.OPs , OPS , "OPs");
@@ -1921,9 +1922,9 @@ try {
             dictionary.put("<http://www.w3.org/2000/01/rdf-schema#subClassOf>",a++);
             dictionary.put("<http://mpii.de/yago/resource/isPartOf>",a++);
             dictionary.put("<http://mpii.de/yago/resource/wordnet_transportation_system_104473432>",a++);*/
+        String testquery = "select ?x1 ?x2 ?x3 ?x4  where {?x3 y:describes ?x2.?x2 y:created ?x1.?x1 y:hasSuccessor ?x4.?x4 rdfs:label ?x5}";
 
-
-
+        new Query(dictionary, testquery,indexPool);//warm up!!
         Scanner scanner = new Scanner(System.in);
         ExecutersPool executersPool = new ExecutersPool(7);
         while (true) {
@@ -1951,29 +1952,39 @@ try {
                     continue;
                 }
                 StringBuilder extTime = new StringBuilder();
-                if(Query.sep()) {
+                /*if(Query.sep()) {
                     Query spQuery_t = new Query(dictionary, query ,indexPool);
                      //spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
                     spQuery_t.findQueryAnswer();
                     extTime = new StringBuilder();
-                }
+                }*/
                 long startTime = System.nanoTime();
                 Query spQuery = new Query(dictionary, query,indexPool);
                 long parseTime = System.nanoTime();
                 //spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
-                spQuery.findQueryAnswer();
+                /*spQuery.findQueryAnswer();
                 long stopTime = System.nanoTime();
                 long elapsedTime = (stopTime - startTime) / 1000;
-                spQuery.printAnswers(reverseDictionary , false);
+                spQuery.printAnswers(reverseDictionary , true);
                 System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
 
-                /*spQuery.findQueryAnswer(executersPool, new TriplePattern2.ExecuterCompleteListener() {
+*/
+                spQuery.findQueryAnswer();
+                long stopTime = System.nanoTime();
+                long elapsedTimeS = (stopTime - startTime) / 1000;
+                spQuery.printAnswers(reverseDictionary , false);
+                System.out.println("time to execute qeury single thread:" + elapsedTimeS + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
+
+               /* long startTime2 = System.nanoTime();
+                Query spQueryMultiTh = new Query(dictionary, query,indexPool);
+                spQueryMultiTh.findQueryAnswer(executersPool, new TriplePattern2.ExecuterCompleteListener() {
                     @Override
                     public void onComplete() {
                         long stopTime = System.nanoTime();
-                        long elapsedTime = (stopTime - startTime) / 1000;
-                        spQuery.printAnswers(reverseDictionary , false);
-                        System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
+                        long elapsedTime = (stopTime - startTime2) / 1000;
+                        spQueryMultiTh.printAnswers(reverseDictionary , false);
+                        System.out.println("time to execute qeury:" + (elapsedTime) + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
+                        dictionary.reLoad();
                     }
                 });*/
 

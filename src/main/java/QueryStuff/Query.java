@@ -12,7 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Query {
-    private static final boolean DEEP_PROCESSING = false ;
+    private static final boolean DEEP_PROCESSING = true ;
     public ArrayList<TriplePattern> triplePatterns;
     public ArrayList<TriplePattern2> triplePatterns2;
     public int queryFrquency;
@@ -48,8 +48,8 @@ public class Query {
     public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool) {
         this.dictionary = dictionary;
         this.indexPool = indexPool;
-      //  startTime = System.nanoTime();
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
+
     }
 
 
@@ -280,7 +280,7 @@ public class Query {
       for(int i =0 ; i < triplePatterns2.size() ; i++){
           if(!triplePatterns2.get(i).isStarted()) {
              // System.out.println("selectivity: "+triplePatterns2.get(i).getSelectivity());
-              ResultTriple resultTriple = triplePatterns2.get(i).evaluatePatternHash(null , false);
+              ResultTriple resultTriple = triplePatterns2.get(i).evaluatePatternHash(null , true);
               results.add(resultTriple);
           }
       }
@@ -401,7 +401,7 @@ public class Query {
         return firstNotSeen;
     }
 
-    @Deprecated
+
     public boolean parseSparqlChain(String spaql, index.Dictionary dictionary) {
         /*" select  ?x1 ?x3 ?x5 ?x7 where " +
                 "{?x1 <http://mpii.de/yago/resource/describes> ?x3.?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x5." +
@@ -561,7 +561,9 @@ public class Query {
         return null;
     }
 
+
     private boolean addToTriplePatterns(Integer[] code , boolean[] projected){
+
         if (code[0] == null || code[1] == null || code[2] == null) {
             System.err.println("query answer is empty");
             return false;
@@ -577,6 +579,10 @@ public class Query {
 
         return true;
     }
+
+
+
+
 
 
     private void connectTriplePatterns(TriplePattern2 triplePattern){
@@ -623,6 +629,8 @@ public class Query {
     public void printAnswers(Dictionary reverseDictionary , boolean silent) {
         if(knownEmpty)
             return;
+        results.remove(0);
+        results.add(triplePatterns2.get(0).getHeadResultTriple());//TODO fix this tomorrow 8 aug
         if(results != null){
             int count = 0;
             for(int i =0 ; i < results.size() ; i++){
@@ -632,11 +640,21 @@ public class Query {
                 do {
                     ResultTriple hResultTriple = vResultTriple.getFarLeft();
                     while (hResultTriple != null) {
-                        Triple triple = hResultTriple.getTriple();
-                        if(!silent) {
-                            String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
-                            System.out.print(str + " . ");
-                        }
+                        ResultTriple pHTriple = hResultTriple;
+                        boolean moreThanOne = false;
+                        do {
+                            Triple triple = pHTriple.getTriple();
+                            if (!silent) {
+                                String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
+                                System.out.print(str + " . ");
+                            }
+                            pHTriple = pHTriple.getDown();
+                            if(moreThanOne) {
+                                System.out.println();
+                                count++;
+                            }
+                            moreThanOne = true;
+                        }while(pHTriple != null && vResultTriple != hResultTriple);
                         hResultTriple = hResultTriple.getRight();
                     }
                     if(!silent)

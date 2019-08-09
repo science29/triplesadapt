@@ -13,9 +13,9 @@ import java.util.stream.Stream;
 public class TriplePattern2 {
     public final static int thisIsVariable = -1;
 
-    private int triples[] = new int[3];
-    public String stringTriple[] = new String[3];
-    public int fixedTriples[] = new int[3];
+    private int triples[] ;
+   // public String stringTriple[] = new String[3];
+   // public int fixedTriples[] = new int[3];
     public HashMap<Long, Integer> variablesIndex;
     public String tempID; //for debug purpose only
 
@@ -46,12 +46,13 @@ public class TriplePattern2 {
     }*/
 
     public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool) {
+        triples = new int[3];
         triples[0] = triplePattern.triples[0];
         triples[1] = triplePattern.triples[1];
         triples[2] = triplePattern.triples[2];
-        fixedTriples[0] = fixedTriples[0];
-        fixedTriples[1] = fixedTriples[1];
-        fixedTriples[2] = fixedTriples[2];
+        //fixedTriples[0] = fixedTriples[0];
+        //fixedTriples[1] = fixedTriples[1];
+       // fixedTriples[2] = fixedTriples[2];
 
         withinIndex = new WithinIndex(0);
         Pso = indexesPool.getIndex(IndexesPool.Pso);
@@ -59,6 +60,19 @@ public class TriplePattern2 {
         OPs = indexesPool.getIndex(IndexesPool.OPs);
     }
 
+
+    private TriplePattern2(TriplePattern2 triplePattern){
+        this.triples = triplePattern.triples;
+        this.Pso = triplePattern.Pso;
+        this.SPo = triplePattern.SPo;
+        this.OPs = triplePattern.OPs;
+        withinIndex = new WithinIndex(0);
+    }
+
+    public static TriplePattern2 getThreadReadyCopy(TriplePattern2 triplePattern) {
+        TriplePattern2 triplePatternCopy = new TriplePattern2(triplePattern);
+        return triplePatternCopy;
+    }
 
     public static int thisIsVariable(int varCode) {
         return -varCode;
@@ -76,11 +90,11 @@ public class TriplePattern2 {
         triples[index] = thisIsVariable(triples[index]);
     }
 
-    public void findStringTriple(HashMap<Long, String> reverseDictionary) {
+    /*public void findStringTriple(HashMap<Long, String> reverseDictionary) {
         this.stringTriple[0] = reverseDictionary.get(triples[0]);
         this.stringTriple[1] = reverseDictionary.get(triples[1]);
         this.stringTriple[2] = reverseDictionary.get(triples[2]);
-    }
+    }*/
 
     public static boolean isVariable(int code) {
         if (code < 0)
@@ -268,10 +282,13 @@ public class TriplePattern2 {
                 return;
             }
             ArrayList<Triple> list = predicateEvaluate(!deep);
-            if(deep)
-               // startDeepEvaluation(list);
+            if(deep) {
+                if(executerPool == null)
+                    startDeepEvaluation(list);
                 //startDeepEvaluationParallel(list);
-                startPoolDeepEvaluationParallel(list);
+                else
+                    startPoolDeepEvaluationParallel(list);
+            }
             return;
         }
 
@@ -411,6 +428,7 @@ public class TriplePattern2 {
 
     private int doneCount = 0;
     private synchronized  void workerDone(int total){
+       // System.out.println("Thread is done !");
         doneCount++;
         if(doneCount >= total)
             executerPool.finalListener.onComplete();
@@ -425,6 +443,7 @@ public class TriplePattern2 {
         int p = triples[1];
         if (hisVal == 0)
             return null;
+        WithinIndex withinIndex = new WithinIndex(-1);
         List<Triple> list = index.get(hisVal, p, 1, withinIndex);
         if (list != null && list.size() > 0) {
             ResultTriple myHeadResultTriple = null , myPointer = null;
@@ -464,7 +483,7 @@ public class TriplePattern2 {
         ResultTriple deepLeftTripleResult = null , deepRightTripleResult = null;
         // ResultTriple myResultTriple = new ResultTriple(t);
         ResultTriple headLeft = null , headRight = null;
-        for(int i = 0; i < lefts.size() ; i++){
+        for(int i = 0; lefts != null && i < lefts.size() ; i++){
             TriplePattern2 pattern = lefts.get(i);
             if(pattern.equals(callPattern))
                 continue;
@@ -482,7 +501,7 @@ public class TriplePattern2 {
                 myResultTriple.left = myResultTriple.left.down;
             }
         }
-        for(int i = 0; i < rights.size() ; i++){
+        for(int i = 0; rights != null && i < rights.size() ; i++){
             TriplePattern2 pattern = rights.get(i);
             if(pattern.equals(callPattern))
                 continue;

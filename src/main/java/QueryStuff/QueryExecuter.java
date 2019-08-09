@@ -11,7 +11,7 @@ public class QueryExecuter extends  Thread{
     private BlockingQueue<WorkElement> sharedWorkQueue = new ArrayBlockingQueue(10000);
 
 
-    private boolean stop;
+    private boolean stop = false;
 
 
     public QueryExecuter(){
@@ -59,6 +59,7 @@ public class QueryExecuter extends  Thread{
         public int from;
         public int to;
         public TriplePattern2 triplePattern;
+      //  public TriplePattern2 copyTriplePattern;
         public CompleteListener completeListener;
 
         public  WorkElement(){
@@ -70,6 +71,7 @@ public class QueryExecuter extends  Thread{
             this.from = from;
             this.to = to;
             this.completeListener = completeListener;
+           // this.copyTriplePattern = TriplePattern2.getThreadReadyCopy(triplePattern);
         }
     }
 
