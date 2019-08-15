@@ -12,7 +12,7 @@ public class ResultTriple {
     ResultTriple down;
     ResultTriple left;
     ResultTriple right;
-
+    private boolean border = false;
 
 
     public ResultTriple(Triple triple){
@@ -31,6 +31,15 @@ public class ResultTriple {
             if(this.down == null)
                 this.down = resultTriple;
         }
+    }
+
+    public ResultTriple() {
+    }
+
+    public static ResultTriple getDummyBorder() {
+        ResultTriple resultTriple = new ResultTriple();
+        resultTriple.border = true;
+        return resultTriple;
     }
 
     public void setLeft(ResultTriple resultTriple){
@@ -71,5 +80,9 @@ public class ResultTriple {
 
     public ResultTriple getRight() {
         return right;
+    }
+
+    public void setBorder() {
+        border = true;
     }
 }

@@ -439,6 +439,7 @@ public class TriplePattern2 {
 
 
     private ResultTriple hashJoinDeep(TriplePattern2 callPattern, Triple hisTriple , int hisIndex , MyHashMap<Integer, ArrayList<Triple>> index){
+        boolean border = isBorder( hisTriple ,  hisIndex);
         int hisVal = hisTriple.triples[hisIndex];
         int p = triples[1];
         if (hisVal == 0)
@@ -460,6 +461,8 @@ public class TriplePattern2 {
                     myPointer.down = myResultTriple;
                     myPointer = myPointer.down;
                 }
+                if(border)
+                    myResultTriple.setBorder();
                 /*if(hisIndex == 0) {
                     hisResultTriple.left = myResultTriple
                     myResultTriple.right = hisResultTriple;
@@ -470,9 +473,17 @@ public class TriplePattern2 {
                 }*/
             }
             return myHeadResultTriple;
-        }else
+        }else {
+            if(border)
+                return ResultTriple.getDummyBorder();
             return null;
+        }
 
+    }
+
+    private boolean isBorder(Triple hisTriple , int hisIndex){
+        return  false;
+        //TODO impliment this
     }
 
 
