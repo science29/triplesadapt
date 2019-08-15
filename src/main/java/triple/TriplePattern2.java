@@ -17,7 +17,7 @@ public class TriplePattern2 {
    // public String stringTriple[] = new String[3];
    // public int fixedTriples[] = new int[3];
     public HashMap<Long, Integer> variablesIndex;
-    public String tempID; //for debug purpose only
+
 
 
     //private List<Triple> result;
@@ -33,7 +33,7 @@ public class TriplePattern2 {
     private MyHashMap<Integer, ArrayList<Triple>> SPo;
 
     private WithinIndex withinIndex;
-    private int tempResultCnt = 0;
+
     private boolean goingLeft;
     private ExecutersPool executerPool;
 
@@ -194,8 +194,22 @@ public class TriplePattern2 {
 
     }
 
-    private void mergeJoin() {
+    private void mergeJoinToRemote(TriplePattern2 callerPattern ) {
         //TODO
+        ArrayList<ResultTriple> resultTripleListRemote = callerPattern.getBorderList();
+        ArrayList<ResultTriple> resultTripleListLocal = callerPattern.getBorderList();
+        if(resultTripleListRemote == null)
+            return;
+        for (int i = 0 , j = 0 ; i < resultTripleListRemote.size() && j < resultTripleListLocal.size() ; ){
+           if( resultTripleListRemote.get(i).triple[remoteIndex] > resultTripleListLocal.get(j).triple[localIndex])
+               j++;
+           else if( resultTripleListRemote.get(i).triple[remoteIndex] < resultTripleListLocal.get(j).triple[localIndex])
+               i++;
+           else{
+
+           }
+        }
+
     }
 
     private TriplePattern2 getJoinPattern(boolean right) {
@@ -329,7 +343,6 @@ public class TriplePattern2 {
                     else
                         resultTriple.right = hisResultTriple;
                     withinIndex.index++;
-                    tempResultCnt++;
                 }
                 for (int j = withinIndex.index; j < list.size(); j++) {
                     Triple t = list.get(j);
@@ -342,7 +355,6 @@ public class TriplePattern2 {
                         resultTriple.left = hisResultTriple;
                     else
                         resultTriple.right = hisResultTriple;
-                    tempResultCnt++;
                 }
             }
             //      else

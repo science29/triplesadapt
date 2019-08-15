@@ -36,7 +36,10 @@ public class Query {
     private ArrayList<ResultTriple> results;
     private ExecutersPool executersPool;
 
+    public final int ID;
+
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
+        this.ID = new Random().nextInt();
         this.triplePatterns = triplePattern;
         this.queryFrquency = queryFrquency;
         this.simpleAnswer = simpleAnswer;
@@ -46,6 +49,7 @@ public class Query {
         return answerMap;
     }
     public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool) {
+        ID = new Random().nextInt();
         this.dictionary = dictionary;
         this.indexPool = indexPool;
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
