@@ -4,6 +4,7 @@ import index.Dictionary;
 
 import java.util.HashMap;
 
+@Deprecated
 public class TriplePattern {
     public final static int thisIsVariable = -1;
     public int triples[]= new int[3];

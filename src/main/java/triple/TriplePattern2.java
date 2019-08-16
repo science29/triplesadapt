@@ -37,6 +37,7 @@ public class TriplePattern2 {
     private boolean goingLeft;
     private ExecutersPool executerPool;
     private ResultTriple headTempBorder;
+    private ResultTriple headRemoteBorder;
 
     //int varaibles[] = new int[3];
 
@@ -199,9 +200,13 @@ public class TriplePattern2 {
         return this.headTempBorder;
     }
 
+    private ResultTriple getRemoteBorderHeaderResult() {
+        return this.headRemoteBorder;
+    }
+
 
     private void hashJoinBorder(TriplePattern2 hisPattern , int myIndex , int hisIndex ){
-        ResultTriple resultTripleHis = hisPattern.getBorderHeaderResult();
+        ResultTriple resultTripleHis = hisPattern.getRemoteBorderHeaderResult();
         ResultTriple resultTripleMe = getBorderHeaderResult();
         //build the hash table
         HashMap<Integer , ResultTriple> map = new HashMap<>();
