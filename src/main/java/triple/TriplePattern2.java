@@ -36,6 +36,7 @@ public class TriplePattern2 {
 
     private boolean goingLeft;
     private ExecutersPool executerPool;
+    private ResultTriple headTempBorder;
 
     //int varaibles[] = new int[3];
 
@@ -194,9 +195,37 @@ public class TriplePattern2 {
 
     }
 
-    private void mergeJoinToRemote(TriplePattern2 callerPattern ) {
+    private ResultTriple getBorderHeaderResult(){
+        return this.headTempBorder;
+    }
+
+
+    private void hashJoinBorder(TriplePattern2 hisPattern , int myIndex , int hisIndex ){
+        ResultTriple resultTripleHis = hisPattern.getBorderHeaderResult();
+        ResultTriple resultTripleMe = getBorderHeaderResult();
+        //build the hash table
+        HashMap<Integer , ResultTriple> map = new HashMap<>();
+        while(resultTripleHis != null){
+            map.put(resultTripleHis.triple.triples[hisIndex],resultTripleHis);
+            resultTripleHis = resultTripleHis.down;
+        }
+
+        while(resultTripleMe != null){
+            //TODO if called more than one time ?
+            if(map.containsKey(resultTripleMe.triple.triples[myIndex])){
+                if(myIndex == 0)
+                    resultTripleMe.left = resultTripleHis;
+                else
+                    resultTripleMe.right = resultTripleHis;
+                connectResultTriple(resultTripleMe);
+            }
+        }
+
+    }
+
+    private void mergeJoin(TriplePattern2 callerPattern ) {
         //TODO
-        ArrayList<ResultTriple> resultTripleListRemote = callerPattern.getBorderList();
+   /*     ArrayList<ResultTriple> resultTripleListRemote = callerPattern.getBorderList();
         ArrayList<ResultTriple> resultTripleListLocal = callerPattern.getBorderList();
         if(resultTripleListRemote == null)
             return;
@@ -208,7 +237,7 @@ public class TriplePattern2 {
            else{
 
            }
-        }
+        }*/
 
     }
 
@@ -378,6 +407,8 @@ public class TriplePattern2 {
         }
     }
 
+
+
     ResultTriple finalReslut = null , pointerC = null;
     private synchronized void connectResultTriple(ResultTriple newOne){
         if(newOne != null) {
@@ -473,8 +504,10 @@ public class TriplePattern2 {
                     myPointer.down = myResultTriple;
                     myPointer = myPointer.down;
                 }
-                if(border)
+                if(border) {
+                    addTempResultBorder(myResultTriple);
                     myResultTriple.setBorder();
+                }
                 /*if(hisIndex == 0) {
                     hisResultTriple.left = myResultTriple
                     myResultTriple.right = hisResultTriple;
@@ -491,6 +524,16 @@ public class TriplePattern2 {
             return null;
         }
 
+    }
+
+
+    private void addTempResultBorder(ResultTriple myResultTriple) {
+        if(headTempBorder == null)
+            headTempBorder = myResultTriple;
+        else {
+            headTempBorder.down = myResultTriple;
+            headTempBorder = headTempBorder.down ;
+        }
     }
 
     private boolean isBorder(Triple hisTriple , int hisIndex){
@@ -551,6 +594,19 @@ public class TriplePattern2 {
         return myResultTriple;
     }
 
+
+
+    private void rightLeftBorderEvaluation(){
+        for(int i = 0; i < lefts.size() ; i++){
+            hashJoinBorder(lefts.get(i) , 0 , 2);
+            lefts.get(i).rightLeftBorderEvaluation();
+        }
+
+        for(int i = 0; i < rights.size() ; i++){
+            hashJoinBorder(rights.get(i) , 2 , 0);
+            rights.get(i).rightLeftBorderEvaluation();
+        }
+    }
 
 
     private Triple getShiftedResultPattern(ResultTriple hisResultTriple) {
