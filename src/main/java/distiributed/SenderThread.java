@@ -8,59 +8,58 @@ import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class senderTread extends Thread{
+public class SenderThread extends Thread{
 
     private final static int PORT = 1290;
+    private final String host;
     private boolean stop = false;
 
-    private final ArrayList<String> hosts ;
-    private final HashMap<Integer, Socket> hostsSocket;
+    private Socket socket ;
+    public boolean working = false;
 
     private BlockingQueue<SendItem> sharedWorkQueue = new ArrayBlockingQueue(10000);
 
-    public senderTread(ArrayList<String> hosts) {
-        this.hosts = hosts;
-        this.hostsSocket = new HashMap<>();
+    public SenderThread(String host) {
+        this.host = host;
     }
+
 
     @Override
     public void run(){
-        openSockets();
+        working = true;
+        openSocket();
         while(!stop){
             try {
+                working = false;
                SendItem sendItem =  sharedWorkQueue.take();
                if(stop)
                    break;
-               sendAll(sendItem);
+               working = true;
+               send(sendItem);
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                working = false;
             }
         }
     }
 
-    private void openSockets() {
-        for(int i = 0 ; i < hosts.size() ; i++){
-            try {
-                Socket clientSocket = new Socket(hosts.get(i), PORT);
-                hostsSocket.put(i , clientSocket);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    private void openSocket() {
+        try {
+            socket = new Socket(host , PORT);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private void sendAll(SendItem sendItem) {
-        for(int i = 0 ; i < hosts.size() ; i++){
-            Socket socket = hostsSocket.get(i);
-            try {
-                ObjectOutputStream outToServer = new ObjectOutputStream(socket.getOutputStream());
-                outToServer.write(sendItem.getBytes());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+    private void send(SendItem sendItem){
+        try {
+            ObjectOutputStream outToServer = new ObjectOutputStream(socket.getOutputStream());
+            outToServer.write(sendItem.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
 
     public void addWork(SendItem sendItem){
         try {

@@ -4,6 +4,9 @@ import triple.ResultTriple;
 import triple.Triple;
 import triple.TriplePattern2;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 public class SendItem {
@@ -12,9 +15,9 @@ public class SendItem {
     public int [] triple;
     public ResultTriple resultTriple;
 
-    public SendItem(int queryNo, TriplePattern2 triplePattern2, ResultTriple resultTriple) {
+    public SendItem(int queryNo, int [] triple, ResultTriple resultTriple) {
         this.queryNo = queryNo;
-        this.triple = triplePattern2.getTriples();
+        this.triple = triple;
         this.resultTriple = resultTriple;
     }
 
@@ -27,9 +30,11 @@ public class SendItem {
         buildSerial(resultTriple , intList);
         byte [] data = new byte[(intList.size()+1)*4];
         int bIndex = 0;
+        intList.add(triple[0]);
+        intList.add(triple[1]);
+        intList.add(triple[2]);
         intList.add(queryNo);
         for(int i = 0; i < intList.size() ; i++){
-            int val = intList.get(i);
             data[bIndex++] = (byte) (intList.get(i) >> 24);
             data[bIndex++] = (byte) (intList.get(i) >> 16);
             data[bIndex++] = (byte) (intList.get(i) >> 8);
@@ -39,8 +44,19 @@ public class SendItem {
         return data;
     }
 
-    public static SendItem fromByte(byte [] data){
 
+    public static SendItem fromByte(byte [] data){
+        IntBuffer intBuf =
+                ByteBuffer.wrap(data)
+                        .order(ByteOrder.BIG_ENDIAN)
+                        .asIntBuffer();
+        int[] intArray = new int[intBuf.remaining()];
+        intBuf.get(intArray);
+
+        ResultTriple resultTriple = buildFromSerial(intArray , 0);
+        int [] triple = {intArray[intArray.length-4] , intArray[intArray.length-3] , intArray[intArray.length-2]};
+        SendItem sendItem = new SendItem(intArray[intArray.length-1] ,triple  ,resultTriple );
+        return sendItem;
     }
 
 
@@ -74,13 +90,13 @@ public class SendItem {
     }
 
 
-    private ResultTriple buildFromSerial(ArrayList<Integer> intList , int index){
-        Triple triple = new Triple(intList.get(index++) , intList.get(index++) ,intList.get(index++));
+    private static ResultTriple buildFromSerial(int [] intArr , int index){
+        Triple triple = new Triple(intArr[index++] , intArr[index++] ,intArr[index++]);
         ResultTriple resultTriple2 = new ResultTriple(triple);
-        if(intList.get(index++) < 0)
-            resultTriple2.setRight(buildFromSerial(intList , index));
-        else if(intList.get(index++)  != 0)
-            resultTriple2.setDown( buildFromSerial(intList , index));
+        if(intArr[index++] < 0)
+            resultTriple2.setRight(buildFromSerial(intArr , index));
+        else if(intArr[index++]  != 0)
+            resultTriple2.setDown( buildFromSerial(intArr , index));
         else
             return resultTriple2;
         return null;
