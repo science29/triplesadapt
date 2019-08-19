@@ -1,6 +1,8 @@
 package start;
 
 import QueryStuff.*;
+import distiributed.SendItem;
+import distiributed.Transporter;
 import index.Dictionary;
 import index.*;
 import org.apache.commons.io.FileUtils;
@@ -1923,7 +1925,13 @@ try {
             dictionary.put("<http://mpii.de/yago/resource/isPartOf>",a++);
             dictionary.put("<http://mpii.de/yago/resource/wordnet_transportation_system_104473432>",a++);*/
         String testquery = "select ?x1 ?x2 ?x3 ?x4  where {?x3 y:describes ?x2.?x2 y:created ?x1.?x1 y:hasSuccessor ?x4.?x4 rdfs:label ?x5}";
-
+        Transporter.ReceiverListener receiverListener = new Transporter.ReceiverListener(){
+            @Override
+            public synchronized void gotResult(SendItem sendItem) {
+                xx
+            }
+        };
+        Transporter transporter = new Transporter(new ArrayList<String>() , receiverListener);
         new Query(dictionary, testquery,indexPool);//warm up!!
         Scanner scanner = new Scanner(System.in);
         ExecutersPool executersPool = new ExecutersPool(7);

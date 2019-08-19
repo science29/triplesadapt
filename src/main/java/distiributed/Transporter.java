@@ -3,8 +3,6 @@ package distiributed;
 
 import triple.TriplePattern2;
 
-import java.io.IOException;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -13,29 +11,27 @@ public class Transporter {
 
     private static final int PORT = 1984;
     private final ArrayList<String> hosts;
-    private final HashMap<Integer , ArrayList<Socket>> hostsSocket ;
-    private final HashMap<Integer , SenderThread> senderPool;
+    private final ArrayList<Sender> senderPool;
+    private final ArrayList<Receiver> receiversPool;
     private final int soketsPerHost = 3;
 
     public Transporter(ArrayList<String> hosts){
         this.hosts = hosts;
-        senderPool = new HashMap<>();
-        hostsSocket = new HashMap<>();
+        senderPool = new ArrayList<>();
+        receiversPool = new ArrayList<>();
         for(int i = 0 ; i < hosts.size() ; i++){
-            ArrayList<Socket> sockets = new ArrayList<>();
-            for(int j = 0 ; j < soketsPerHost ; j++){
-                try {
-                    sockets.add(new Socket(hosts.get(i) , PORT));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            hostsSocket.put(i ,sockets );
+            Sender sender = new Sender(hosts.get(i));
+            senderPool.add(sender);
+            Receiver receiver = new Receiver(receiverListener);
+            receiver.start();
+            receiversPool.add(receiver);
         }
     }
 
     public void sendToAll(SendItem sendItem){
-
+        for(int i = 0 ; i < senderPool.size() ; i++){
+            senderPool.get(i).addWork(sendItem);
+        }
     }
 
 
@@ -46,7 +42,7 @@ public class Transporter {
 
 
     public interface ReceiverListener{
-        void gotResult(SendItem sendItem);
+         void gotResult(SendItem sendItem);
 
     }
 }
