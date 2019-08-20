@@ -10,13 +10,13 @@ import java.net.URLConnection;
 public class Receiver extends Thread {
 
     private static final int PORT = 1290 ;
-    private Transporter.ReceiverListener cBack;
+    private Transporter transporter;
     private boolean stop = false;
     private Socket server;
     private ServerSocket serverSocket;
 
-    public Receiver(Transporter.ReceiverListener cBack){
-        this.cBack = cBack;
+    public Receiver(Transporter transporter){
+        this.transporter = transporter;
     }
 
     public void stopWorking() {
@@ -24,6 +24,7 @@ public class Receiver extends Thread {
         closeSockets();
         //TODO ..
     }
+
 
     private void closeSockets(){
         try {
@@ -48,7 +49,8 @@ public class Receiver extends Thread {
                     byte[] data = new byte[length];
                     in.readFully(data, 0, data.length);
                     SendItem sendItem = SendItem.fromByte(data);
-                    cBack.gotResult(sendItem);
+                    if(transporter != null)
+                        transporter.receiverGotResult(sendItem);
                 }
             }
         } catch (IOException e) {

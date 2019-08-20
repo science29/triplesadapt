@@ -2,6 +2,8 @@ package triple;
 
 import QueryStuff.ExecutersPool;
 import QueryStuff.QueryExecuter;
+import distiributed.SendItem;
+import distiributed.Transporter;
 import index.IndexesPool;
 import index.MyHashMap;
 
@@ -12,6 +14,7 @@ import java.util.stream.Stream;
 
 public class TriplePattern2 {
     public final static int thisIsVariable = -1;
+    private  Transporter transporter;
 
     private int triples[] ;
    // public String stringTriple[] = new String[3];
@@ -22,7 +25,7 @@ public class TriplePattern2 {
 
     //private List<Triple> result;
     private ResultTriple resultTriple;
-    private ResultTriple headResultTriple;
+    public ResultTriple headResultTriple;
     public int resultTripleShifLeft = 0;
     public int resultTripleShifRight = 0;
     private ArrayList<TriplePattern2> rights;
@@ -39,6 +42,7 @@ public class TriplePattern2 {
     private ResultTriple headTempBorder;
     private ResultTriple headRemoteBorder;
 
+    private int doneCount = 0;
     //int varaibles[] = new int[3];
 
     /*public TriplePattern2(int s, int p, int o) {
@@ -47,7 +51,7 @@ public class TriplePattern2 {
         withinIndex = new WithinIndex(0);
     }*/
 
-    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool) {
+    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool , Transporter transporter) {
         triples = new int[3];
         triples[0] = triplePattern.triples[0];
         triples[1] = triplePattern.triples[1];
@@ -60,6 +64,8 @@ public class TriplePattern2 {
         Pso = indexesPool.getIndex(IndexesPool.Pso);
         SPo = indexesPool.getIndex(IndexesPool.SPo);
         OPs = indexesPool.getIndex(IndexesPool.OPs);
+
+        this.transporter = transporter ;
     }
 
 
@@ -466,6 +472,16 @@ public class TriplePattern2 {
             threadsList.get(i).addWork(this, list, from, to, new QueryExecuter.CompleteListener() {
                 @Override
                 public void onComplete() {
+                   /* Transporter.ReceiverListener listener = new Transporter.ReceiverListener(){
+                        @Override
+                        public void gotResult(SendItem sendItem) {
+                            headResultTriple = sendItem.resultTriple;
+                            workerDone(threadsList.size());
+                        }
+                    };
+                    transporter.receive( 0 ,listener);
+                    transporter.sendToAll(new SendItem( 0 , triples , headResultTriple))*/;
+
                     workerDone(threadsList.size());
                 }
             });
@@ -474,7 +490,7 @@ public class TriplePattern2 {
     }
 
 
-    private int doneCount = 0;
+
     private synchronized  void workerDone(int total){
        // System.out.println("Thread is done !");
         doneCount++;

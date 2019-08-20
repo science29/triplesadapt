@@ -1,5 +1,7 @@
 package QueryStuff;
 
+import distiributed.SendItem;
+import distiributed.Transporter;
 import index.Dictionary;
 import index.IndexesPool;
 import triple.ResultTriple;
@@ -13,6 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Query {
     private static final boolean DEEP_PROCESSING = true ;
+    private Transporter transporter;
     public ArrayList<TriplePattern> triplePatterns;
     public ArrayList<TriplePattern2> triplePatterns2;
     public int queryFrquency;
@@ -48,12 +51,12 @@ public class Query {
     public HashMap<TriplePattern, ArrayList<Triple>> getAnswerMap(){
         return answerMap;
     }
-    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool) {
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter) {
+        this.transporter = transporter;
         ID = new Random().nextInt();
         this.dictionary = dictionary;
         this.indexPool = indexPool;
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
-
     }
 
 
@@ -576,7 +579,7 @@ public class Query {
         //TODO do this
 ///        triplePattern.setProjected(projected);
         triplePatterns.add(triplePattern);
-        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool);
+        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool ,transporter);
         connectTriplePatterns(triplePattern2);
         triplePatterns2.add(triplePattern2);
 
@@ -631,6 +634,7 @@ public class Query {
 
 
     public void printAnswers(Dictionary reverseDictionary , boolean silent) {
+
         if(knownEmpty)
             return;
         results.remove(0);
@@ -670,6 +674,13 @@ public class Query {
             System.out.println("Total result size="+count);
         }
 
+        ArrayList<Integer> list = new ArrayList<>();
+        SendItem.buildSerial2(triplePatterns2.get(0).getHeadResultTriple() , list , reverseDictionary);
+
+        SendItem sendItem = new SendItem(0 ,triplePatterns2.get(0).getTriples() ,triplePatterns2.get(0).getHeadResultTriple());
+        byte[] b = sendItem.getBytes();
+        sendItem = SendItem.fromByte(b);
+        triplePatterns2.get(0).headResultTriple = sendItem.resultTriple;
        /* if (answerMap == null) {
             System.err.println("No answer to print ..");
             return;

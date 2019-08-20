@@ -1856,12 +1856,12 @@ try {
                 }
                 StringBuilder extTime = new StringBuilder();
                 if(Query.sep()) {
-                    Query spQuery_t = new Query(dictionary, query , new IndexesPool());
+                    Query spQuery_t = new Query(dictionary, query , new IndexesPool() , null);
                     spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
                     extTime = new StringBuilder();
                 }
                 long startTime = System.nanoTime();
-                Query spQuery = new Query(dictionary, query , new IndexesPool());
+                Query spQuery = new Query(dictionary, query , new IndexesPool() , null);
                 long parseTime = System.nanoTime();
                 spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
                 long stopTime = System.nanoTime();

@@ -1,8 +1,8 @@
 package distiributed;
 
+import index.Dictionary;
 import triple.ResultTriple;
 import triple.Triple;
-import triple.TriplePattern2;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -27,13 +27,13 @@ public class SendItem {
 
     public byte[] getBytes() {
         ArrayList<Integer> intList = new ArrayList<>();
-        buildSerial(resultTriple , intList);
-        byte [] data = new byte[(intList.size()+1)*4];
-        int bIndex = 0;
+        buildSerial(resultTriple.getFarLeft() , intList, null);
         intList.add(triple[0]);
         intList.add(triple[1]);
         intList.add(triple[2]);
         intList.add(queryNo);
+        byte [] data = new byte[(intList.size()+1)*4];
+        int bIndex = 0;
         for(int i = 0; i < intList.size() ; i++){
             data[bIndex++] = (byte) (intList.get(i) >> 24);
             data[bIndex++] = (byte) (intList.get(i) >> 16);
@@ -76,18 +76,61 @@ public class SendItem {
     }
 
 
-    private void buildSerial(ResultTriple resultTriple , ArrayList<Integer> intList ){
+    public static void buildSerial(ResultTriple resultTriple, ArrayList<Integer> intList, Dictionary reverseDictionary){
         intList.add(resultTriple.getTriple().triples[0]);
         intList.add(resultTriple.getTriple().triples[1]);
         intList.add(resultTriple.getTriple().triples[2]);
-        if(resultTriple.getRight() != null) {
-            intList.add(-1);
-            buildSerial(resultTriple.getRight(), intList);
+        if(reverseDictionary != null) {
+            String str = reverseDictionary.get(resultTriple.getTriple().triples[0]) + " " + reverseDictionary.get(resultTriple.getTriple().triples[1]) + " " + reverseDictionary.get(resultTriple.getTriple().triples[2]);
+            System.out.print(str + " . ");
         }
-        if(resultTriple.getDown() != null)
-            buildSerial(resultTriple.getDown() , intList);
+        if(resultTriple.getRight() != null) {
+            System.out.println("going right");
+            intList.add(-1);
+            buildSerial(resultTriple.getRight(), intList, reverseDictionary);
+        }
+        if(resultTriple.getDown() != null) {
+            System.out.println("going down");
+            buildSerial(resultTriple.getDown(), intList, reverseDictionary);
+        }
         intList.add(0);
     }
+
+
+
+    public static void buildSerial2(ResultTriple resultTriple, ArrayList<Integer> intList ,Dictionary reverseDictionary){
+
+        ResultTriple vResultTriple = resultTriple;
+        if (vResultTriple == null)
+            return;
+        do {
+            ResultTriple hResultTriple = vResultTriple.getFarLeft();
+            while (hResultTriple != null) {
+                ResultTriple pHTriple = hResultTriple;
+                boolean moreThanOne = false;
+                do {
+                    Triple triple = pHTriple.getTriple();
+                    String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
+                    System.out.print(str + " . ");
+                    intList.add(resultTriple.getTriple().triples[0]);
+                    intList.add(resultTriple.getTriple().triples[1]);
+                    intList.add(resultTriple.getTriple().triples[2]);
+
+                    pHTriple = pHTriple.getDown();
+                    if(moreThanOne) {
+                        System.out.println();
+                    }
+                    moreThanOne = true;
+                }while(pHTriple != null && vResultTriple != hResultTriple);
+                hResultTriple = hResultTriple.getRight();
+            }
+            vResultTriple = vResultTriple.getDown();
+        }while (vResultTriple != null);
+
+
+    }
+
+
 
 
     private static ResultTriple buildFromSerial(int [] intArr , int index){
