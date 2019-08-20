@@ -675,7 +675,7 @@ public class Query {
         }
 
         ArrayList<Integer> list = new ArrayList<>();
-        SendItem.buildSerial2(triplePatterns2.get(0).getHeadResultTriple() , list , reverseDictionary);
+        SendItem.buildSerial3(triplePatterns2.get(0).getHeadResultTriple() , list , 0,reverseDictionary );
 
         SendItem sendItem = new SendItem(0 ,triplePatterns2.get(0).getTriples() ,triplePatterns2.get(0).getHeadResultTriple());
         byte[] b = sendItem.getBytes();
