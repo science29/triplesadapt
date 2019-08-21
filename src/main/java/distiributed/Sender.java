@@ -44,6 +44,7 @@ public class Sender{
         private Socket socket ;
         private boolean working = false;
         ObjectOutputStream outToServer ;
+        boolean socketOpened = false;
 
         @Override
         public void run() {
@@ -55,6 +56,8 @@ public class Sender{
                     SendItem sendItem = sharedWorkQueue.take();
                     if (stop)
                         break;
+                    if(!socketOpened)
+                        openSocket();
                     working = true;
                     send(sendItem);
                 } catch (InterruptedException e) {
@@ -82,8 +85,11 @@ public class Sender{
             try {
                 socket = new Socket(host, PORT);
                 outToServer = new ObjectOutputStream(socket.getOutputStream());
+                socketOpened = true;
             } catch (IOException e) {
                 e.printStackTrace();
+            }catch (Exception e){
+                System.err.println("socket to "+host +" is not opened");
             }
         }
 

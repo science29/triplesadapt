@@ -98,7 +98,25 @@ public class SendItem {
 
 
 
-    public static void buildSerial3(ResultTriple resultTriple, ArrayList<Integer> intList , int direction){
+
+    public static SendItem deSerialize( int [] intList ){
+        Triple triple = new Triple(intList[0],intList[1],intList[2]);
+        intList[0] = -11;
+        intList[1] = -11;
+        intList[2] = -11;
+        intList[3] = -11;
+        ResultTriple resultTriple = buildFromSerial3(intList);
+        return new SendItem(intList[3], triple.triples , resultTriple);
+    }
+    public void serialize(ResultTriple resultTriple, ArrayList<Integer> intList){
+        intList.add(triple[0]);
+        intList.add(triple[1]);
+        intList.add(triple[2]);
+        intList.add(queryNo);
+        buildSerial3(resultTriple , intList , 0);
+    }
+
+    public void buildSerial3(ResultTriple resultTriple, ArrayList<Integer> intList , int direction){
         if(resultTriple == null) {
             return;
         }
@@ -127,13 +145,14 @@ public class SendItem {
                 buildSerial3(resultTriple.getLeft() , intList , direction);
         }
 
-
     }
 
     public static ResultTriple buildFromSerial3(int [] intList ){
         ResultTriple head = null, pointer = null , movingHead = null , extraHead = null;
         int dir = 0;
         for(int i = 0 ; i < intList.length ; i++){
+            if(intList[i] <= -10)
+                continue;
             if(intList[i] <= 0) {
                 if(dir == -1){
                     pointer = extraHead;
