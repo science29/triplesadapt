@@ -51,6 +51,8 @@ public class Receiver extends Thread {
                     SendItem sendItem = SendItem.fromByte(data);
                     if(transporter != null)
                         transporter.receiverGotResult(sendItem);
+                    System.err.println("got something .. ");
+                    //transporter.sendToAll(sendItem);
                 }
             }
         } catch (IOException e) {

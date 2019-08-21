@@ -93,14 +93,31 @@ public class Sender{
             }
         }
 
+      /*  private void send(SendItem sendItem) {
+            try {
+
+                ArrayList<Integer> list  = new ArrayList<>();
+                sendItem.serialize(list);
+                outToServer.writeInt(list.size());
+                for(int i =0 ; i < list.size() ; i++){
+                    outToServer.writeInt(list.get(i));
+                }
+                outToServer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }*/
+
         private void send(SendItem sendItem) {
             try {
                 byte [] data = sendItem.getBytes();
                 outToServer.writeInt(data.length);
                 outToServer.write(data);
+                outToServer.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
     }
 }

@@ -27,20 +27,23 @@ public class SendItem {
 
     public byte[] getBytes() {
         ArrayList<Integer> intList = new ArrayList<>();
-        buildSerial3(resultTriple , intList, 0);
-        intList.add(triple[0]);
-        intList.add(triple[1]);
-        intList.add(triple[2]);
-        intList.add(queryNo);
-        byte [] data = new byte[(intList.size()+1)*4];
+        serialize(intList);
+        byte [] data = new byte[(intList.size())*4];
         int bIndex = 0;
         for(int i = 0; i < intList.size() ; i++){
             data[bIndex++] = (byte) (intList.get(i) >> 24);
             data[bIndex++] = (byte) (intList.get(i) >> 16);
             data[bIndex++] = (byte) (intList.get(i) >> 8);
             data[bIndex++] = (byte) (intList.get(i).intValue() /*>> 0*/);
-            data[i] = intList.get(i).byteValue();
+            //data[i] = intList.get(i).byteValue();
         }
+
+        /*ArrayList<Integer> intList2 = new ArrayList<>();
+        for(int i = 0 ; i < data.length ; ) {
+            int intval =  data[i++] << 24 | (data[i++] & 0xFF) << 16 | (data[i++] & 0xFF) << 8 | (data[i++] & 0xFF);
+            intList2.add(intval);
+        }
+*/
         return data;
     }
 
@@ -53,10 +56,17 @@ public class SendItem {
         int[] intArray = new int[intBuf.remaining()];
         intBuf.get(intArray);
 
+
+        return deSerialize(intArray);
+
+        /*int [] triple = {intArray[0] , intArray[1] , intArray[2]};
+
+        intArray[0] = -11 ; intArray[1] = -11 ; intArray[2] = -11;
+        int queryNoT = intArray[3];
+        intArray[3] = -11;
         ResultTriple resultTriple = buildFromSerial3(intArray );
-        int [] triple = {intArray[intArray.length-4] , intArray[intArray.length-3] , intArray[intArray.length-2]};
-        SendItem sendItem = new SendItem(intArray[intArray.length-1] ,triple  ,resultTriple );
-        return sendItem;
+        SendItem sendItem = new SendItem(queryNoT ,triple  ,resultTriple );
+        return sendItem;*/
     }
 
 
@@ -108,7 +118,7 @@ public class SendItem {
         ResultTriple resultTriple = buildFromSerial3(intList);
         return new SendItem(intList[3], triple.triples , resultTriple);
     }
-    public void serialize(ResultTriple resultTriple, ArrayList<Integer> intList){
+    public void serialize(ArrayList<Integer> intList){
         intList.add(triple[0]);
         intList.add(triple[1]);
         intList.add(triple[2]);

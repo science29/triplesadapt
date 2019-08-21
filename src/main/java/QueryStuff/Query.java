@@ -633,6 +633,9 @@ public class Query {
     }
 
 
+    boolean temp = true;
+
+
     public void printAnswers(Dictionary reverseDictionary , boolean silent) {
 
         if(knownEmpty)
@@ -674,14 +677,31 @@ public class Query {
             System.out.println("Total result size="+count);
         }
 
+
+
+        if(!temp)
+            return;
+        temp = false;
+        SendItem sendItem = new SendItem(0 ,triplePatterns2.get(0).getTriples() ,triplePatterns2.get(0).getHeadResultTriple());
+        //sendItem.fromByte(sendItem.getBytes());
+        transporter.sendToAll(sendItem);
+        transporter.receive(0, new Transporter.ReceiverListener() {
+            @Override
+            public void gotResult(SendItem sendItem) {
+                System.err.println("got from remote:");
+                triplePatterns2.get(0).headResultTriple = sendItem.resultTriple;
+                printAnswers(reverseDictionary ,false);
+            }
+        });
+
        /* ArrayList<Integer> list = new ArrayList<>();
         SendItem.buildSerial3(triplePatterns2.get(0).getHeadResultTriple() , list , 0,reverseDictionary );
-        triplePatterns2.get(0).headResultTriple =  SendItem.buildFromSerial3( list);*/
+        triplePatterns2.get(0).headResultTriple =  SendItem.buildFromSerial3( list);
 
-        SendItem sendItem = new SendItem(0 ,triplePatterns2.get(0).getTriples() ,triplePatterns2.get(0).getHeadResultTriple());
+
         byte[] b = sendItem.getBytes();
         sendItem = SendItem.fromByte(b);
-        triplePatterns2.get(0).headResultTriple = sendItem.resultTriple;
+        triplePatterns2.get(0).headResultTriple = sendItem.resultTriple;*/
 
 
 
