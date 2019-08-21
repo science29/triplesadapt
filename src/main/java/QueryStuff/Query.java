@@ -674,13 +674,17 @@ public class Query {
             System.out.println("Total result size="+count);
         }
 
-        ArrayList<Integer> list = new ArrayList<>();
+       /* ArrayList<Integer> list = new ArrayList<>();
         SendItem.buildSerial3(triplePatterns2.get(0).getHeadResultTriple() , list , 0,reverseDictionary );
+        triplePatterns2.get(0).headResultTriple =  SendItem.buildFromSerial3( list);*/
 
         SendItem sendItem = new SendItem(0 ,triplePatterns2.get(0).getTriples() ,triplePatterns2.get(0).getHeadResultTriple());
         byte[] b = sendItem.getBytes();
         sendItem = SendItem.fromByte(b);
         triplePatterns2.get(0).headResultTriple = sendItem.resultTriple;
+
+
+
        /* if (answerMap == null) {
             System.err.println("No answer to print ..");
             return;

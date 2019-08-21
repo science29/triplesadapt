@@ -27,7 +27,7 @@ public class SendItem {
 
     public byte[] getBytes() {
         ArrayList<Integer> intList = new ArrayList<>();
-        buildSerial(resultTriple.getFarLeft() , intList, null);
+        buildSerial3(resultTriple , intList, 0);
         intList.add(triple[0]);
         intList.add(triple[1]);
         intList.add(triple[2]);
@@ -53,7 +53,7 @@ public class SendItem {
         int[] intArray = new int[intBuf.remaining()];
         intBuf.get(intArray);
 
-        ResultTriple resultTriple = buildFromSerial(intArray , 0);
+        ResultTriple resultTriple = buildFromSerial3(intArray );
         int [] triple = {intArray[intArray.length-4] , intArray[intArray.length-3] , intArray[intArray.length-2]};
         SendItem sendItem = new SendItem(intArray[intArray.length-1] ,triple  ,resultTriple );
         return sendItem;
@@ -98,7 +98,7 @@ public class SendItem {
 
 
 
-    public static void buildSerial3(ResultTriple resultTriple, ArrayList<Integer> intList , int direction ,Dictionary reverseDictionary){
+    public static void buildSerial3(ResultTriple resultTriple, ArrayList<Integer> intList , int direction){
         if(resultTriple == null) {
             return;
         }
@@ -109,60 +109,76 @@ public class SendItem {
         intList.add(resultTriple.getTriple().triples[2]);
         if(direction == 0) {
             intList.add(-2);
-            buildSerial3(resultTriple.getRight() , intList , -2,reverseDictionary);
+            buildSerial3(resultTriple.getRight() , intList , -2);
             intList.add(-3);
-            buildSerial3(resultTriple.getLeft(), intList , -3,reverseDictionary);
-            buildSerial3(resultTriple.getDown(), intList, 0, reverseDictionary);
+            buildSerial3(resultTriple.getLeft(), intList , -3);
+            buildSerial3(resultTriple.getDown(), intList, 0);
             intList.add(0);
         }else{
             if(resultTriple.getDown() != null){
-                intList.add(-1);
-                buildSerial3(resultTriple.getDown(), intList, -1, reverseDictionary);
-                intList.add(-1);
+                if(direction != -1)
+                    intList.add(-1);
+                buildSerial3(resultTriple.getDown(), intList, -1);
+                intList.add(direction);
             }
             if(direction == -2)
-                buildSerial3(resultTriple.getRight() , intList , direction,reverseDictionary);
+                buildSerial3(resultTriple.getRight() , intList , direction);
             if(direction == -3)
-                buildSerial3(resultTriple.getLeft() , intList , direction,reverseDictionary);
+                buildSerial3(resultTriple.getLeft() , intList , direction);
         }
 
 
     }
 
-    public static void buildFromSerial3(ArrayList<Integer> intList ){
-        ResultTriple head = null, pointer = null , movingHead = null;
-        for(int i = 0 ; i < intList.size() ; i++){
-            Triple triple = new Triple(intList.get(i++) , intList.get(i++) ,intList.get(i++));
+    public static ResultTriple buildFromSerial3(int [] intList ){
+        ResultTriple head = null, pointer = null , movingHead = null , extraHead = null;
+        int dir = 0;
+        for(int i = 0 ; i < intList.length ; i++){
+            if(intList[i] <= 0) {
+                if(dir == -1){
+                    pointer = extraHead;
+                    extraHead = null;
+                }else if(intList[i] != -1)
+                    pointer = movingHead ;
+                dir = intList[i];
+                continue;
+            }
+            Triple triple = new Triple(intList[i++], intList[i++], intList[i]);
+            if(triple.triples[0] < 0 || triple.triples[1] < 0 || triple.triples[2] < 0)
+                break;
             ResultTriple resultTriple2 = new ResultTriple(triple);
             if(head == null){
                 head = resultTriple2;
                 pointer = resultTriple2;
                 movingHead = resultTriple2;
-                i++;
             }else {
-                int dir = intList.get(i++);
                 if (dir == 0) {
                     movingHead.setDown(resultTriple2);
                     movingHead = resultTriple2;
+                    pointer = movingHead;
                 }
                 if (dir == -1) {
+                    if(extraHead == null)
+                        extraHead = pointer;
                     pointer.setDown(resultTriple2);
                     pointer = resultTriple2;
                 }
+                if (dir == -4) {
+                    pointer = extraHead;
+                }
                 if (dir == -2) {
                     pointer.setRight(resultTriple2);
+                    resultTriple2.setLeft(pointer);
                     pointer = resultTriple2;
                 }
                 if (dir == -3) {
                     pointer.setLeft(resultTriple2);
+                    resultTriple2.setRight(pointer);
                     pointer = resultTriple2;
-                }
-                if(intList.get(i+1) == 0){
-                   pointer =  movingHead ;
-                   i++;
                 }
             }
         }
+        return head;
     }
 
 
