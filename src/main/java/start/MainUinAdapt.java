@@ -73,69 +73,24 @@ public class MainUinAdapt {
 
         System.out.println();
         System.out.println("starting ..");
-       // someTests();
         MainUinAdapt o = new MainUinAdapt();
-
-
-        //o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
-        //13 14 9 2
-   /*     o.convertNqToN3("/home/keg/Desktop/BTC/2/data.nq-", "/home/keg/Desktop/BTC/n3/btc-2.n3" , 0,15 ,1);
-        System.out.println("done converting..");
-        System.exit(0);
-        byte[] a = new byte[1000];
-        try {
-            System.in.read();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        o.openIndexes();
-        o.buildOppIndex();
-*/
-
-        //""
-        // "/home/ahmed/download/yago2_core_20101206.n3"
-        //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
 
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
-    //filePaths.add("/home/keg/Desktop/BTC/n3/btc-2.n3");
-   // filePaths.add("/home/keg/Desktop/BTC/n3/btc-13.n3");
     filePaths.add("/home/keg/rdf3x-0.3.7/bin/yago.n3");
     o.openIndexes();
-    System.out.println("loading extra index in memory..");
-  //  o.OPxP.loadQueryTimeCahce(); was used till jun 2019
-
-    //o.buildOppIndex();
     System.out.println("starting transporter ..");
-    transporter = new Transporter(new ArrayList<String>());
+    ArrayList<String> hosts = new ArrayList<>();
+    hosts.add("172.20.32.8");
+    hosts.add("172.20.32.7");
+    transporter = new Transporter(hosts);
 
     try {
         o.porcess(filePaths, quad);
     }catch (Exception e){
         e.printStackTrace();
     }
-    //System.out.println("building extra indexes .. ");
-    //o.buildSppIndex();
-   /* System.out.println(" press any key to continue building extra indexes, press e to exit , press s to close indexes");
-    Scanner scanner = new Scanner(System.in);
-    String res = scanner.next();
-    if(res.matches("e")){
-        System.out.println("exiting ..");
-        o.finish();
-        System.exit(0);
-    }
-    if(res.matches("s")){
-        o.finish();
-    }
-    System.out.println("building extra indexes OPxPs .. ");*/
-   // o.buildOppIndex();
-    //System.out.println("generating queries .. ");
-   // ArrayList<String> HeaveyQueries = QueryStuff.QueryGenrator.buildFastHeavyQuery(o.OPxP, o.OPS, o.vertecesID.size(), o.reverseDictionary, o.queryKeys);
-
-   // o.writePalinQueriesToFile(HeaveyQueries);
-   // o.printIndexesStat();
-
+    transporter.printSummary();
     o.listenToQuery();
 
 }catch (Exception e){
@@ -503,12 +458,7 @@ try {
         }
         System.out.println("done ");
     }
-/*
-    private void setVertexVisted(int v) {
-       QueryStuff.VertexGraph vertexGraph = verticies.get(v);
-       if(vertexGraph.dist == -1)
-           vertexGraph.dist = -2;
-    }*/
+
 
     private void setDistVervtices(int maxDist) {
         distanceVertex = new HashMap();
@@ -1091,61 +1041,6 @@ try {
         return null;
     }
 
-    private String[] getTripleFromTripleLine_old(String line, Integer errCount, Integer errSolved) {
-        String[] triple = new String[3];
-        triple = line.split(" ");
-        if (triple.length > 4) {
-            errCount++;
-            try {
-                triple[0] = line.substring(line.indexOf("<"), line.indexOf(">") + 1);
-                if (line.length() - line.replace(triple[0], "").length() > triple[0].length() + 2)
-                    line = line.replaceFirst(triple[0], "");
-                else
-                    line = line.replace(triple[0], "");
-
-            } catch (PatternSyntaxException e) {
-                e.printStackTrace();
-                return null;
-            }
-            try {
-                int from, to;
-                if (line.contains("\"")) {
-                    from = line.indexOf('\"');
-                    to = line.lastIndexOf('.');
-                    triple[2] = line.substring(from, to + 1);
-                } else {
-                    from = line.lastIndexOf("<");
-                    to = line.lastIndexOf(">") + 1;
-                    triple[2] = line.substring(from, to);
-                }
-                /*
-                if (line.contains("<") && !line.trim().startsWith("<")) {
-                    from = line.lastIndexOf("<");
-                    to = line.lastIndexOf(">") + 1;
-                    triple[2] = line.substring(from, to);
-                } else {
-                    from = line.indexOf('\"');
-                    to = line.lastIndexOf('.');
-                    triple[2] = line.substring(from, to + 1);
-                }*/
-
-                //triple[1] = line.replaceFirst(triple[2], "");
-                triple[1] = line.substring(0, from);
-                triple[1] = triple[1].trim();
-            } catch (StringIndexOutOfBoundsException e) {
-                e.printStackTrace();
-                System.out.println(triple[0] + "   " + triple[1] + "     " + triple[2]);
-                return null;
-            }
-            //continue;
-            errSolved++;
-        }
-        String[] arr = triple[2].split(">");
-        //arr[1] = arr[1].replace(".","");
-        triple[2] = arr[0] + ">";
-        return triple;
-
-    }
 
 
     private String stripItem(String []linet){
@@ -1912,14 +1807,7 @@ try {
 
     }
 
-    private boolean ignoreCovertedLine(int count) {
-        int[] arr = {543466, 1347540, 1347541, 1347548, 1347551, 3845831, 4102660, 4368091, 6007830};
-        for (int i = 0; i < arr.length; i++) {
-            if (count == arr[i] - 1 || count == arr[i])
-                return true;
-        }
-        return false;
-    }
+
 
 
     private void listenToQuery() {
