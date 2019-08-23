@@ -4,8 +4,11 @@ package distiributed;
 import triple.TriplePattern2;
 
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 
 public class Transporter {
@@ -29,6 +32,7 @@ public class Transporter {
         senderPool = new ArrayList<>();
         receiversPool = new ArrayList<>();
         receiverListenerMap = new HashMap<>();
+       // test();
         for(int i = 0 ; i < hosts.size() ; i++){
             Sender sender = new Sender(hosts.get(i) , myIP , this,i);
             senderPool.add(sender);
@@ -40,25 +44,29 @@ public class Transporter {
 
 
     private String removeMySelf(ArrayList<String> hosts) {
-        InetAddress ip = null;
-        String hostname;
+
+        Enumeration e = null;
         try {
-            ip = InetAddress.getLocalHost();
-            // hostname = ip.getHostName();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
+            e = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException e1) {
+            e1.printStackTrace();
         }
-
-        for(int i = 0 ; i <  hosts.size() ; i++){
-            String my = ip.toString();
-            if(my.matches(hosts.get(i))) {
-                hosts.remove(i);
-                return ip.toString();
+        while(e.hasMoreElements())
+        {
+            NetworkInterface n = (NetworkInterface) e.nextElement();
+            Enumeration ee = n.getInetAddresses();
+            while (ee.hasMoreElements())
+            {
+                InetAddress idd = (InetAddress) ee.nextElement();
+                for(int i = 0 ; i <  hosts.size() ; i++){
+                    if(idd.getHostAddress().matches(hosts.get(i))){
+                        String my = hosts.remove(i);
+                        return my;
+                    }
+                }
             }
-            return ip.toString();
         }
-
-        return ip.toString();
+        return null;
     }
 
     public void sendToAll(SendItem sendItem){
@@ -84,7 +92,7 @@ public class Transporter {
     }
 
     public void pingBack(int hostID) {
-        senderPool.get(hostID).ping();
+        senderPool.get(hostID).pingBack();
     }
 
     public void gotPingReply(int id) {
@@ -112,5 +120,13 @@ public class Transporter {
     public interface ReceiverListener{
          void gotResult(SendItem sendItem);
 
+    }
+
+
+
+    private void test(){
+        Receiver receiver = new Receiver(this , "172.20.32.8" ,0 );
+        Sender sender = new Sender("172.20.32.8" ,"172.20.32.8" , this , 0);
+        sender.ping();
     }
 }

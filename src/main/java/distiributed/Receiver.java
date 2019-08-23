@@ -11,20 +11,20 @@ import java.net.URLConnection;
 
 public class Receiver extends Thread {
 
-    private static final int BASE_PORT = 1290 ;
+    private static final int BASE_PORT = 49158;
     private int port;
     private final String host;
     private Transporter transporter;
     private boolean stop = false;
     private Socket server;
     private ServerSocket serverSocket;
-    private final  int id;
+    private final int id;
 
-    public Receiver(Transporter transporter , String host , int id){
+    public Receiver(Transporter transporter, String host, int id) {
         this.transporter = transporter;
         this.host = host;
-        String [] arr = host.split("\\.");
-        this.port = Integer.valueOf(arr[arr.length - 1])+BASE_PORT;
+        String[] arr = host.split("\\.");
+        this.port = Integer.valueOf(arr[arr.length - 1]) + BASE_PORT;
         this.id = id;
     }
 
@@ -35,43 +35,55 @@ public class Receiver extends Thread {
     }
 
 
-    private void closeSockets(){
+    private void closeSockets() {
         try {
-            if(server != null && !server.isClosed())
+            if (server != null && !server.isClosed())
                 server.close();
-            if(serverSocket != null && !serverSocket.isClosed())
+            if (serverSocket != null && !serverSocket.isClosed())
                 serverSocket.close();
+            System.out.println("Reciver socket with " + host + ":" + port + " is closed ");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void run(){
+    public void run() {
         try {
             serverSocket = new ServerSocket(port);
-            server = serverSocket.accept();
-            System.out.println("ready to receive from remote ..");
-            while (!stop){
+            try {
+                server = serverSocket.accept();
                 ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(server.getInputStream()));
-                int length = in.readInt();
-                if(length == Transporter.PING_MESSAGE){
-                    transporter.pingBack(id);
-                    continue;
+                System.out.println("ready to receive from remote at port:" + port);
+                while (!stop) {
+
+                    int length = in.readInt();
+                    if (length == Transporter.PING_MESSAGE) {
+                        System.out.println("recieved ping msg from " + host + ":" + port);
+                        transporter.pingBack(id);
+                        continue;
+                    }
+                    if (length == Transporter.PING_REPLY_MESSAGE) {
+                        System.out.println("recieved ping reply msg from " + host + ":" + port);
+                        transporter.gotPingReply(id);
+                        continue;
+                    }
+                    if (length > 0) {
+                        byte[] data = new byte[length];
+                        in.readFully(data, 0, data.length);
+                        SendItem sendItem = SendItem.fromByte(data);
+                        if (transporter != null)
+                            transporter.receiverGotResult(sendItem);
+                        System.err.println("got something .. ");
+                        /*if (host.matches("172.20.32.8")) { //TODO remove remove remove...
+                            System.out.println("sending it back");
+                            transporter.sendToAll(sendItem);
+                        }*/
+                    }
+
                 }
-                if(length == Transporter.PING_REPLY_MESSAGE){
-                    transporter.gotPingReply(id);
-                    continue;
-                }
-                if(length>0) {
-                    byte[] data = new byte[length];
-                    in.readFully(data, 0, data.length);
-                    SendItem sendItem = SendItem.fromByte(data);
-                    if(transporter != null)
-                        transporter.receiverGotResult(sendItem);
-                    System.err.println("got something .. ");
-                    //transporter.sendToAll(sendItem);
-                }
+            } catch (Exception e) {
+
             }
         } catch (IOException e) {
             e.printStackTrace();

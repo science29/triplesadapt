@@ -684,11 +684,13 @@ public class Query {
         temp = false;
         SendItem sendItem = new SendItem(0 ,triplePatterns2.get(0).getTriples() ,triplePatterns2.get(0).getHeadResultTriple());
         //sendItem.fromByte(sendItem.getBytes());
+        long start = System.nanoTime();
         transporter.sendToAll(sendItem);
         transporter.receive(0, new Transporter.ReceiverListener() {
             @Override
             public void gotResult(SendItem sendItem) {
-                System.err.println("got from remote:");
+                long end = System.nanoTime();
+                System.err.println("got from remote took:"+(end-start)/1000 + " Ms ");
                 triplePatterns2.get(0).headResultTriple = sendItem.resultTriple;
                 printAnswers(reverseDictionary ,false);
             }

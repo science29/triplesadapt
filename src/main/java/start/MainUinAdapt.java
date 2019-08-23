@@ -3,6 +3,8 @@ package start;
 import QueryStuff.*;
 import distiributed.SendItem;
 import distiributed.Transporter;
+import distiributed.test.MyClientSocket;
+import distiributed.test.MyServerSocket;
 import index.Dictionary;
 import index.*;
 import org.apache.commons.io.FileUtils;
@@ -73,6 +75,7 @@ public class MainUinAdapt {
 
         System.out.println();
         System.out.println("starting ..");
+
         MainUinAdapt o = new MainUinAdapt();
 
 try {

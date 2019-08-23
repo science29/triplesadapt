@@ -12,10 +12,10 @@ import java.util.concurrent.BlockingQueue;
 
 public class Sender{
 
-    private final static int BASE_PORT = 1290;
+    private final static int BASE_PORT = 49158;
     private final Transporter transporter;
     private int port ;
-    private static final int THREAD_COUNT_PER_HOST = 2;
+    private static final int THREAD_COUNT_PER_HOST = 1;
     private final String host;
     private final int hostID;
     private boolean connectionVerfied = false;
@@ -105,6 +105,7 @@ public class Sender{
                     long elapsedTimeS = (stopTime - startTime) / 1000;
                     connectionVerfied = true;
                     connectionMsg = "ping to "+host+ " took: "+elapsedTimeS+" Ms";
+                    System.out.println(connectionMsg);
                    /* if (GraphicsEnvironment.isHeadless()) {
                         // non gui mode
                     } else {
@@ -168,10 +169,16 @@ public class Sender{
         private void send(SendItem sendItem) {
             try {
                 if(sendItem.queryNo == Transporter.PING_MESSAGE){
+                    System.out.println("pinging to "+host+":"+port);
                     outToServer.writeInt(Transporter.PING_MESSAGE);
+                    outToServer.flush();
+                    return;
                 }
                 if(sendItem.queryNo == Transporter.PING_REPLY_MESSAGE){
+                    System.out.println("pinging back to "+host+":"+port);
                     outToServer.writeInt(Transporter.PING_REPLY_MESSAGE);
+                    outToServer.flush();
+                    return;
                 }
                 byte [] data = sendItem.getBytes();
                 outToServer.writeInt(data.length);

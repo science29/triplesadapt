@@ -114,9 +114,10 @@ public class SendItem {
         intList[0] = -11;
         intList[1] = -11;
         intList[2] = -11;
+        int q = intList[3];
         intList[3] = -11;
         ResultTriple resultTriple = buildFromSerial3(intList);
-        return new SendItem(intList[3], triple.triples , resultTriple);
+        return new SendItem(q, triple.triples , resultTriple);
     }
     public void serialize(ArrayList<Integer> intList){
         intList.add(triple[0]);
