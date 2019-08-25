@@ -229,6 +229,11 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
 
 
+    @Override
+    public V remove(Object key){
+        return hashMap.remove(key);
+    }
+
 
     @Override
     public boolean containsKey(Object key) {

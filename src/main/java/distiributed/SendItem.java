@@ -14,11 +14,17 @@ public class SendItem {
     public int queryNo;
     public int [] triple;
     public ResultTriple resultTriple;
+    public String msg;
 
     public SendItem(int queryNo, int [] triple, ResultTriple resultTriple) {
         this.queryNo = queryNo;
         this.triple = triple;
         this.resultTriple = resultTriple;
+    }
+
+    public SendItem(int queryNo, String msg){
+        this.queryNo = queryNo;
+        this.msg = msg;
     }
 
     public SendItem() {
@@ -35,15 +41,8 @@ public class SendItem {
             data[bIndex++] = (byte) (intList.get(i) >> 16);
             data[bIndex++] = (byte) (intList.get(i) >> 8);
             data[bIndex++] = (byte) (intList.get(i).intValue() /*>> 0*/);
-            //data[i] = intList.get(i).byteValue();
         }
 
-        /*ArrayList<Integer> intList2 = new ArrayList<>();
-        for(int i = 0 ; i < data.length ; ) {
-            int intval =  data[i++] << 24 | (data[i++] & 0xFF) << 16 | (data[i++] & 0xFF) << 8 | (data[i++] & 0xFF);
-            intList2.add(intval);
-        }
-*/
         return data;
     }
 
@@ -56,17 +55,7 @@ public class SendItem {
         int[] intArray = new int[intBuf.remaining()];
         intBuf.get(intArray);
 
-
         return deSerialize(intArray);
-
-        /*int [] triple = {intArray[0] , intArray[1] , intArray[2]};
-
-        intArray[0] = -11 ; intArray[1] = -11 ; intArray[2] = -11;
-        int queryNoT = intArray[3];
-        intArray[3] = -11;
-        ResultTriple resultTriple = buildFromSerial3(intArray );
-        SendItem sendItem = new SendItem(queryNoT ,triple  ,resultTriple );
-        return sendItem;*/
     }
 
 

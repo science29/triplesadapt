@@ -66,6 +66,7 @@ public class MainUinAdapt {
     private IndexCollection indexCollection;
     private int skipToLine = 0;
     private IndexesPool indexPool;
+    private HashMap<Integer,Boolean> borderTripleMap = new HashMap<>();
 
 
     public static void main(String[] args) {
@@ -78,13 +79,18 @@ public class MainUinAdapt {
 
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
-    filePaths.add("/home/keg/rdf3x-0.3.7/bin/yago.n3");
+    filePaths.add("/home/keg/Desktop/BTC/yago.n3");
     o.openIndexes();
     System.out.println("starting transporter ..");
     ArrayList<String> hosts = new ArrayList<>();
     hosts.add("172.20.32.8");
     hosts.add("172.20.32.7");
-    transporter = new Transporter(hosts);
+    transporter = new Transporter(hosts, new Transporter.RemoteQueryListener() {
+        @Override
+        public void gotQuery(String query, int queryNo) {
+            xx
+        }
+    });
 
     try {
         o.porcess(filePaths, quad);
@@ -836,7 +842,7 @@ try {
         op_S.sort(0,-1);
         POS.sort(2,0);
         SPO.sort(1,2);
-        indexPool = new IndexesPool();
+        indexPool = new IndexesPool(borderTripleMap);
         indexPool.addIndex(IndexesPool.Pso , POS , "Pso");
         indexPool.addIndex(IndexesPool.OPs , OPS , "OPs");
         indexPool.addIndex(IndexesPool.SPo , SPO , "SPo");
@@ -849,11 +855,50 @@ try {
         writeTempIndex(tempop_S,op_S);
         tempop_S = new HashMap<String, ArrayList<Triple>>();
         indexCollection = new IndexCollection();
+        //TODO remove ..
+        if(transporter.getHost().matches("172.20.32.7")) {
+            genereteTestBorder("<George_W._Bush>", "<Marilyn_Quayle>", "y:hasPredecessor");
+            genereteTestBorder("<George_W._Bush>", "<http://en.wikipedia.org/wiki/Marilyn_Quayle>", "y:describes");
+        }else {
+            genereteTestBorder("<Barbara_Bush>", "<Fahrenheit_9%2F11>", "y:actedIn");
+            genereteTestBorder("<Barbara_Bush>", "<Courting_Condi>", "y:actedIn");
+        }
   //      indexCollection.addIndex(SPO, new IndexType(1,0,0));
   //      indexCollection.addIndex(OPS, new IndexType(1,1,0));
   //      indexCollection.addIndex(POS, new IndexType(1,1,1));
   //      indexCollection.addIndexStringKey(op_S, new IndexType(1,0,1));
 
+
+    }
+
+
+
+    private void genereteTestBorder(String borderVertex , String vertexToRemove , String predicateToRemve){
+
+        //create border stuff
+//<George_W._Bush> is a border
+        //mark it as border in index pool
+
+            borderTripleMap.put(dictionary.get(borderVertex), true);
+
+            MyHashMap<Integer, ArrayList<Triple>> Pso = indexPool.getIndex(IndexesPool.Pso);
+            MyHashMap<Integer, ArrayList<Triple>> SPo = indexPool.getIndex(IndexesPool.SPo);
+            MyHashMap<Integer, ArrayList<Triple>> OPs = indexPool.getIndex(IndexesPool.OPs);
+
+
+            int codeRemove = dictionary.get(vertexToRemove);
+
+            ArrayList<Triple> t1 = SPo.remove(codeRemove);
+            ArrayList<Triple> t2 = OPs.remove(codeRemove);
+
+
+            ArrayList<Triple> list = Pso.get(dictionary.get(predicateToRemve));
+            for (int i = 0; i < list.size(); i++) {
+                if (list.get(i).triples[0] == codeRemove) {
+                    list.remove(i);
+                    i--;
+                }
+            }
 
     }
 
@@ -1812,14 +1857,7 @@ try {
 
 
     private void listenToQuery() {
-        /*
-        int a = 2;
-        dictionary = new HashMap();
-            dictionary.put("<http://mpii.de/yago/resource/describes>",a++);
-            dictionary.put("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>",a++);
-            dictionary.put("<http://www.w3.org/2000/01/rdf-schema#subClassOf>",a++);
-            dictionary.put("<http://mpii.de/yago/resource/isPartOf>",a++);
-            dictionary.put("<http://mpii.de/yago/resource/wordnet_transportation_system_104473432>",a++);*/
+
         String testquery = "select ?x1 ?x2 ?x3 ?x4  where {?x3 y:describes ?x2.?x2 y:created ?x1.?x1 y:hasSuccessor ?x4.?x4 rdfs:label ?x5}";
         new Query(dictionary, testquery,indexPool , transporter);//warm up!!
         Scanner scanner = new Scanner(System.in);
@@ -1841,60 +1879,28 @@ try {
                         memPercent = Double.valueOf(s);
                     if(memPercent > 1)
                         memPercent = memPercent/100;
-
-                    /*ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQuery(OPxP, OPS, vertecesID.size(), reverseDictionary, queryKeys , memPercent);*/
                     ArrayList<String> HeaveyQueries = QueryGenrator.buildFastHeavyQueryZero(reverseDictionary , OPS , 4 , 4);
                     writePalinQueriesToFile(HeaveyQueries);
                     System.out.println("done ..queries written to file..");
                     continue;
                 }
                 StringBuilder extTime = new StringBuilder();
-                /*if(Query.sep()) {
-                    Query spQuery_t = new Query(dictionary, query ,indexPool);
-                     //spQuery_t.findChainQueryAnswer(OPxP, op_S, extTime);
-                    spQuery_t.findQueryAnswer();
-                    extTime = new StringBuilder();
-                }*/
+
                 long startTime = System.nanoTime();
                 Query spQuery = new Query(dictionary, query,indexPool,transporter);
                 long parseTime = System.nanoTime();
-                //spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
-                /*spQuery.findQueryAnswer();
-                long stopTime = System.nanoTime();
-                long elapsedTime = (stopTime - startTime) / 1000;
-                spQuery.printAnswers(reverseDictionary , true);
-                System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
-
-*/
+                transporter.sendQuery(query);
                 spQuery.findQueryAnswer();
                 long stopTime = System.nanoTime();
                 long elapsedTimeS = (stopTime - startTime) / 1000;
 
-
-             //   transporter.sendToAll(new SendItem(0 ,spQuery.triplePatterns2.get(0).getTriples(),spQuery.triplePatterns2.get(0).getHeadResultTriple()));
                 spQuery.printAnswers(reverseDictionary , false);
 
                 System.out.println("time to execute qeury single thread:" + elapsedTimeS + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
 
-              /*  long startTime2 = System.nanoTime();
-                Query spQueryMultiTh = new Query(dictionary, query,indexPool ,transporter);
-                spQueryMultiTh.findQueryAnswer(executersPool, new TriplePattern2.ExecuterCompleteListener() {
-                    @Override
-                    public void onComplete() {
-                        long stopTime = System.nanoTime();
-                        long elapsedTime = (stopTime - startTime2) / 1000;
-                        spQueryMultiTh.printAnswers(reverseDictionary , false);
-                        System.out.println("time to execute qeury:" + (elapsedTime) + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
-                        spQueryMultiTh.printAnswers(reverseDictionary , false);
-                        System.out.println("time to execute qeury:" + (elapsedTime) + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
-                        dictionary.reLoad();
-                    }
-                });*/
-
             }catch (Exception e){
                 System.err.println("unable to parse query..");
                 e.printStackTrace();
-              //  e.printStackTrace();
             }
         }
     }

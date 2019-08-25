@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 public class TriplePattern2 {
     public final static int thisIsVariable = -1;
+    private final IndexesPool indexesPool;
     private  Transporter transporter;
 
     private int triples[] ;
@@ -64,6 +65,7 @@ public class TriplePattern2 {
         Pso = indexesPool.getIndex(IndexesPool.Pso);
         SPo = indexesPool.getIndex(IndexesPool.SPo);
         OPs = indexesPool.getIndex(IndexesPool.OPs);
+        this.indexesPool = indexesPool;
 
         this.transporter = transporter ;
     }
@@ -75,6 +77,7 @@ public class TriplePattern2 {
         this.SPo = triplePattern.SPo;
         this.OPs = triplePattern.OPs;
         withinIndex = new WithinIndex(0);
+        indexesPool = null;
     }
 
     public static TriplePattern2 getThreadReadyCopy(TriplePattern2 triplePattern) {
@@ -557,9 +560,11 @@ public class TriplePattern2 {
         }
     }
 
-    private boolean isBorder(Triple hisTriple , int hisIndex){
-        return  false;
-        //TODO impliment this
+    private boolean isBorder(Triple triple , int hisIndex){
+        if(indexesPool != null)
+            return indexesPool.isBorder(triple,hisIndex);
+        return false;
+
     }
 
 

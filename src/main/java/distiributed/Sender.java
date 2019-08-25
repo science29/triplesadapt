@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.stream.Stream;
 
 public class Sender{
 
@@ -52,6 +53,15 @@ public class Sender{
     public void ping() {
         try {
             sharedWorkQueue.put(new SendItem(Transporter.PING_MESSAGE , null ,null));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void sendQuery(String query , int queryNo){
+        try {
+            sharedWorkQueue.put(new SendItem(queryNo , query));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -151,23 +161,14 @@ public class Sender{
             System.out.println("socket to " + host + " established..");
         }
 
-      /*  private void send(SendItem sendItem) {
-            try {
 
-                ArrayList<Integer> list  = new ArrayList<>();
-                sendItem.serialize(list);
-                outToServer.writeInt(list.size());
-                for(int i =0 ; i < list.size() ; i++){
-                    outToServer.writeInt(list.get(i));
+        private synchronized void send(SendItem sendItem) {
+            try {
+                if(sendItem.msg != null){
+                    outToServer.writeInt(Transporter.QUERY_MSG);
+                    outToServer.writeInt(sendItem.queryNo);
+                    outToServer.writeChars(sendItem.msg);
                 }
-                outToServer.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }*/
-
-        private void send(SendItem sendItem) {
-            try {
                 if(sendItem.queryNo == Transporter.PING_MESSAGE){
                     System.out.println("pinging to "+host+":"+port);
                     outToServer.writeInt(Transporter.PING_MESSAGE);

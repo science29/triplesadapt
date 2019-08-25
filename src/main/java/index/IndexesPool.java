@@ -22,10 +22,14 @@ public class IndexesPool {
     public final static int Ops = 11;
     public final static int OPs = 12;
 
-    HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>> pool ;
 
-    public IndexesPool(){
-        pool = new HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>>();
+    HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>> pool;
+
+    final HashMap<Integer , Boolean> isBorder;
+
+    public IndexesPool(HashMap<Integer , Boolean> isBorder){
+        pool = new HashMap<>();
+        this.isBorder = isBorder;
     }
 
     public void addIndex(MyHashMap index , int type){
@@ -40,5 +44,10 @@ public class IndexesPool {
     public void addIndex(int type, HashMap<Integer, ArrayList<Triple>> map , String name ) {
         MyHashMap<Integer , ArrayList<Triple>> cov = new MyHashMap<Integer, ArrayList<Triple>>(name , map);
         addIndex(cov , type);
+    }
+
+
+    public boolean isBorder(Triple triple , int index){
+        return isBorder.containsKey(triple.triples[index]);
     }
 }

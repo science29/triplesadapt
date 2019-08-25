@@ -1,33 +1,32 @@
 package distiributed;
 
 
-import triple.TriplePattern2;
-
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 
 public class Transporter {
 
-
-    private static final int PORT = 1984;
     private final ArrayList<String> hosts;
     private final ArrayList<Sender> senderPool;
     private final ArrayList<Receiver> receiversPool;
-    private final int soketsPerHost = 3;
+
     private final HashMap<Integer , ReceiverListener> receiverListenerMap;
 
     public static int PING_MESSAGE = -999;
     public static int PING_REPLY_MESSAGE = -998;
+    public static int QUERY_MSG = -997;
+    private final String myIP;
+
+    private final RemoteQueryListener remoteQueryListener;
 
 
-
-    public Transporter(ArrayList<String> hosts){
-        String myIP = removeMySelf(hosts);
+    public Transporter(ArrayList<String> hosts , RemoteQueryListener remoteQueryListener){
+        myIP = removeMySelf(hosts);
+        this.remoteQueryListener = remoteQueryListener;
         this.hosts = hosts;
         senderPool = new ArrayList<>();
         receiversPool = new ArrayList<>();
@@ -117,16 +116,28 @@ public class Transporter {
         }
     }
 
+    public String getHost() {
+        return myIP;
+    }
+
+    public void sendQuery(String query) {
+
+    }
+
+    public void recievedQuery(String query , int queryNo) {
+        if(remoteQueryListener != null)
+            remoteQueryListener.gotQuery(query , queryNo);
+    }
+
     public interface ReceiverListener{
          void gotResult(SendItem sendItem);
 
     }
 
 
-
-    private void test(){
-        Receiver receiver = new Receiver(this , "172.20.32.8" ,0 );
-        Sender sender = new Sender("172.20.32.8" ,"172.20.32.8" , this , 0);
-        sender.ping();
+    public interface RemoteQueryListener{
+        void gotQuery(String query , int queryNo);
     }
+
+
 }

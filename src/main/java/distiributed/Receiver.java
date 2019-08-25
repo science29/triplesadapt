@@ -58,6 +58,14 @@ public class Receiver extends Thread {
                 while (!stop) {
 
                     int length = in.readInt();
+
+                    if(length == Transporter.QUERY_MSG){
+                        System.out.print("Received Query from "+host);
+                        int queryNo = in.readInt();
+                        String query = in.readUTF();
+                        System.out.print("Received Query from "+host + " "+query);
+                        transporter.recievedQuery(query , queryNo);
+                    }
                     if (length == Transporter.PING_MESSAGE) {
                         System.out.println("recieved ping msg from " + host + ":" + port);
                         transporter.pingBack(id);
@@ -83,7 +91,7 @@ public class Receiver extends Thread {
 
                 }
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
         } catch (IOException e) {
             e.printStackTrace();

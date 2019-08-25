@@ -696,50 +696,6 @@ public class Query {
             }
         });
 
-       /* ArrayList<Integer> list = new ArrayList<>();
-        SendItem.buildSerial3(triplePatterns2.get(0).getHeadResultTriple() , list , 0,reverseDictionary );
-        triplePatterns2.get(0).headResultTriple =  SendItem.buildFromSerial3( list);
-
-
-        byte[] b = sendItem.getBytes();
-        sendItem = SendItem.fromByte(b);
-        triplePatterns2.get(0).headResultTriple = sendItem.resultTriple;*/
-
-
-
-       /* if (answerMap == null) {
-            System.err.println("No answer to print ..");
-            return;
-        }*/
-
-      /*  for(int i = 0 ; i< triplePatterns2.size() ; i++){
-            List<Triple> res = triplePatterns2.get(i).getResult();
-            for(int j=0 ; j < res.size() ; j++){
-                String str = reverseDictionary.get(res.get(j).triples[0]) + " "+reverseDictionary.get(res.get(j).triples[1])+" "+reverseDictionary.get(res.get(j).triples[2]);
-           //     System.out.println(str);
-            }
-        }*/
-       /*
-        int i = 0;
-        //TODO this is not effceint enough
-        while (true) {
-            Iterator it = answerMap.entrySet().iterator();
-            boolean found = false;
-            while (it.hasNext()) {
-                Map.Entry pair = (Map.Entry) it.next();
-                ArrayList<Triple> answer = (ArrayList<Triple>) pair.getValue();
-                TriplePattern triplePattern = (TriplePattern) pair.getKey();
-                if (i < answer.size()) {
-                    Triple triple = answer.get(i);
-                    found = true;
-                    String tripleStr = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]) + ".";
-                    System.out.println(tripleStr);
-                }
-            }
-            if (!found)
-                return;
-            i++;
-        }*/
     }
 
     private void qeuryDone() {
