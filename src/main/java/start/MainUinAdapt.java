@@ -3,8 +3,6 @@ package start;
 import QueryStuff.*;
 import distiributed.SendItem;
 import distiributed.Transporter;
-import distiributed.test.MyClientSocket;
-import distiributed.test.MyServerSocket;
 import index.Dictionary;
 import index.*;
 import org.apache.commons.io.FileUtils;
