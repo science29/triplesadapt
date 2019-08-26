@@ -579,7 +579,7 @@ public class Query {
         //TODO do this
 ///        triplePattern.setProjected(projected);
         triplePatterns.add(triplePattern);
-        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool ,transporter);
+        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool ,transporter,ID);
         connectTriplePatterns(triplePattern2);
         triplePatterns2.add(triplePattern2);
 
@@ -679,7 +679,7 @@ public class Query {
 
 
 
-        if(!temp)
+    /*    if(!temp)
             return;
         temp = false;
         SendItem sendItem = new SendItem(0 ,triplePatterns2.get(0).getTriples() ,triplePatterns2.get(0).getHeadResultTriple());
@@ -695,7 +695,7 @@ public class Query {
                 printAnswers(reverseDictionary ,false);
             }
         });
-
+*/
     }
 
     private void qeuryDone() {
@@ -728,6 +728,8 @@ public class Query {
 
         xx
     }
+
+
 
     @Deprecated
     class QueryWorker extends Thread /*implements Runnable*/{

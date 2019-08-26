@@ -1,6 +1,8 @@
 package distiributed;
 
 
+import triple.TriplePattern2;
+
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -23,6 +25,8 @@ public class Transporter {
 
     private final RemoteQueryListener remoteQueryListener;
 
+    private final HashMap<Integer , ArrayList<TriplePattern2>> waitngTriplePatterns;
+
 
     public Transporter(ArrayList<String> hosts , RemoteQueryListener remoteQueryListener){
         myIP = removeMySelf(hosts);
@@ -39,6 +43,7 @@ public class Transporter {
             receiver.start();
             receiversPool.add(receiver);
         }
+        waitngTriplePatterns = new HashMap<>();
     }
 
 
@@ -82,6 +87,17 @@ public class Transporter {
             receiverListenerMap.remove(queryNo);
     }
 
+    public void recievedQuery(String query , int queryNo) {
+        if(remoteQueryListener != null)
+            remoteQueryListener.gotQuery(query , queryNo);
+    }
+
+    public void receive(TriplePattern2 triplePattern2, int queryNo) {
+        ArrayList<TriplePattern2> list = waitngTriplePatterns.get(queryNo);
+        if(list == null)
+            list = new ArrayList<>();
+        list.add(triplePattern2);
+    }
 
 
     public void receiverGotResult(SendItem sendItem) {
@@ -89,6 +105,10 @@ public class Transporter {
         ReceiverListener listener = receiverListenerMap.get(sendItem.queryNo);
         if(listener != null)
             listener.gotResult(sendItem);
+        ArrayList<TriplePattern2> list = waitngTriplePatterns.get(sendItem.queryNo);
+        for(int i = 0 ;i < list.size() ; i++){
+            list.get(i).gotRemoteBorderResult();
+        }
     }
 
     public void pingBack(int hostID) {
@@ -125,10 +145,6 @@ public class Transporter {
 
     }
 
-    public void recievedQuery(String query , int queryNo) {
-        if(remoteQueryListener != null)
-            remoteQueryListener.gotQuery(query , queryNo);
-    }
 
     public interface ReceiverListener{
          void gotResult(SendItem sendItem);

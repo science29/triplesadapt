@@ -1,6 +1,7 @@
 package triple;
 
 import QueryStuff.ExecutersPool;
+import QueryStuff.Query;
 import QueryStuff.QueryExecuter;
 import distiributed.SendItem;
 import distiributed.Transporter;
@@ -17,6 +18,7 @@ public class TriplePattern2 {
     private final IndexesPool indexesPool;
     public boolean pendingBorder = false;
     private  Transporter transporter;
+    private final int queryNo;
 
     private int triples[] ;
    // public String stringTriple[] = new String[3];
@@ -53,7 +55,7 @@ public class TriplePattern2 {
         withinIndex = new WithinIndex(0);
     }*/
 
-    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool , Transporter transporter) {
+    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool , Transporter transporter, int queryNo) {
         triples = new int[3];
         triples[0] = triplePattern.triples[0];
         triples[1] = triplePattern.triples[1];
@@ -69,6 +71,7 @@ public class TriplePattern2 {
         this.indexesPool = indexesPool;
 
         this.transporter = transporter ;
+        this.queryNo = queryNo;
     }
 
 
@@ -78,7 +81,10 @@ public class TriplePattern2 {
         this.SPo = triplePattern.SPo;
         this.OPs = triplePattern.OPs;
         withinIndex = new WithinIndex(0);
-        indexesPool = null;
+        indexesPool = triplePattern.indexesPool;
+        this.queryNo = triplePattern.queryNo;
+        this.transporter = triplePattern.transporter;
+        //TODO copy executer pool?
     }
 
     public static TriplePattern2 getThreadReadyCopy(TriplePattern2 triplePattern) {
@@ -544,6 +550,8 @@ public class TriplePattern2 {
                     myResultTriple.left = hisResultTriple;
                 }*/
             }
+            if(border)
+                transporter.receive(this , queryNo );xx
             return myHeadResultTriple;
         }else {
             if(border) {
@@ -746,7 +754,28 @@ public class TriplePattern2 {
         return headResultTriple;
     }
 
+    public void gotRemoteBorderResult(SendItem sendItem) {
+        if(triples[0] == sendItem.triple[0] && triples[1] == sendItem.triple[1] && triples[2] == sendItem.triple[2]) {
+            setRemoteResult(sendItem.resultTriple);
+            return;
+        }
+        for(int i = 0 ; i < lefts.size() ; i++){
+            if(lefts.get(i).triples[0] == sendItem.triple[0] && lefts.get(i).triples[1] == sendItem.triple[1] && lefts.get(i).triples[2] == sendItem.triple[2]) {
+                lefts.get(i).setRemoteResult(sendItem.resultTriple);
+                return;
+            }
+        }
+        for(int i = 0 ; i < rights.size() ; i++){
+            if(rights.get(i).triples[0] == sendItem.triple[0] && rights.get(i).triples[1] == sendItem.triple[1] && rights.get(i).triples[2] == sendItem.triple[2]) {
+                rights.get(i).setRemoteResult(sendItem.resultTriple);
+                return;
+            }
+        }
+    }
 
+    private void setRemoteResult(ResultTriple resultTriple) {
+        this.headRemoteBorder = resultTriple;
+    }
 
 
     public class WithinIndex {
