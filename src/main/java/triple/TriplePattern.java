@@ -12,7 +12,7 @@ public class TriplePattern {
     public int fixedTriples[] = new int[3];
     public HashMap<Integer , Integer> variablesIndex;
     public String tempID ; //for debug purpose only
-
+    public boolean pendingBorder = false;
 
 
     //int varaibles[] = new int[3];

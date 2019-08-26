@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 public class TriplePattern2 {
     public final static int thisIsVariable = -1;
     private final IndexesPool indexesPool;
+    public boolean pendingBorder = false;
     private  Transporter transporter;
 
     private int triples[] ;
@@ -223,7 +224,8 @@ public class TriplePattern2 {
             map.put(resultTripleHis.triple.triples[hisIndex],resultTripleHis);
             resultTripleHis = resultTripleHis.down;
         }
-
+        if(map.size() == 0)
+            return;
         while(resultTripleMe != null){
             //TODO if called more than one time ?
             if(map.containsKey(resultTripleMe.triple.triples[myIndex])){
@@ -531,6 +533,7 @@ public class TriplePattern2 {
                 if(border) {
                     addTempResultBorder(myResultTriple);
                     myResultTriple.setBorder();
+                    pendingBorder = true;
                 }
                 /*if(hisIndex == 0) {
                     hisResultTriple.left = myResultTriple
@@ -543,8 +546,10 @@ public class TriplePattern2 {
             }
             return myHeadResultTriple;
         }else {
-            if(border)
+            if(border) {
+                pendingBorder = true;
                 return ResultTriple.getDummyBorder();
+            }
             return null;
         }
 
@@ -622,7 +627,7 @@ public class TriplePattern2 {
 
 
 
-    private void rightLeftBorderEvaluation(){
+    public void rightLeftBorderEvaluation(){
         for(int i = 0; i < lefts.size() ; i++){
             hashJoinBorder(lefts.get(i) , 0 , 2);
             lefts.get(i).rightLeftBorderEvaluation();

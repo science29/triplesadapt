@@ -712,7 +712,24 @@ public class Query {
         return false;
     }
 
-@Deprecated
+    public boolean isPendingBorder() {
+        for(int i = 0 ; i < triplePatterns.size() ; i++){
+            if(triplePatterns2.get(i).pendingBorder)
+                return true;
+        }
+        return false;
+    }
+
+    public void borderEvaluation() {
+        triplePatterns2.get(0).rightLeftBorderEvaluation();
+    }
+
+    public void setBorderChangeListener() {
+
+        xx
+    }
+
+    @Deprecated
     class QueryWorker extends Thread /*implements Runnable*/{
         private final HashMap<String, ArrayList<Triple>> opS;
         private Query.QueryWorker mainWorker;

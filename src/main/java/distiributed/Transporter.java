@@ -85,6 +85,7 @@ public class Transporter {
 
 
     public void receiverGotResult(SendItem sendItem) {
+        //TODO remove the listener if finished
         ReceiverListener listener = receiverListenerMap.get(sendItem.queryNo);
         if(listener != null)
             listener.gotResult(sendItem);
