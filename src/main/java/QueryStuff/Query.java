@@ -39,7 +39,8 @@ public class Query {
     private ArrayList<ResultTriple> results;
     private ExecutersPool executersPool;
 
-    public final int ID;
+    public  int ID;
+    private QueryWorkersPool queryWorkersPool;
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.ID = new Random().nextInt();
@@ -257,9 +258,16 @@ public class Query {
     }
 
 
-    public void findQueryAnswer(ExecutersPool executersPool , TriplePattern2.ExecuterCompleteListener executerCompleteListener){
+
+    public void findQueryAnswer(ExecutersPool executersPool , QueryWorkersPool queryWorkersPool , TriplePattern2.ExecuterCompleteListener executerCompleteListener){
         this.executersPool = executersPool;
+        this.queryWorkersPool = queryWorkersPool;
         executersPool.setFinalListener(executerCompleteListener);
+        findQueryAnswer();
+    }
+
+    public void findQueryAnswer(QueryWorkersPool queryWorkersPool){
+        this.queryWorkersPool = queryWorkersPool;
         findQueryAnswer();
     }
 
@@ -655,7 +663,7 @@ public class Query {
                         boolean moreThanOne = false;
                         do {
                             Triple triple = pHTriple.getTriple();
-                            if (!silent) {
+                            if (!silent && triple != null) {
                                 String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
                                 System.out.print(str + " . ");
                             }
@@ -721,14 +729,23 @@ public class Query {
     }
 
     public void borderEvaluation() {
-        triplePatterns2.get(0).rightLeftBorderEvaluation();
+        triplePatterns2.get(0).rightLeftBorderEvaluation(triplePatterns2.get(0));
     }
 
-    public void setBorderChangeListener() {
 
-        xx
+
+    public void gotRemoteResult(SendItem sendItem) {
+        triplePatterns2.get(0).gotRemoteBorderResult(sendItem);
+        if(queryWorkersPool != null)
+            queryWorkersPool.moveFormPendingToWorking(sendItem.queryNo);
     }
 
+    public SendItem getToSendItem() {
+        if(triplePatterns2.get(0).getHeadTempBorder() == null)
+            return null;
+        SendItem sendItem = new SendItem(ID ,triplePatterns2.get(0).getTriples() , triplePatterns2.get(0).getHeadTempBorder());
+        return sendItem;
+    }
 
 
     @Deprecated

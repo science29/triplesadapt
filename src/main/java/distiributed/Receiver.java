@@ -58,7 +58,7 @@ public class Receiver extends Thread {
                 while (!stop) {
 
                     int length = in.readInt();
-
+                    System.err.println("got something .. length "+length);
                     if(length == Transporter.QUERY_MSG){
                         System.out.print("Received Query from "+host);
                         int queryNo = in.readInt();
@@ -82,7 +82,7 @@ public class Receiver extends Thread {
                         SendItem sendItem = SendItem.fromByte(data);
                         if (transporter != null)
                             transporter.receiverGotResult(sendItem);
-                        System.err.println("got something .. ");
+
                         /*if (host.matches("172.20.32.8")) { //TODO remove remove remove...
                             System.out.println("sending it back");
                             transporter.sendToAll(sendItem);

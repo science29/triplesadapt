@@ -15,11 +15,12 @@ public class SendItem {
     public int [] triple;
     public ResultTriple resultTriple;
     public String msg;
+    private ArrayList<ResultTriple> resultTripleList;
 
-    public SendItem(int queryNo, int [] triple, ResultTriple resultTriple) {
+    public SendItem(int queryNo, int [] triple, ArrayList<ResultTriple> resultTripleList) {
         this.queryNo = queryNo;
         this.triple = triple;
-        this.resultTriple = resultTriple;
+        this.resultTripleList = resultTripleList;
     }
 
     public SendItem(int queryNo, String msg){
@@ -113,11 +114,12 @@ public class SendItem {
         intList.add(triple[1]);
         intList.add(triple[2]);
         intList.add(queryNo);
-        buildSerial3(resultTriple , intList , 0);
+        buildSerial3(resultTripleList , intList , 0);
     }
 
-    public void buildSerial3(ResultTriple resultTriple, ArrayList<Integer> intList , int direction){
-        if(resultTriple == null) {
+    public void buildSerial3(ArrayList<ResultTriple> resultTripleList, ArrayList<Integer> intList , int direction){
+        ResultTriple resultTriple = resultTripleList.get(0);
+        if(resultTriple == null || resultTriple.getTriple() == null) {
             return;
         }
         if(direction == 0)
@@ -137,7 +139,8 @@ public class SendItem {
                 if(direction != -1)
                     intList.add(-1);
                 buildSerial3(resultTriple.getDown(), intList, -1);
-                intList.add(direction);
+                if(direction != -1)
+                    intList.add(direction);
             }
             if(direction == -2)
                 buildSerial3(resultTriple.getRight() , intList , direction);

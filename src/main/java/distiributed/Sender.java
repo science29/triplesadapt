@@ -59,7 +59,7 @@ public class Sender{
     }
 
 
-    public void sendQuery(String query , int queryNo){
+    public void sendQuery(String query ,int queryNo ){
         try {
             sharedWorkQueue.put(new SendItem(queryNo , query));
         } catch (InterruptedException e) {
@@ -167,7 +167,9 @@ public class Sender{
                 if(sendItem.msg != null){
                     outToServer.writeInt(Transporter.QUERY_MSG);
                     outToServer.writeInt(sendItem.queryNo);
-                    outToServer.writeChars(sendItem.msg);
+                    outToServer.writeUTF(sendItem.msg);
+                    outToServer.flush();
+                    return;
                 }
                 if(sendItem.queryNo == Transporter.PING_MESSAGE){
                     System.out.println("pinging to "+host+":"+port);

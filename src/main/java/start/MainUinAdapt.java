@@ -68,6 +68,8 @@ public class MainUinAdapt {
     private IndexesPool indexPool;
     private HashMap<Integer,Boolean> borderTripleMap = new HashMap<>();
 
+    private QueryWorkersPool queryWorkersPool;
+
 
     public static void main(String[] args) {
 
@@ -85,10 +87,13 @@ try {
     ArrayList<String> hosts = new ArrayList<>();
     hosts.add("172.20.32.8");
     hosts.add("172.20.32.7");
+
     transporter = new Transporter(hosts, new Transporter.RemoteQueryListener() {
         @Override
         public void gotQuery(String query, int queryNo) {
-            xx
+            if(o.queryWorkersPool != null)
+                o.queryWorkersPool.addQuery(query , queryNo);
+
         }
     });
 
@@ -857,21 +862,78 @@ try {
         indexCollection = new IndexCollection();
         //TODO remove ..
         if(transporter.getHost().matches("172.20.32.7")) {
-            genereteTestBorder("<George_W._Bush>", "<Marilyn_Quayle>", "y:hasPredecessor");
-            genereteTestBorder("<George_W._Bush>", "<http://en.wikipedia.org/wiki/Marilyn_Quayle>", "y:describes");
+            genereteTestBorder2("<Marilyn_Quayle>", "<Barbara_Bush>");
+           // genereteTestBorder("<George_W._Bush>", "<Marilyn_Quayle>", "y:hasPredecessor");
+           // genereteTestBorder("<George_W._Bush>", "<http://en.wikipedia.org/wiki/Marilyn_Quayle>", "y:describes");
         }else {
-            genereteTestBorder("<Barbara_Bush>", "<Fahrenheit_9%2F11>", "y:actedIn");
-            genereteTestBorder("<Barbara_Bush>", "<Courting_Condi>", "y:actedIn");
+            genereteTestBorder2("<George_W._Bush>", "<Barbara_Bush>");
+            //genereteTestBorder("<Barbara_Bush>", "<Fahrenheit_9%2F11>", "y:actedIn");
+           // genereteTestBorder("<Barbara_Bush>", "<Courting_Condi>", "y:actedIn");
         }
+
+
+
+
   //      indexCollection.addIndex(SPO, new IndexType(1,0,0));
   //      indexCollection.addIndex(OPS, new IndexType(1,1,0));
   //      indexCollection.addIndex(POS, new IndexType(1,1,1));
   //      indexCollection.addIndexStringKey(op_S, new IndexType(1,0,1));
-
-
     }
 
 
+    private void genereteTestBorder2(String borderVertex , String vertexTokeep){
+        int codeBorder = dictionary.get(borderVertex);
+        int codeToKeep = dictionary.get(vertexTokeep);
+
+        borderTripleMap.put(dictionary.get(borderVertex), true);
+
+        MyHashMap<Integer, ArrayList<Triple>> Pso = indexPool.getIndex(IndexesPool.Pso);
+        MyHashMap<Integer, ArrayList<Triple>> SPo = indexPool.getIndex(IndexesPool.SPo);
+        MyHashMap<Integer, ArrayList<Triple>> OPs = indexPool.getIndex(IndexesPool.OPs);
+
+        ArrayList<Triple> list = SPo.get(codeBorder);
+
+        for(int i = 0 ; i < list.size() ; i++){
+          Triple t1 = list.get(i);
+          if(t1.triples[2] != codeToKeep){
+              ArrayList<Triple> listP = Pso.get(t1.triples[1]);
+              for(int j = 0; j < listP.size() ; j++){
+                  if(listP.get(i).triples[0] == codeBorder && listP.get(i).triples[2] != codeToKeep) {
+                      listP.remove(j);
+                      j--;
+                  }
+              }
+              if(listP.size() == 0)
+                  Pso.remove(t1.triples[1]);
+              list.remove(i);
+              i--;
+          }
+        }
+        if(list.size() == 0)
+            SPo.remove(codeBorder);
+
+
+        list = OPs.get(codeBorder);
+
+        for(int i = 0 ; i < list.size() ; i++){
+            Triple t1 = list.get(i);
+            if(t1.triples[0] != codeToKeep){
+                ArrayList<Triple> listP = Pso.get(t1.triples[1]);
+                for(int j = 0; j < listP.size() ; j++){
+                    if(listP.get(i).triples[2] == codeBorder && listP.get(i).triples[0] != codeToKeep) {
+                        listP.remove(j);
+                        j--;
+                    }
+                    if(listP.size() == 0)
+                        Pso.remove(t1.triples[1]);
+                }
+                list.remove(i);
+                i--;
+            }
+        }
+        if(list.size() == 0)
+            OPs.remove(codeBorder);
+    }
 
     private void genereteTestBorder(String borderVertex , String vertexToRemove , String predicateToRemve){
 
@@ -899,7 +961,6 @@ try {
                     i--;
                 }
             }
-
     }
 
 
@@ -1862,6 +1923,7 @@ try {
         new Query(dictionary, testquery,indexPool , transporter);//warm up!!
         Scanner scanner = new Scanner(System.in);
         ExecutersPool executersPool = new ExecutersPool(7);
+        queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool);
         while (true) {
             try {
                 System.out.println("Please enter Sparql QueryStuff.Query:");
@@ -1885,19 +1947,23 @@ try {
                     continue;
                 }
                 StringBuilder extTime = new StringBuilder();
+                int queryNo = queryWorkersPool.addQuery(query);
+                transporter.sendQuery(query , queryNo);
 
-                long startTime = System.nanoTime();
+
+               /*long startTime = System.nanoTime();
                 Query spQuery = new Query(dictionary, query,indexPool,transporter);
                 long parseTime = System.nanoTime();
-                transporter.sendQuery(query);
                 spQuery.findQueryAnswer();
                 long stopTime = System.nanoTime();
                 long elapsedTimeS = (stopTime - startTime) / 1000;
 
+
+
                 spQuery.printAnswers(reverseDictionary , false);
 
                 System.out.println("time to execute qeury single thread:" + elapsedTimeS + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
-
+*/
             }catch (Exception e){
                 System.err.println("unable to parse query..");
                 e.printStackTrace();

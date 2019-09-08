@@ -12,7 +12,9 @@ public class ResultTriple {
     ResultTriple down;
     ResultTriple left;
     ResultTriple right;
-    private boolean border = false;
+
+    ResultTriple extraDown;
+    private int borderIndex = -1;
 
 
     public ResultTriple(Triple triple){
@@ -36,9 +38,9 @@ public class ResultTriple {
     public ResultTriple() {
     }
 
-    public static ResultTriple getDummyBorder() {
+    public static ResultTriple getDummyBorder(int borderIndex) {
         ResultTriple resultTriple = new ResultTriple();
-        resultTriple.border = true;
+        resultTriple.borderIndex = borderIndex;
         return resultTriple;
     }
 
@@ -82,7 +84,20 @@ public class ResultTriple {
         return right;
     }
 
-    public void setBorder() {
-        border = true;
+    public void setBorder(int borderIndex) {
+        this.borderIndex = borderIndex;
+    }
+
+    public boolean isBorder(int myIndex) {
+        return borderIndex == myIndex;
+    }
+
+    public boolean requireBorder() {
+        return borderIndex > 0;
+    }
+
+    public void setRequireBorder() {
+        if(borderIndex < 0)
+            borderIndex = 4;
     }
 }
