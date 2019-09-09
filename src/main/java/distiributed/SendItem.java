@@ -106,19 +106,32 @@ public class SendItem {
         intList[2] = -11;
         int q = intList[3];
         intList[3] = -11;
-        ResultTriple resultTriple = buildFromSerial3(intList);
-        return new SendItem(q, triple.triples , resultTriple);
+       // ResultTriple resultTriple = buildFromSerial3(intList);
+        ArrayList<ResultTriple> resultTripleArrayList = buildFromSerial4(intList);
+        return new SendItem(q, triple.triples , resultTripleArrayList);
     }
     public void serialize(ArrayList<Integer> intList){
         intList.add(triple[0]);
         intList.add(triple[1]);
         intList.add(triple[2]);
         intList.add(queryNo);
-        buildSerial3(resultTripleList , intList , 0);
+       // buildSerial3(resultTriple , intList , 0);
+        buildSerial4(resultTripleList , intList );
     }
 
-    public void buildSerial3(ArrayList<ResultTriple> resultTripleList, ArrayList<Integer> intList , int direction){
-        ResultTriple resultTriple = resultTripleList.get(0);
+    public void buildSerial4(ArrayList<ResultTriple> resultTripleList, ArrayList<Integer> intList ){
+        for(int i = 0 ; i < resultTripleList.size() ; i++){
+            ResultTriple resultTriple = resultTripleList.get(i);
+            ResultTriple nextDown = resultTriple.getDown();
+            resultTriple.setDown(null);
+            buildSerial3(resultTriple , intList , 0);
+            resultTriple.setDown(nextDown);
+        }
+    }
+
+
+    public void buildSerial3(ResultTriple resultTriple, ArrayList<Integer> intList , int direction){
+        //ResultTriple resultTriple = resultTripleList.get(0);
         if(resultTriple == null || resultTriple.getTriple() == null) {
             return;
         }
@@ -148,6 +161,58 @@ public class SendItem {
                 buildSerial3(resultTriple.getLeft() , intList , direction);
         }
 
+    }
+
+    public static ArrayList<ResultTriple> buildFromSerial4(int [] intList ){
+        ArrayList<ResultTriple> resultTripleArrayList  = new ArrayList<>();
+        ResultTriple  pointer = null , movingHead = null , extraHead = null;
+        int dir = 0;
+        for(int i = 0 ; i < intList.length ; i++){
+            if(intList[i] <= -10)
+                continue;
+            if(intList[i] <= 0) {
+                if(dir == -1){
+                    pointer = extraHead;
+                    extraHead = null;
+                }else if(intList[i] != -1)
+                    pointer = movingHead ;
+                dir = intList[i];
+                continue;
+            }
+            Triple triple = new Triple(intList[i++], intList[i++], intList[i]);
+            if(triple.triples[0] < 0 || triple.triples[1] < 0 || triple.triples[2] < 0)
+                break;
+            ResultTriple resultTriple2 = new ResultTriple(triple);
+            if(pointer == null){
+                pointer = resultTriple2;
+                movingHead = resultTriple2;
+                resultTripleArrayList.add(resultTriple2);
+            }else {
+                if (dir == 0) {
+                    resultTripleArrayList.add(resultTriple2);
+                }
+                if (dir == -1) {
+                    if(extraHead == null)
+                        extraHead = pointer;
+                    pointer.setExtraDown(resultTriple2);
+                    pointer = resultTriple2;
+                }
+                if (dir == -4) {
+                    pointer = extraHead;
+                }
+                if (dir == -2) {
+                    pointer.setRight(resultTriple2);
+                    resultTriple2.setLeft(pointer);
+                    pointer = resultTriple2;
+                }
+                if (dir == -3) {
+                    pointer.setLeft(resultTriple2);
+                    resultTriple2.setRight(pointer);
+                    pointer = resultTriple2;
+                }
+            }
+        }
+        return resultTripleArrayList;
     }
 
     public static ResultTriple buildFromSerial3(int [] intList ){

@@ -100,4 +100,8 @@ public class ResultTriple {
         if(borderIndex < 0)
             borderIndex = 4;
     }
+
+    public void setExtraDown(ResultTriple resultTriple2) {
+        this.extraDown = resultTriple2;
+    }
 }
