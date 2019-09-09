@@ -223,24 +223,49 @@ public class TriplePattern2 {
             map.put(resultTripleHis.triple.triples[hisIndex], resultTripleHis);
             resultTripleHis = resultTripleHis.down;
         }
-        if (map.size() == 0)
+        if (headTempBorder == null || map.size() == 0)
             return;
-        for(int i = 0 ; i < headTempBorder.size() ; i++){
+        for(int i = 0 ;i < headTempBorder.size() ; i++){
             ResultTriple resultTripleMe = headTempBorder.get(i);
-            ResultTriple hisInMap = map.get(resultTripleMe.triple.triples[myIndex]);
-            if (hisInMap != null) {
-                if (myIndex == 0) {
-                    if (resultTripleMe.left.isBorder(2)) {
-                        resultTripleMe.left = hisInMap;
-                        hisInMap.down = null;
+            ResultTriple head = null;
+            while(resultTripleMe != null) {
+                boolean IsMyRigthtBorder = resultTripleMe.right != null && resultTripleMe.right.isBorder(0);
+                boolean IsMyLeftBorder = resultTripleMe.left != null && resultTripleMe.left.isBorder(2);
+                ResultTriple hisInMap = map.get(resultTripleMe.triple.triples[myIndex]);
+                boolean firstToConnectMine = false;
+                while(hisInMap != null) {
+                    if (myIndex == 0) {
+                        if ( IsMyLeftBorder) {
+                            if(head == null) {
+                                if(!firstToConnectMine)
+                                    resultTripleMe.left = hisInMap;
+                                else
+                                    resultTripleMe.left.extraDown = hisInMap;
+                                firstToConnectMine = true;
+                                head = resultTripleMe;
+                            }else
+                                head.extraDown = hisInMap;
+                            hisInMap.down = null;
+                        }
+
+                    } else {
+                        if (IsMyRigthtBorder) {
+                            //if(head == null) {
+                                if(!firstToConnectMine)
+                                    resultTripleMe.right = hisInMap;
+                                else
+                                    resultTripleMe.right.extraDown = hisInMap;
+                                firstToConnectMine = true;
+                                head = resultTripleMe;
+                           /* }else
+                                head.extraDown = hisInMap;*/
+                            hisInMap.down = null;
+                        }
                     }
-                } else {
-                    if (resultTripleMe.right.isBorder(0)) {
-                        resultTripleMe.right = hisInMap;
-                        hisInMap.down = null;
-                    }
+                    //connectResultTriple(resultTripleMe);
+                    hisInMap = hisInMap.extraDown;
                 }
-                //connectResultTriple(resultTripleMe);
+                resultTripleMe = resultTripleMe.extraDown;
             }
         }
     }
@@ -626,7 +651,7 @@ public class TriplePattern2 {
                 myResultTriple.right = myResultTriple.right.extraDown;
             }
 
-            if(deepLeftTripleResult.requireBorder())
+            if(deepRightTripleResult.requireBorder())
                 myResultTriple.setRequireBorder();
         }
         if (myResultTriple == null)
@@ -780,10 +805,13 @@ public class TriplePattern2 {
 
     //TODO  problem in case of more than one left or right !!!!
     public void gotRemoteBorderResult(SendItem sendItem) {
-        do {
-            setRemoteResultPatternLocation(sendItem.resultTriple);
+        for(int i =0 ; i < sendItem.getResultTripleList().size() ; i++){
+            setRemoteResultPatternLocation(sendItem.getResultTripleList().get(i));
+        }
+       /* do {
+            setRemoteResultPatternLocation(sendItem.getResultTripleList());
             sendItem.resultTriple = sendItem.resultTriple.down;
-        } while (sendItem.resultTriple != null);
+        } while (sendItem.resultTriple != null);*/
 
     }
 

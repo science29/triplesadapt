@@ -60,10 +60,10 @@ public class Receiver extends Thread {
                     int length = in.readInt();
                     System.err.println("got something .. length "+length);
                     if(length == Transporter.QUERY_MSG){
-                        System.out.print("Received Query from "+host);
+                        System.out.println("Received Query from "+host);
                         int queryNo = in.readInt();
                         String query = in.readUTF();
-                        System.out.print("Received Query from "+host + " "+query);
+                        System.out.println("Received Query from "+host + " "+query);
                         transporter.recievedQuery(query , queryNo);
                     }
                     if (length == Transporter.PING_MESSAGE) {

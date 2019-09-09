@@ -93,7 +93,7 @@ public class ResultTriple {
     }
 
     public boolean requireBorder() {
-        return borderIndex > 0;
+        return borderIndex >= 0;
     }
 
     public void setRequireBorder() {

@@ -667,6 +667,7 @@ public class Query {
                                 String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
                                 System.out.print(str + " . ");
                             }
+                            count = printExtra(pHTriple , reverseDictionary , count ,silent);
                             pHTriple = pHTriple.getDown();
                             if(moreThanOne) {
                                 System.out.println();
@@ -704,6 +705,16 @@ public class Query {
             }
         });
 */
+    }
+
+    private int printExtra(ResultTriple pHTriple, Dictionary reverseDictionary, int count, boolean silent) {
+        Triple triple = pHTriple.getTriple();
+        if (!silent && triple != null) {
+            String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
+            System.out.print(str + " . ");
+        }
+        count++;
+        xxx
     }
 
     private void qeuryDone() {

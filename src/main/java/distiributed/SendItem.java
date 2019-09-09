@@ -15,6 +15,8 @@ public class SendItem {
     public int [] triple;
     public ResultTriple resultTriple;
     public String msg;
+
+
     private ArrayList<ResultTriple> resultTripleList;
 
     public SendItem(int queryNo, int [] triple, ArrayList<ResultTriple> resultTripleList) {
@@ -31,6 +33,11 @@ public class SendItem {
     public SendItem() {
 
     }
+
+    public ArrayList<ResultTriple> getResultTripleList() {
+        return resultTripleList;
+    }
+
 
     public byte[] getBytes() {
         ArrayList<Integer> intList = new ArrayList<>();
