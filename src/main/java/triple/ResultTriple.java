@@ -13,6 +13,8 @@ public class ResultTriple {
     ResultTriple left;
     ResultTriple right;
 
+
+
     ResultTriple extraDown;
     private int borderIndex = -1;
 
@@ -38,9 +40,15 @@ public class ResultTriple {
     public ResultTriple() {
     }
 
+
+    public ResultTriple getExtraDown() {
+        return extraDown;
+    }
+
+
     public static ResultTriple getDummyBorder(int borderIndex) {
         ResultTriple resultTriple = new ResultTriple();
-        resultTriple.borderIndex = borderIndex;
+        resultTriple.setMissingBorder(borderIndex);
         return resultTriple;
     }
 
@@ -96,12 +104,35 @@ public class ResultTriple {
         return borderIndex >= 0;
     }
 
-    public void setRequireBorder() {
-        if(borderIndex < 0)
+    public void setRequireBorder(boolean left) {
+        if(borderIndex >= 0)
+            return;
+        if(left)
             borderIndex = 4;
+        else
+            borderIndex = 5;
     }
 
     public void setExtraDown(ResultTriple resultTriple2) {
         this.extraDown = resultTriple2;
+    }
+
+    public boolean requireBorderLeft() {
+        return borderIndex == 4 || borderIndex == 0;
+    }
+
+    public boolean requireBorderRight() {
+        return borderIndex == 5 || borderIndex == 2;
+    }
+
+    public void setMissingBorder(int myIndex) {
+        if(myIndex == 0)
+            borderIndex = 6;
+        else
+            borderIndex = 7;
+    }
+
+    public boolean isMissingBorder() {
+        return borderIndex >= 6;
     }
 }

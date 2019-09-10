@@ -667,7 +667,7 @@ public class Query {
                                 String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
                                 System.out.print(str + " . ");
                             }
-                            count = printExtra(pHTriple , reverseDictionary , count ,silent);
+                            count = printExtra(pHTriple.getExtraDown() , reverseDictionary , count ,silent);
                             pHTriple = pHTriple.getDown();
                             if(moreThanOne) {
                                 System.out.println();
@@ -708,13 +708,15 @@ public class Query {
     }
 
     private int printExtra(ResultTriple pHTriple, Dictionary reverseDictionary, int count, boolean silent) {
+        if(pHTriple == null)
+            return count;
         Triple triple = pHTriple.getTriple();
         if (!silent && triple != null) {
             String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
-            System.out.print(str + " . ");
+            System.out.println(str + " . ");
         }
         count++;
-        xxx
+        return printExtra(pHTriple.getExtraDown() , reverseDictionary , count , silent);
     }
 
     private void qeuryDone() {
@@ -740,7 +742,8 @@ public class Query {
     }
 
     public void borderEvaluation() {
-        triplePatterns2.get(0).rightLeftBorderEvaluation(triplePatterns2.get(0));
+        //triplePatterns2.get(0).rightLeftBorderEvaluation(triplePatterns2.get(0));
+        triplePatterns2.get(0).rightLeftBorderEvaluation2Start();
     }
 
 
@@ -752,9 +755,9 @@ public class Query {
     }
 
     public SendItem getToSendItem() {
-        if(triplePatterns2.get(0).getHeadTempBorder() == null)
+        if(triplePatterns2.get(0).getHeadTempBorderList() == null)
             return null;
-        SendItem sendItem = new SendItem(ID ,triplePatterns2.get(0).getTriples() , triplePatterns2.get(0).getHeadTempBorder());
+        SendItem sendItem = new SendItem(ID ,triplePatterns2.get(0).getTriples() , triplePatterns2.get(0).getHeadTempBorderList());
         return sendItem;
     }
 

@@ -40,8 +40,7 @@ public class TriplePattern2 {
     private ExecutersPool executerPool;
 
 
-
-    private ArrayList<ResultTriple> headTempBorder;
+    private ArrayList<ResultTriple> headTempBorderList;
     private ResultTriple headRemoteBorder;
     private ResultTriple tailRemoteBorder;
     //int varaibles[] = new int[3];
@@ -207,12 +206,145 @@ public class TriplePattern2 {
 
     }
 
-    private ArrayList<ResultTriple> getBorderHeaderResult() {
-        return this.headTempBorder;
-    }
+    /*private ArrayList<ResultTriple> getBorderHeaderResult() {
+        return this.headTempBorderList;
+    }*/
 
     private ResultTriple getRemoteBorderHeaderResult() {
         return this.headRemoteBorder;
+    }
+
+    private void hashJoinBorder3(TriplePattern2 hisPattern, int myIndex, ResultTriple myResultTriple) {
+        int hisIndex = 0;
+        if(myIndex == 0)
+            hisIndex = 2;
+        HashMap<Integer, ResultTriple> map =  hisPattern.getIncomingRemoteMap(hisIndex);
+        if(map == null)
+            return;
+        while (myResultTriple != null) {
+            ResultTriple hisInMap = map.get(myResultTriple.triple.triples[myIndex]);
+            if (hisInMap == null)
+                break;
+            connectBorderNewJoinedResultLeft(myResultTriple, hisInMap, myIndex == 0);
+            myResultTriple = myResultTriple.getExtraDown();
+        }
+    }
+
+
+    private HashMap<Integer,ResultTriple> incomingRemoteMapLeft ;
+    private HashMap<Integer,ResultTriple> incomingRemoteMapRight ;
+
+
+    private HashMap<Integer,ResultTriple> getIncomingRemoteMap(int myIndex) {
+        HashMap<Integer, ResultTriple> incomingRemoteMap;
+        if(myIndex == 0){
+            if(incomingRemoteMapLeft != null)
+                return incomingRemoteMapLeft;
+            incomingRemoteMapLeft =  new HashMap<>();
+            incomingRemoteMap = incomingRemoteMapLeft;
+
+        }else{
+            if(incomingRemoteMapRight != null)
+                return incomingRemoteMapRight;
+            incomingRemoteMapRight =  new HashMap<>();
+            incomingRemoteMap = incomingRemoteMapRight;
+        }
+
+        ResultTriple resultTripleRemote =getRemoteBorderHeaderResult();
+        while (resultTripleRemote != null) {
+            ResultTriple resultTripleExtra = resultTripleRemote;
+            ResultTriple prevTemp = null;
+            while (resultTripleExtra != null) {
+                if (!incomingRemoteMap.containsKey(resultTripleExtra.triple.triples[myIndex])) {
+                    incomingRemoteMap.put(resultTripleExtra.triple.triples[myIndex], resultTripleExtra);
+                    if (prevTemp != null)
+                        prevTemp.extraDown = null;
+                }
+                prevTemp = resultTripleExtra;
+                resultTripleExtra = resultTripleExtra.getExtraDown();
+            }
+            resultTripleRemote = resultTripleRemote.down;
+        }
+        return incomingRemoteMap;
+    }
+
+
+    @Deprecated
+    private void hashJoinBorder2(TriplePattern2 hisPattern, int myIndex, int hisIndex) {
+        ResultTriple resultTripleHis = hisPattern.getRemoteBorderHeaderResult();
+        //build the hash table
+        HashMap<Integer, ResultTriple> map = new HashMap<>();
+        while (resultTripleHis != null) {
+            ResultTriple resultTripleHisExtra = resultTripleHis;
+            ResultTriple prevTemp = null;
+            while (resultTripleHisExtra != null) {
+                if (!map.containsKey(resultTripleHisExtra.triple.triples[hisIndex])) {
+                    map.put(resultTripleHisExtra.triple.triples[hisIndex], resultTripleHis);
+                    if (prevTemp != null)
+                        prevTemp.extraDown = null;
+                }
+                prevTemp = resultTripleHisExtra;
+                resultTripleHisExtra = resultTripleHisExtra.getExtraDown();
+            }
+            resultTripleHis = resultTripleHis.down;
+        }
+        if (headTempBorderList == null || map.size() == 0)
+            return;
+        for (int i = 0; i < headTempBorderList.size(); i++) {
+            ResultTriple extraMe = headTempBorderList.get(i);
+            boolean isMyBorder;
+            if (myIndex == 0)
+                isMyBorder = extraMe.left != null && extraMe.left.isBorder(2);
+            else
+                isMyBorder = extraMe.right != null && extraMe.right.isBorder(0);
+
+            if (!isMyBorder)
+                continue;
+            while (extraMe != null) {
+                ResultTriple hisInMap = map.get(extraMe.triple.triples[myIndex]);
+                if (hisInMap == null)
+                    break;
+                connectBorderNewJoinedResultLeft(extraMe, hisInMap, myIndex == 0);
+                extraMe = extraMe.getExtraDown();
+            }
+        }
+
+    }
+
+
+    private ResultTriple tempDownTail;
+    private ResultTriple tempExtraMe;
+
+    private void connectBorderNewJoinedResultLeft(ResultTriple extraMe, ResultTriple hisInMap, boolean left) {
+        if (extraMe == null)
+            return;
+        if (tempExtraMe != extraMe) {
+            tempDownTail = null;
+            tempExtraMe = null;
+        }
+
+        if (tempExtraMe == null) {
+            if (left)
+                extraMe.left = hisInMap;
+            else
+                extraMe.right = hisInMap;
+            tempExtraMe = extraMe;
+        } else {
+            if (tempDownTail == null) {
+                if (left) {
+                    extraMe.left.extraDown = hisInMap;
+                    tempDownTail = extraMe.left.extraDown;
+                } else {
+                    extraMe.right.extraDown = hisInMap;
+                    tempDownTail = extraMe.right.extraDown;
+                }
+            } else {
+                while (tempDownTail.extraDown != null)
+                    tempDownTail = tempDownTail.extraDown;
+                tempDownTail.extraDown = hisInMap;
+            }
+        }
+        // connectBorderNewJoinedResultLeft(extraMe.extraDown , hisInMap);
     }
 
     private void hashJoinBorder(TriplePattern2 hisPattern, int myIndex, int hisIndex) {
@@ -223,27 +355,27 @@ public class TriplePattern2 {
             map.put(resultTripleHis.triple.triples[hisIndex], resultTripleHis);
             resultTripleHis = resultTripleHis.down;
         }
-        if (headTempBorder == null || map.size() == 0)
+        if (headTempBorderList == null || map.size() == 0)
             return;
-        for(int i = 0 ;i < headTempBorder.size() ; i++){
-            ResultTriple resultTripleMe = headTempBorder.get(i);
+        for (int i = 0; i < headTempBorderList.size(); i++) {
+            ResultTriple resultTripleMe = headTempBorderList.get(i);
             ResultTriple head = null;
-            while(resultTripleMe != null) {
+            while (resultTripleMe != null) {
                 boolean IsMyRigthtBorder = resultTripleMe.right != null && resultTripleMe.right.isBorder(0);
                 boolean IsMyLeftBorder = resultTripleMe.left != null && resultTripleMe.left.isBorder(2);
                 ResultTriple hisInMap = map.get(resultTripleMe.triple.triples[myIndex]);
                 boolean firstToConnectMine = false;
-                while(hisInMap != null) {
+                while (hisInMap != null) {
                     if (myIndex == 0) {
-                        if ( IsMyLeftBorder) {
-                            if(head == null) {
-                                if(!firstToConnectMine)
+                        if (IsMyLeftBorder) {
+                            if (head == null) {
+                                if (!firstToConnectMine)
                                     resultTripleMe.left = hisInMap;
                                 else
                                     resultTripleMe.left.extraDown = hisInMap;
                                 firstToConnectMine = true;
                                 head = resultTripleMe;
-                            }else
+                            } else
                                 head.extraDown = hisInMap;
                             hisInMap.down = null;
                         }
@@ -251,12 +383,12 @@ public class TriplePattern2 {
                     } else {
                         if (IsMyRigthtBorder) {
                             //if(head == null) {
-                                if(!firstToConnectMine)
-                                    resultTripleMe.right = hisInMap;
-                                else
-                                    resultTripleMe.right.extraDown = hisInMap;
-                                firstToConnectMine = true;
-                                head = resultTripleMe;
+                            if (!firstToConnectMine)
+                                resultTripleMe.right = hisInMap;
+                            else
+                                resultTripleMe.right.extraDown = hisInMap;
+                            firstToConnectMine = true;
+                            head = resultTripleMe;
                            /* }else
                                 head.extraDown = hisInMap;*/
                             hisInMap.down = null;
@@ -553,11 +685,10 @@ public class TriplePattern2 {
                     myPointer = myPointer.down;
                 }
                 if (border) {
-                    myResultTriple.setBorder(myIndex);
+                    myResultTriple.setMissingBorder(myIndex);
                     callPattern.pendingBorder = true;
                 }
-                if(myResultTriple.requireBorder())
-                    addTempResultBorder(myResultTriple);
+                //xxxx
                 /*if(hisIndex == 0) {
                     hisResultTriple.left = myResultTriple
                     myResultTriple.right = hisResultTriple;
@@ -584,9 +715,9 @@ public class TriplePattern2 {
 
 
     private void addTempResultBorder(ResultTriple myResultTriple) {
-        if (headTempBorder == null)
-            headTempBorder = new ArrayList<>();
-        headTempBorder.add(myResultTriple);
+        if (headTempBorderList == null)
+            headTempBorderList = new ArrayList<>();
+        headTempBorderList.add(myResultTriple);
     }
 
     private boolean isBorder(Triple triple, int hisIndex) {
@@ -626,8 +757,10 @@ public class TriplePattern2 {
                 myResultTriple.left = myResultTriple.left.extraDown;
             }
 
-            if(deepLeftTripleResult.requireBorder())
-                myResultTriple.setRequireBorder();
+            if(deepLeftTripleResult.isMissingBorder())
+                myResultTriple.setBorder(0);
+            else if (deepLeftTripleResult.requireBorder())
+                myResultTriple.setRequireBorder(true);
         }
         for (int i = 0; rights != null && i < rights.size(); i++) {
             TriplePattern2 pattern = rights.get(i);
@@ -650,9 +783,11 @@ public class TriplePattern2 {
                 myResultTriple.right.extraDown = deepRightTripleResult;
                 myResultTriple.right = myResultTriple.right.extraDown;
             }
-
-            if(deepRightTripleResult.requireBorder())
-                myResultTriple.setRequireBorder();
+            if(deepLeftTripleResult.isMissingBorder())
+                myResultTriple.setBorder(2);
+            else
+            if (deepRightTripleResult.requireBorder())
+                myResultTriple.setRequireBorder(false);
         }
         if (myResultTriple == null)
             myResultTriple = new ResultTriple(t);
@@ -661,6 +796,9 @@ public class TriplePattern2 {
         if (headLeft != null)
             headLeft.right = myResultTriple;
         //connectExtraDown(myResultTriple);
+        /*if (myResultTriple.requireBorder())
+            addTempResultBorder(myResultTriple);
+        */
         return myResultTriple;
     }
 
@@ -679,17 +817,52 @@ public class TriplePattern2 {
             extraPointerDownResultTriple = extraPointerDownResultTriple.down;
         }
     }*/
+
+
+    public void rightLeftBorderEvaluation2Start() {
+        if(headTempBorderList == null)
+            return;
+        for (int i = 0; i < headTempBorderList.size(); i++) {
+            rightLeftBorderEvaluation2(this , headTempBorderList.get(i));
+        }
+    }
+
+    public void rightLeftBorderEvaluation2(TriplePattern2 callerTriplePattern, ResultTriple resultTriple) {
+        if(resultTriple == null)
+            return;
+        if (resultTriple.isBorder(0))
+            for (int i = 0; i < lefts.size(); i++) {
+                hashJoinBorder3(lefts.get(i), 0, resultTriple);
+            }
+        else if (resultTriple.isBorder(2))
+            for (int i = 0; i < rights.size(); i++) {
+                hashJoinBorder3(rights.get(i), 2, resultTriple);
+            }
+        else if (resultTriple.requireBorderLeft())
+            for (int i = 0; i < lefts.size(); i++) {
+                if (lefts.get(i) != callerTriplePattern)
+                    lefts.get(i).rightLeftBorderEvaluation2(this, resultTriple.left);
+            }
+        else if (resultTriple.requireBorderRight())
+            for (int i = 0; i < rights.size(); i++) {
+                if (rights.get(i) != callerTriplePattern)
+                    rights.get(i).rightLeftBorderEvaluation2(this, resultTriple.right);
+            }
+    }
+
+
+    @Deprecated
     public void rightLeftBorderEvaluation(TriplePattern2 callerTriplePattern) {
         if (callerTriplePattern == null)
             return;
         for (int i = 0; i < lefts.size(); i++) {
-            hashJoinBorder(lefts.get(i), 0, 2);
+            hashJoinBorder2(lefts.get(i), 0, 2);
             if (lefts.get(i) != callerTriplePattern)
                 lefts.get(i).rightLeftBorderEvaluation(this);
         }
 
         for (int i = 0; i < rights.size(); i++) {
-            hashJoinBorder(rights.get(i), 2, 0);
+            hashJoinBorder2(rights.get(i), 2, 0);
             if (rights.get(i) != callerTriplePattern)
                 rights.get(i).rightLeftBorderEvaluation(this);
         }
@@ -805,7 +978,7 @@ public class TriplePattern2 {
 
     //TODO  problem in case of more than one left or right !!!!
     public void gotRemoteBorderResult(SendItem sendItem) {
-        for(int i =0 ; i < sendItem.getResultTripleList().size() ; i++){
+        for (int i = 0; i < sendItem.getResultTripleList().size(); i++) {
             setRemoteResultPatternLocation(sendItem.getResultTripleList().get(i));
         }
        /* do {
@@ -879,8 +1052,8 @@ public class TriplePattern2 {
         }
     }
 
-    public ArrayList<ResultTriple> getHeadTempBorder() {
-        return headTempBorder;
+    public ArrayList<ResultTriple> getHeadTempBorderList() {
+        return headTempBorderList;
     }
 
     /*private void setRemoteResult(ResultTriple resultTriple) {
