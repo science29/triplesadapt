@@ -225,7 +225,7 @@ public class TriplePattern2 {
             ResultTriple hisInMap = map.get(myResultTriple.triple.triples[myIndex]);
             if (hisInMap == null)
                 break;
-            connectBorderNewJoinedResultLeft(myResultTriple, hisInMap, myIndex == 0);
+            connectBorderNewJoinedResult(myResultTriple, hisInMap, myIndex == 0);
             myResultTriple = myResultTriple.getExtraDown();
         }
     }
@@ -304,7 +304,7 @@ public class TriplePattern2 {
                 ResultTriple hisInMap = map.get(extraMe.triple.triples[myIndex]);
                 if (hisInMap == null)
                     break;
-                connectBorderNewJoinedResultLeft(extraMe, hisInMap, myIndex == 0);
+                connectBorderNewJoinedResult(extraMe, hisInMap, myIndex == 0);
                 extraMe = extraMe.getExtraDown();
             }
         }
@@ -315,7 +315,7 @@ public class TriplePattern2 {
     private ResultTriple tempDownTail;
     private ResultTriple tempExtraMe;
 
-    private void connectBorderNewJoinedResultLeft(ResultTriple extraMe, ResultTriple hisInMap, boolean left) {
+    private void connectBorderNewJoinedResult(ResultTriple extraMe, ResultTriple hisInMap, boolean left) {
         if (extraMe == null)
             return;
         if (tempExtraMe != extraMe) {
@@ -324,10 +324,14 @@ public class TriplePattern2 {
         }
 
         if (tempExtraMe == null) {
-            if (left)
+            if (left) {
+                hisInMap.right = extraMe;
                 extraMe.left = hisInMap;
-            else
+            }
+            else {
+                hisInMap.left = extraMe;
                 extraMe.right = hisInMap;
+            }
             tempExtraMe = extraMe;
         } else {
             if (tempDownTail == null) {
@@ -783,7 +787,7 @@ public class TriplePattern2 {
                 myResultTriple.right.extraDown = deepRightTripleResult;
                 myResultTriple.right = myResultTriple.right.extraDown;
             }
-            if(deepLeftTripleResult.isMissingBorder())
+            if(deepRightTripleResult.isMissingBorder())
                 myResultTriple.setBorder(2);
             else
             if (deepRightTripleResult.requireBorder())

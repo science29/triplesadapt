@@ -861,7 +861,7 @@ try {
         tempop_S = new HashMap<String, ArrayList<Triple>>();
         indexCollection = new IndexCollection();
         //TODO remove ..
-        if(transporter.getHost().matches("172.20.32.8")) {
+        if(transporter.getHost().matches("172.20.32.7")) {
             genereteTestBorder2("<Marilyn_Quayle>", "<Barbara_Bush>");
            // genereteTestBorder("<George_W._Bush>", "<Marilyn_Quayle>", "y:hasPredecessor");
            // genereteTestBorder("<George_W._Bush>", "<http://en.wikipedia.org/wiki/Marilyn_Quayle>", "y:describes");
