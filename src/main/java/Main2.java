@@ -1866,7 +1866,7 @@ try {
                 spQuery.findChainQueryAnswer(OPxP, op_S , extTime);
                 long stopTime = System.nanoTime();
                 long elapsedTime = (stopTime - startTime) / 1000;
-                spQuery.printAnswers(reverseDictionary,false);
+                spQuery.printAnswers(reverseDictionary);
                 System.out.println("time to execute qeury:" + elapsedTime + " micro seconds,"+" time to OPxP "+extTime+" Ms, parse time:"+ (parseTime - startTime) / 1000+" Ms");
             }catch (Exception e){
                 System.err.println("unable to parse query..");

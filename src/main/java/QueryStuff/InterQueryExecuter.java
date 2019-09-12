@@ -7,27 +7,41 @@ import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class QueryExecuter extends  Thread{
-    private BlockingQueue<WorkElement> sharedWorkQueue = new ArrayBlockingQueue(10000);
-
+public class InterQueryExecuter extends  Thread{
+    private final BlockingQueue<WorkElement> sharedWorkQueue ;
+    private final int ID;
+    private InterExecutersPool interExecutersPool;
 
     private boolean stop = false;
 
 
-    public QueryExecuter(){
 
+    public InterQueryExecuter(BlockingQueue<WorkElement> sharedWorkQueue , int ID , InterExecutersPool interExecutersPool){
+        this.sharedWorkQueue = sharedWorkQueue;
+        this.ID = ID ;
+        this.interExecutersPool = interExecutersPool;
+    }
+
+
+    public int getWorkingSize() {
+        return sharedWorkQueue.size();
     }
 
     @Override
     public void run() {
         while(!stop){
             try {
+                interExecutersPool.setWorking(false , ID );
                 WorkElement workElement = sharedWorkQueue.take();
                 if(stop)
                     break;
+                interExecutersPool.setWorking(true , ID );
                 workElement.triplePattern.startWorkerDeepEvaluationParallel(workElement.list , workElement.from , workElement.to);
                 workElement.completeListener.onComplete();
             } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            catch (Exception e){
                 e.printStackTrace();
             }
         }
@@ -52,6 +66,8 @@ public class QueryExecuter extends  Thread{
             e.printStackTrace();
         }
     }
+
+
 
 
     private class WorkElement{

@@ -1,14 +1,12 @@
 package start;
 
 import QueryStuff.*;
-import distiributed.SendItem;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import triple.Triple;
-import triple.TriplePattern2;
 import triple.Vertex;
 
 import java.io.BufferedWriter;
@@ -861,7 +859,7 @@ try {
         tempop_S = new HashMap<String, ArrayList<Triple>>();
         indexCollection = new IndexCollection();
         //TODO remove ..
-        if(transporter.getHost().matches("172.20.32.7")) {
+        /*if(transporter.getHost().matches("172.20.32.7")) {
             genereteTestBorder2("<Marilyn_Quayle>", "<Barbara_Bush>");
            // genereteTestBorder("<George_W._Bush>", "<Marilyn_Quayle>", "y:hasPredecessor");
            // genereteTestBorder("<George_W._Bush>", "<http://en.wikipedia.org/wiki/Marilyn_Quayle>", "y:describes");
@@ -870,7 +868,7 @@ try {
             //genereteTestBorder("<Barbara_Bush>", "<Fahrenheit_9%2F11>", "y:actedIn");
            // genereteTestBorder("<Barbara_Bush>", "<Courting_Condi>", "y:actedIn");
         }
-
+*/
 
 
 
@@ -1915,6 +1913,25 @@ try {
     }
 
 
+    private ArrayList<String> readFromQueryFile(){
+        String path = "queriesFile";
+        System.out.println("reading dictionary from temp file");
+        ArrayList<String> res = new ArrayList<>();
+        File file = new File(path);
+        LineIterator it = null;
+        try {
+            it = FileUtils.lineIterator(file);
+            while (it.hasNext()) {
+                String line = it.nextLine();
+                res.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return res;
+    }
+
 
 
     private void listenToQuery() {
@@ -1922,7 +1939,7 @@ try {
         String testquery = "select ?x1 ?x2 ?x3 ?x4  where {?x3 y:describes ?x2.?x2 y:created ?x1.?x1 y:hasSuccessor ?x4.?x4 rdfs:label ?x5}";
         new Query(dictionary, testquery,indexPool , transporter);//warm up!!
         Scanner scanner = new Scanner(System.in);
-        ExecutersPool executersPool = new ExecutersPool(7);
+        InterExecutersPool executersPool = new InterExecutersPool(7);
         queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool);
         while (true) {
             try {
@@ -1946,7 +1963,16 @@ try {
                     System.out.println("done ..queries written to file..");
                     continue;
                 }
-                StringBuilder extTime = new StringBuilder();
+                if(query.matches("f")){
+                    ArrayList<String> queriesStr = readFromQueryFile();
+
+                    for(int i = 0 ; i < queriesStr.size() ; i++){
+                        int queryNo = queryWorkersPool.addManyQueries(query , i == queriesStr.size()-1);
+                        transporter.sendQuery(query , queryNo);
+                    }
+                    continue;
+                }
+                //StringBuilder extTime = new StringBuilder();
                 int queryNo = queryWorkersPool.addQuery(query);
                 transporter.sendQuery(query , queryNo);
 

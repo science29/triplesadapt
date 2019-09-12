@@ -37,10 +37,12 @@ public class Query {
     private Dictionary dictionary ;
     private IndexesPool indexPool;
     private ArrayList<ResultTriple> results;
-    private ExecutersPool executersPool;
+    private InterExecutersPool executersPool;
 
     public  int ID;
     private QueryWorkersPool queryWorkersPool;
+    private int allowedThreadCount = 1;
+    private boolean silent = false;
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.ID = new Random().nextInt();
@@ -259,9 +261,10 @@ public class Query {
 
 
 
-    public void findQueryAnswer(ExecutersPool executersPool , QueryWorkersPool queryWorkersPool , TriplePattern2.ExecuterCompleteListener executerCompleteListener){
+    public void findQueryAnswer(InterExecutersPool executersPool , QueryWorkersPool queryWorkersPool , int allowedThreadCount , TriplePattern2.ExecuterCompleteListener executerCompleteListener ){
         this.executersPool = executersPool;
         this.queryWorkersPool = queryWorkersPool;
+        this.allowedThreadCount = allowedThreadCount;
         executersPool.setFinalListener(executerCompleteListener);
         findQueryAnswer();
     }
@@ -288,7 +291,7 @@ public class Query {
         });
          results = new ArrayList<ResultTriple>();
          if(DEEP_PROCESSING) {
-             triplePatterns2.get(0).setExecutorPool(executersPool);
+             triplePatterns2.get(0).setExecutorPool(executersPool , allowedThreadCount);
              results.add(triplePatterns2.get(0).evaluatePatternHash(null, true));
          }
          else
@@ -644,7 +647,7 @@ public class Query {
     boolean temp = true;
 
 
-    public void printAnswers(Dictionary reverseDictionary , boolean silent) {
+    public void printAnswers(Dictionary reverseDictionary ) {
 
         if(knownEmpty)
             return;
@@ -723,7 +726,7 @@ public class Query {
         long stopTime = System.nanoTime();
         long elapsedTime = (stopTime - startTime) / 1000;
         System.out.println("query time threads :"+elapsedTime);
-        printAnswers(dictionary,false);
+        printAnswers(dictionary);
     }
 
     public static boolean sep() {
@@ -759,6 +762,10 @@ public class Query {
             return null;
         SendItem sendItem = new SendItem(ID ,triplePatterns2.get(0).getTriples() , triplePatterns2.get(0).getHeadTempBorderList());
         return sendItem;
+    }
+
+    public void setSilent(boolean status) {
+        silent = status;
     }
 
 

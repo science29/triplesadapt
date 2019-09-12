@@ -1,7 +1,7 @@
 package triple;
 
-import QueryStuff.ExecutersPool;
-import QueryStuff.QueryExecuter;
+import QueryStuff.InterExecutersPool;
+import QueryStuff.InterQueryExecuter;
 import distiributed.SendItem;
 import distiributed.Transporter;
 import index.IndexesPool;
@@ -37,7 +37,7 @@ public class TriplePattern2 {
     private MyHashMap<Integer, ArrayList<Triple>> SPo;
     private WithinIndex withinIndex;
     private boolean goingLeft;
-    private ExecutersPool executerPool;
+    private InterExecutersPool executerPool;
 
 
     private ArrayList<ResultTriple> headTempBorderList;
@@ -52,6 +52,7 @@ public class TriplePattern2 {
     }*/
     private int doneCount = 0;
     private boolean evaluatedStarted = false;
+    private  int parallelThreadCount = 1;
 
     public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, int queryNo) {
         triples = new int[3];
@@ -151,8 +152,9 @@ public class TriplePattern2 {
         return true;
     }
 
-    public void setExecutorPool(ExecutersPool executorPool) {
+    public void setExecutorPool(InterExecutersPool executorPool , int threadCount) {
         this.executerPool = executorPool;
+        this.parallelThreadCount = threadCount;
     }
 
     public ResultTriple evaluatePatternHash(TriplePattern2 callerPattern, boolean deep) {
@@ -630,13 +632,17 @@ public class TriplePattern2 {
 
     public void startPoolDeepEvaluationParallel(ArrayList<Triple> list) {
         int from = 0, to = 0;
-        ArrayList<QueryExecuter> threadsList = executerPool.getThreadPool();
-        int step = list.size() / threadsList.size();
-        for (int i = 0; i < threadsList.size(); i++) {
+        ArrayList<InterQueryExecuter> threadsList = executerPool.getThreadPool(parallelThreadCount);
+        int usedThreadCount = parallelThreadCount;
+        if(threadsList.size() < parallelThreadCount)
+            usedThreadCount = threadsList.size();
+        final int fUsedThreadCount = usedThreadCount;
+        int step = list.size() / fUsedThreadCount;
+        for (int i = 0; i < fUsedThreadCount; i++) {
             to = from + step;
             if (to >= list.size())
                 to = list.size() - 1;
-            threadsList.get(i).addWork(this, list, from, to, new QueryExecuter.CompleteListener() {
+            threadsList.get(i).addWork(this, list, from, to, new InterQueryExecuter.CompleteListener() {
                 @Override
                 public void onComplete() {
                    /* Transporter.ReceiverListener listener = new Transporter.ReceiverListener(){
@@ -650,7 +656,7 @@ public class TriplePattern2 {
                     transporter.sendToAll(new SendItem( 0 , triples , headResultTriple))*/
                     ;
 
-                    workerDone(threadsList.size());
+                    workerDone(fUsedThreadCount);
                 }
             });
             from = to + 1;
