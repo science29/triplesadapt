@@ -1914,7 +1914,7 @@ try {
 
 
     private ArrayList<String> readFromQueryFile(){
-        String path = "queriesFile";
+        String path = "manyQueriesFile";
         System.out.println("reading dictionary from temp file");
         ArrayList<String> res = new ArrayList<>();
         File file = new File(path);
@@ -1965,15 +1965,15 @@ try {
                 }
                 if(query.matches("f")){
                     ArrayList<String> queriesStr = readFromQueryFile();
-
-                    for(int i = 0 ; i < queriesStr.size() ; i++){
-                        int queryNo = queryWorkersPool.addManyQueries(query , i == queriesStr.size()-1);
-                        transporter.sendQuery(query , queryNo);
-                    }
+                    queryWorkersPool.addManyQueries(queriesStr);
+                   /* for(int i = 0 ; i < queriesStr.size() ; i++){
+                        int queryNo = queryWorkersPool.addManyQueries(queriesStr.get(i) , i == queriesStr.size()-1);
+                        transporter.sendQuery(queriesStr.get(i) , queryNo);
+                    }*/
                     continue;
                 }
                 //StringBuilder extTime = new StringBuilder();
-                int queryNo = queryWorkersPool.addQuery(query);
+                int queryNo = queryWorkersPool.addSingleQuery(query);  ;
                 transporter.sendQuery(query , queryNo);
 
 

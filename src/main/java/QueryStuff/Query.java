@@ -590,7 +590,7 @@ public class Query {
         //TODO do this
 ///        triplePattern.setProjected(projected);
         triplePatterns.add(triplePattern);
-        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool ,transporter,ID);
+        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool ,transporter,this);
         connectTriplePatterns(triplePattern2);
         triplePatterns2.add(triplePattern2);
 
@@ -648,7 +648,6 @@ public class Query {
 
 
     public void printAnswers(Dictionary reverseDictionary ) {
-
         if(knownEmpty)
             return;
         results.remove(0);
@@ -686,7 +685,7 @@ public class Query {
                     vResultTriple = vResultTriple.getDown();
                 }while (vResultTriple != null);
             }
-            System.out.println("Total result size="+count);
+            System.out.println( "Total result size="+count);
         }
 
 

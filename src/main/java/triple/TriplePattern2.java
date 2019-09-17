@@ -2,6 +2,7 @@ package triple;
 
 import QueryStuff.InterExecutersPool;
 import QueryStuff.InterQueryExecuter;
+import QueryStuff.Query;
 import distiributed.SendItem;
 import distiributed.Transporter;
 import index.IndexesPool;
@@ -16,6 +17,7 @@ public class TriplePattern2 {
     public final static int thisIsVariable = -1;
     private final IndexesPool indexesPool;
     private final int queryNo;
+    private final Query query;
     public boolean pendingBorder = false;
     // public String stringTriple[] = new String[3];
     // public int fixedTriples[] = new int[3];
@@ -54,7 +56,7 @@ public class TriplePattern2 {
     private boolean evaluatedStarted = false;
     private  int parallelThreadCount = 1;
 
-    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, int queryNo) {
+    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, Query query) {
         triples = new int[3];
         triples[0] = triplePattern.triples[0];
         triples[1] = triplePattern.triples[1];
@@ -70,7 +72,8 @@ public class TriplePattern2 {
         this.indexesPool = indexesPool;
 
         this.transporter = transporter;
-        this.queryNo = queryNo;
+        this.queryNo = query.ID;
+        this.query = query;
     }
 
     private TriplePattern2(TriplePattern2 triplePattern) {
@@ -82,6 +85,7 @@ public class TriplePattern2 {
         indexesPool = triplePattern.indexesPool;
         this.queryNo = triplePattern.queryNo;
         this.transporter = triplePattern.transporter;
+        this.query = null;
         //TODO copy executer pool?
     }
 
@@ -668,7 +672,7 @@ public class TriplePattern2 {
         // System.out.println("Thread is done !");
         doneCount++;
         if (doneCount >= total)
-            executerPool.finalListener.onComplete();
+            executerPool.finalListener.onComplete(this.query);
     }
 
 
@@ -1090,7 +1094,7 @@ public class TriplePattern2 {
 */
 
     public interface ExecuterCompleteListener {
-        void onComplete();
+        void onComplete(Query processedQuery);
     }
 
     public class WithinIndex {

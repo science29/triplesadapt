@@ -36,8 +36,7 @@ public class InterExecutersPool {
         }
     }
 
-
-    public ArrayList<InterQueryExecuter> getThreadPool(int threadCount) {
+    private synchronized void sort(){
         Collections.sort(threadPool, new Comparator<InterQueryExecuter>() {
             // @Override
             public int compare(InterQueryExecuter lhs, InterQueryExecuter rhs) {
@@ -48,6 +47,11 @@ public class InterExecutersPool {
                 return 0;
             }
         });
+    }
+
+
+    public ArrayList<InterQueryExecuter> getThreadPool(int threadCount) {
+        sort();//TODO optimize
         return threadPool;
     }
 
