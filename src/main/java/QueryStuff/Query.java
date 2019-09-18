@@ -43,6 +43,7 @@ public class Query {
     private QueryWorkersPool queryWorkersPool;
     private int allowedThreadCount = 1;
     private boolean silent = false;
+    private QueryCache queryCache;
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.ID = new Random().nextInt();
@@ -261,10 +262,11 @@ public class Query {
 
 
 
-    public void findQueryAnswer(InterExecutersPool executersPool , QueryWorkersPool queryWorkersPool , int allowedThreadCount , TriplePattern2.ExecuterCompleteListener executerCompleteListener ){
+    public void findQueryAnswer(InterExecutersPool executersPool , QueryWorkersPool queryWorkersPool , int allowedThreadCount , TriplePattern2.ExecuterCompleteListener executerCompleteListener  , QueryCache queryCache){
         this.executersPool = executersPool;
         this.queryWorkersPool = queryWorkersPool;
         this.allowedThreadCount = allowedThreadCount;
+        this.queryCache = queryCache;
         executersPool.setFinalListener(executerCompleteListener);
         findQueryAnswer();
     }
@@ -277,6 +279,12 @@ public class Query {
     public ArrayList<ResultTriple> findQueryAnswer(){
       //find the triplePattern to start with
       //start executing and let it propogate.
+
+        //looks first for cached results
+        TriplePattern2 cachedPattern = triplePatterns2.get(0).setCachedResult(queryCache , null);
+        if(cachedPattern != null){
+            cachedPattern.startCachedProcessing();xx
+        }
         Collections.sort(triplePatterns2, new Comparator<TriplePattern2>() {
             // @Override
             public int compare(TriplePattern2 lhs, TriplePattern2 rhs) {

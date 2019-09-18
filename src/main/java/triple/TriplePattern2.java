@@ -3,6 +3,7 @@ package triple;
 import QueryStuff.InterExecutersPool;
 import QueryStuff.InterQueryExecuter;
 import QueryStuff.Query;
+import QueryStuff.QueryCache;
 import distiributed.SendItem;
 import distiributed.Transporter;
 import index.IndexesPool;
@@ -55,6 +56,7 @@ public class TriplePattern2 {
     private int doneCount = 0;
     private boolean evaluatedStarted = false;
     private  int parallelThreadCount = 1;
+    private TriplePattern2 cachedPattern;
 
     public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, Query query) {
         triples = new int[3];
@@ -990,6 +992,70 @@ public class TriplePattern2 {
     }
 
 
+    public void startCachedProcessing() {
+
+        if(cachedPattern != null){
+            headResultTriple = cachedPattern.getHeadResultTriple();
+
+        }
+
+        for(int i = 0 ; i < lefts.size() ; i++){
+            if(lefts.get(i).cachedPattern != null)
+                headResultTriple = cachedPattern.getHeadResultTriple();
+            else
+                lefts.get(i)
+
+        }
+
+
+    }
+
+    private void cachedProcessingDeep(){
+
+    }
+
+
+    xx;
+    public TriplePattern2 setCachedResult(QueryCache queryCache , TriplePattern2 callerPattern ){
+        if(callerPattern == null)
+            callerPattern = this;
+        int p1 = callerPattern.triples[1];
+        ArrayList<TriplePattern2> niebohorList = lefts;
+        for(int m = 0 ; m < 1 ;m++) {
+            for (int i = 0; i < niebohorList.size(); i++) {
+                if (niebohorList.get(i) == callerPattern)
+                    continue;
+                int p2 = niebohorList.get(i).triples[1];
+                QueryCache.PatternPair start = queryCache.getStartCachedPattern(p1, p2);
+                if (start == null)
+                    continue;
+                cachedPattern = start.pattern1;
+                niebohorList.get(i).cachedPattern = start.pattern2;
+
+            }
+            niebohorList = rights;
+        }
+
+        if(callerPattern != null)
+            return cachedPattern;
+
+        for(int i = 0 ; i < lefts.size() ; i++)
+            if(lefts.get(i) != callerPattern) {
+                TriplePattern2 res = setCachedResult(queryCache , lefts.get(i));
+                if (res !=null)
+                return res;
+            }
+
+        for(int i = 0 ; i < rights.size() ; i++)
+            if(rights.get(i) != callerPattern) {
+                TriplePattern2 res = setCachedResult(queryCache , rights.get(i));
+                if (res !=null)
+                    return res;
+            }
+
+        return null;
+    }
+
     //TODO  problem in case of more than one left or right !!!!
     public void gotRemoteBorderResult(SendItem sendItem) {
         for (int i = 0; i < sendItem.getResultTripleList().size(); i++) {
@@ -1069,6 +1135,8 @@ public class TriplePattern2 {
     public ArrayList<ResultTriple> getHeadTempBorderList() {
         return headTempBorderList;
     }
+
+
 
     /*private void setRemoteResult(ResultTriple resultTriple) {
         if(resultTriple.triple.triples[1] != triples[1])

@@ -33,6 +33,8 @@ public class QueryWorkersPool {
     private QueryWorkersPool.Session session;
     private long singleStartTime = 0 ;
 
+    private final QueryCache queryCache;
+
     public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool) {
         this.dictionary = dictionary;
         this.transporter = transporter;
@@ -46,6 +48,8 @@ public class QueryWorkersPool {
         }
 
         interExecutersPool = new InterExecutersPool(INTER_EXECUTER_THREAD_COUNT);
+
+        queryCache = new QueryCache();
 
     }
 
