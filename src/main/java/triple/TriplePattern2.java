@@ -520,7 +520,7 @@ public class TriplePattern2 {
                     startDeepEvaluation(list);
                     //startDeepEvaluationParallel(list);
                 else
-                    startPoolDeepEvaluationParallel(list);
+                    startPoolDeepEvaluationParallel(list);xx
             }
             return;
         }
@@ -752,6 +752,8 @@ public class TriplePattern2 {
         ResultTriple headLeft = null, headRight = null;
         boolean addedToBorderFlag = false;
         for (int i = 0; lefts != null && i < lefts.size(); i++) {
+            if(lefts.get(i).cachedPattern != null)xx
+                continue;
             TriplePattern2 pattern = lefts.get(i);
             if (pattern.equals(callPattern))
                 continue;
@@ -779,6 +781,8 @@ public class TriplePattern2 {
                 myResultTriple.setRequireBorder(true);
         }
         for (int i = 0; rights != null && i < rights.size(); i++) {
+            if(rights.get(i).cachedPattern != null)xx
+                continue;
             TriplePattern2 pattern = rights.get(i);
             if (pattern.equals(callPattern))
                 continue;
@@ -992,22 +996,29 @@ public class TriplePattern2 {
     }
 
 
-    public void startCachedProcessing() {
-
+    public void startCachedProcessing(TriplePattern2 callerPattern) {
         if(cachedPattern != null){
             headResultTriple = cachedPattern.getHeadResultTriple();
-
         }
+        boolean doNormalJoin = false;
+        doNormalJoin = setCachedResultLeftRight(callerPattern, doNormalJoin, lefts);
+        doNormalJoin = setCachedResultLeftRight(callerPattern, doNormalJoin, rights);
+        if(doNormalJoin)
+            startPoolDeepEvaluationParallel(headResultTriple.getList());
 
-        for(int i = 0 ; i < lefts.size() ; i++){
-            if(lefts.get(i).cachedPattern != null)
-                headResultTriple = cachedPattern.getHeadResultTriple();
-            else
-                lefts.get(i)
+    }
 
+    private boolean setCachedResultLeftRight(TriplePattern2 callerPattern, boolean doNormalJoin, ArrayList<TriplePattern2> rights) {
+        for(int i = 0; i < rights.size() ; i++){
+            if(callerPattern == rights.get(i))
+                continue;
+            if(rights.get(i).cachedPattern != null)
+                rights.get(i).startCachedProcessing(this);
+            else{
+                doNormalJoin = true;
+            }
         }
-
-
+        return doNormalJoin;
     }
 
     private void cachedProcessingDeep(){

@@ -1,5 +1,6 @@
 package triple;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ResultTriple {
@@ -134,5 +135,15 @@ public class ResultTriple {
 
     public boolean isMissingBorder() {
         return borderIndex >= 6;
+    }
+
+    public ArrayList<Triple> getList() {
+        ArrayList<Triple> res = new ArrayList<Triple>();
+        ResultTriple pointer = this;
+        while(pointer != null){
+            res.add(pointer.triple);
+            pointer = pointer.down;
+        }
+        return res;
     }
 }
