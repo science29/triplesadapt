@@ -283,7 +283,7 @@ public class Query {
         //looks first for cached results
         TriplePattern2 cachedPattern = triplePatterns2.get(0).setCachedResult(queryCache , null);
         if(cachedPattern != null){
-            cachedPattern.startCachedProcessing();xx
+            cachedPattern.startCachedProcessing(null);
         }
         Collections.sort(triplePatterns2, new Comparator<TriplePattern2>() {
             // @Override
