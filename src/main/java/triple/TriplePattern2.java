@@ -522,7 +522,7 @@ public class TriplePattern2 {
                     startDeepEvaluation(list);
                     //startDeepEvaluationParallel(list);
                 else
-                    startPoolDeepEvaluationParallel(list);xx
+                    startPoolDeepEvaluationParallel(list);//xx
             }
             return;
         }
@@ -598,6 +598,8 @@ public class TriplePattern2 {
 
     private synchronized void connectResultTriple(ResultTriple newOne) {
         if (newOne != null) {
+           /* if(newOne.cached)
+                addToCachedResult(newOne);*/
             if (finalReslut == null) {
                 pointerC = newOne;
                 finalReslut = newOne;
@@ -752,10 +754,10 @@ public class TriplePattern2 {
         ResultTriple deepLeftTripleResult = null, deepRightTripleResult = null;
         // ResultTriple myResultTriple = new ResultTriple(t);
         ResultTriple headLeft = null, headRight = null;
-        boolean foundLeft = true;
+        boolean addedToBorderFlag = false;
         for (int i = 0; lefts != null && i < lefts.size(); i++) {
             if(lefts.get(i).cachedPattern != null)
-                continue;xx;
+                continue;
             TriplePattern2 pattern = lefts.get(i);
             if (pattern.equals(callPattern))
                 continue;
@@ -764,14 +766,14 @@ public class TriplePattern2 {
                 if(!cachingRequired)
                     return null;
                 else {
-                    foundLeft = false;
-
+                    myResultTriple = new ResultTriple(t);
+                    myResultTriple.cached = true;
+                    return myResultTriple;
                 }
             }
-            if(!foundLeft)
-                continue;
             if (myResultTriple == null) {
                 myResultTriple = new ResultTriple(t);
+                myResultTriple.cached = deepLeftTripleResult.cached;
                 /*if(isBorder(t ,0) && !addedToBorderFlag) {
                     addTempResultBorder(myResultTriple);
                     addedToBorderFlag = true;
@@ -790,27 +792,25 @@ public class TriplePattern2 {
             else if (deepLeftTripleResult.requireBorder())
                 myResultTriple.setRequireBorder(true);
         }
-        boolean foundRight = true;
         for (int i = 0; rights != null && i < rights.size(); i++) {
-            if(rights.get(i).cachedPattern != null)
-                continue;xx;
+            if(rights.get(i).cachedPattern != null)//xx
+                continue;
             TriplePattern2 pattern = rights.get(i);
             if (pattern.equals(callPattern))
                 continue;
             deepRightTripleResult = pattern.hashJoinDeep(this, t, 2, SPo, 0);
-            if (deepRightTripleResult == null) {
+            if (deepRightTripleResult == null){
                 if(!cachingRequired)
                     return null;
-                else{
-                   foundRight = false;
-                   xx
+                else {
+                    myResultTriple = new ResultTriple(t);
+                    myResultTriple.cached = true;
+                    return myResultTriple;
                 }
             }
-            if(!foundLeft || !foundRight)
-                return null;
-
             if (myResultTriple == null) {
                 myResultTriple = new ResultTriple(t);
+                myResultTriple.cached = deepRightTripleResult.cached;
             }
             /*if(isBorder(t ,2) && !addedToBorderFlag) {
                 addTempResultBorder(myResultTriple);
@@ -839,6 +839,7 @@ public class TriplePattern2 {
         /*if (myResultTriple.requireBorder())
             addTempResultBorder(myResultTriple);
         */
+        myResultTriple.cached = cachingRequired;
         return myResultTriple;
     }
 
@@ -1046,10 +1047,13 @@ public class TriplePattern2 {
 
 
 
-    xx;
+
     public TriplePattern2 setCachedResult(QueryCache queryCache , TriplePattern2 callerPattern ){
-        if(callerPattern == null)
+        if(callerPattern == null) {
+            if(queryCache == null)
+                return null;
             callerPattern = this;
+        }
         int p1 = callerPattern.triples[1];
         ArrayList<TriplePattern2> leftRight = lefts;
         for(int m = 0 ; m < 1 ;m++) {

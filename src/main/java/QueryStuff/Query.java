@@ -52,12 +52,24 @@ public class Query {
         this.simpleAnswer = simpleAnswer;
     }
 
+
+
     public HashMap<TriplePattern, ArrayList<Triple>> getAnswerMap(){
         return answerMap;
     }
+
+
     public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter) {
         this.transporter = transporter;
         ID = new Random().nextInt();
+        this.dictionary = dictionary;
+        this.indexPool = indexPool;
+        knownEmpty = !parseSparqlChain(SPARQL, dictionary);
+    }
+
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , int queryNo) {
+        this.transporter = transporter;
+        ID = queryNo;
         this.dictionary = dictionary;
         this.indexPool = indexPool;
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
@@ -773,6 +785,14 @@ public class Query {
 
     public void setSilent(boolean status) {
         silent = status;
+    }
+
+    public static ArrayList<Integer> getQueiresNumber(int size) {
+        Random ran = new Random();
+        ArrayList<Integer> nos = new ArrayList<>();
+        for(int i = 0; i < size ; i++)
+            nos.add(ran.nextInt());
+        return nos;
     }
 
 

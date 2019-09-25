@@ -8,13 +8,18 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class SendItem {
 
+    public  ArrayList<Integer> queriesNumberList;
+    public ArrayList<Integer> queries;
+
     public int queryNo;
     public int [] triple;
-    public ResultTriple resultTriple;
     public String msg;
+
+    public byte[] data;
 
 
     private ArrayList<ResultTriple> resultTripleList;
@@ -34,12 +39,19 @@ public class SendItem {
 
     }
 
+    public SendItem(ArrayList<Integer> queries, ArrayList<Integer> queriesNumberList) {
+        this.queries = queries;
+        this.queriesNumberList = queriesNumberList;
+    }
+
     public ArrayList<ResultTriple> getResultTripleList() {
         return resultTripleList;
     }
 
 
     public byte[] getBytes() {
+        if(data != null)
+            return data;
         ArrayList<Integer> intList = new ArrayList<>();
         serialize(intList);
         byte [] data = new byte[(intList.size())*4];
@@ -333,5 +345,11 @@ public class SendItem {
             Triple triple = new Triple(intList.get(i++) , intList.get(i++) ,intList.get(i++));
             resultTriple = new ResultTriple(triple);
         }
+    }
+
+    public void generateTestData(int length) {
+        data = new byte[length];
+        Random random = new Random();
+        random.nextBytes(data);
     }
 }

@@ -13,6 +13,8 @@ import java.util.HashMap;
 
 public class Transporter {
 
+
+
     private final ArrayList<String> hosts;
     private final ArrayList<Sender> senderPool;
     private final ArrayList<Receiver> receiversPool;
@@ -22,6 +24,11 @@ public class Transporter {
     public static int PING_MESSAGE = -999;
     public static int PING_REPLY_MESSAGE = -998;
     public static int QUERY_MSG = -997;
+    public static int TEST_MESSAGE = -996;
+    public static final int TEST_REPLY_MESSAGE = -995;
+    public static final int QUERIES_SESSION = -994 ;
+    public static final int QUERIES_DONE_BATCH = -993;
+
     private final String myIP;
 
     private final RemoteQueryListener remoteQueryListener;
@@ -85,9 +92,37 @@ public class Transporter {
 
     public void sendQuery(String query, int queryNo) {
         for (int i = 0; i < senderPool.size(); i++) {
-            senderPool.get(i).sendQuery(query, queryNo);
+            senderPool.get(i).sendQuery(query, queryNo , true);
         }
     }
+
+    public void sendManyQueires(ArrayList<String> list , ArrayList<Integer> queryNos){
+        ArrayList<Integer>[] shareNos = new ArrayList[senderPool.size()];
+        ArrayList<String>[] shareQueries = new ArrayList[senderPool.size()];
+        for(int j = 0 ; j < senderPool.size() ; j++){
+            if(shareNos[j] == null) {
+                shareNos[j] = new ArrayList<>();
+                shareQueries[j] = new ArrayList<>();
+            }
+            for(int i = list.size() ; i >= 0 ; i--){
+                shareNos[(i+j)%senderPool.size()].add(queryNos.get(i));
+                shareQueries[(i+j)%senderPool.size()].add(list.get(i));
+            }
+            for (int i = 0; i < senderPool.size(); i++) {
+                senderPool.get(i).sendQueryList(shareNos[i] , shareQueries[i]);
+                here ..
+            }
+        }
+
+
+
+        /*for(int j = 0 ; j < senderPool.size() ; j++)
+            for(int i = list.size() ; i >= 0 ; i--){
+                senderPool.get((i+j)%senderPool.size()).sendQuery(list.get(i), queryNos.get(i) , i == 0);
+            }*/
+    }
+
+   /* public void informDoneQuery()*/
 
 
     public void receive(int queryNo, ReceiverListener cBack) {
@@ -143,7 +178,22 @@ public class Transporter {
         senderPool.get(hostID).pingBack();
     }
 
+
+    private int numberOFTestMessageToRecieve = 100;
+    private int currentCount = 0;
+
+    public void replyTestMssg(byte[] data , int hostID) {
+        currentCount++;
+        if(currentCount > numberOFTestMessageToRecieve)
+            senderPool.get(hostID).sendTestMesgBack();
+    }
+
     public void gotPingReply(int id) {
+        Sender.PingListener pingListener = pingListeners.get(id);
+        pingListener.onPingReply();
+    }
+
+    public void gotTestReplyMsg(int id) {
         Sender.PingListener pingListener = pingListeners.get(id);
         pingListener.onPingReply();
     }
@@ -168,6 +218,8 @@ public class Transporter {
     public String getHost() {
         return myIP;
     }
+
+
 
 
     public interface ReceiverListener {

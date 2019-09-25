@@ -9,7 +9,6 @@ public class ResultTriple {
     Triple triple;
 
 
-    ResultTriple up;
     ResultTriple down;
     ResultTriple left;
     ResultTriple right;
@@ -18,7 +17,7 @@ public class ResultTriple {
 
     ResultTriple extraDown;
     private int borderIndex = -1;
-
+    public boolean cached = false;
 
     public ResultTriple(Triple triple){
         this.triple = triple;
@@ -61,9 +60,7 @@ public class ResultTriple {
         right = resultTriple;
     }
 
-    public void setUp(ResultTriple resultTriple){
-        up = resultTriple;
-    }
+
 
     public void setDown(ResultTriple resultTriple){
         down =  resultTriple;

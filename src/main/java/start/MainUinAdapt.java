@@ -96,7 +96,7 @@ try {
     });
 
     try {
-        o.porcess(filePaths, quad);
+     ////   o.porcess(filePaths, quad);
     }catch (Exception e){
         e.printStackTrace();
     }

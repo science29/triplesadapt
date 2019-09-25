@@ -16,8 +16,8 @@ import java.util.concurrent.BlockingQueue;
 public class QueryWorkersPool {
 
 
-    private static final int NO_OF_THREADS = 7;
-    private static final int INTER_EXECUTER_THREAD_COUNT = 7;
+    private static final int NO_OF_THREADS = 1;
+    private static final int INTER_EXECUTER_THREAD_COUNT = 1;
    // private ArrayList<BlockingQueue<Query>> sharedWorkQueues = new ArrayList<>();
     private BlockingQueue<Query> sharedWorkQueue = new ArrayBlockingQueue<>(1000);
     private ArrayList<Worker> workers = new ArrayList<>();
@@ -85,21 +85,28 @@ public class QueryWorkersPool {
 
     public void addManyQueries(ArrayList<String> queriesList){
         session = new Session(queriesList.size());
+        ArrayList<Integer> queriesNo = Query.getQueiresNumber(queriesList.size()) ;
+        transporter.sendManyQueires(queriesList , queriesNo);
         for(int i = 0 ; i < queriesList.size() ; i++){
             try {
-                Query spQuery = new Query(dictionary, queriesList.get(i), indexPool, transporter);
+                Query spQuery = new Query(dictionary, queriesList.get(i), indexPool, transporter , queriesNo.get(i));
                 spQuery.setSilent(true);
                 addQuery(spQuery);
-                transporter.sendQuery(queriesList.get(i) , spQuery.ID);
+               // transporter.sendQuery(queriesList.get(i) , spQuery.ID);
             }catch (Exception e){
                 session.lostOne();
             }
         }
     }
 
+    ArrayList<Query> pointless = new ArrayList<>();
+
     public int addSingleQuery(String query){
         session = null;
-        return addQuery(query);
+        singleStartTime = System.nanoTime();
+        Query spQuery = new Query(dictionary, query, indexPool, transporter);
+        addQuery(spQuery);
+        return spQuery.ID;
     }
 
 /*    public int addManyQueries(String query , boolean last ) {
@@ -114,13 +121,6 @@ public class QueryWorkersPool {
         addQuery(spQuery);
         return spQuery.ID;
     }*/
-
-    public int addQuery(String query) {
-        singleStartTime = System.nanoTime();
-        Query spQuery = new Query(dictionary, query, indexPool, transporter);
-        addQuery(spQuery);
-        return spQuery.ID;
-    }
 
     public void addQuery(String query, int queryNo) {
         singleStartTime = System.nanoTime();
@@ -212,7 +212,7 @@ public class QueryWorkersPool {
                                     transporter.sendToAll(queryProcessed.getToSendItem());
                                 }
                             }
-                        });
+                        } , null);
                         //query.findQueryAnswer(queryWorkersPool);
 
                     } else {

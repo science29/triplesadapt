@@ -20,6 +20,8 @@ public class QueryCache {
         cache.put(key , patternPair);
     }
 
+
+
     public PatternPair getStartCachedPattern(int p1 , int p2){
         tempkey.set(p1,p2);
         return  cache.get(tempkey);

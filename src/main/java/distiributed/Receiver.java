@@ -19,6 +19,7 @@ public class Receiver extends Thread {
     private Socket server;
     private ServerSocket serverSocket;
     private final int id;
+    private boolean testMode  =false;
 
     public Receiver(Transporter transporter, String host, int id) {
         this.transporter = transporter;
@@ -59,6 +60,25 @@ public class Receiver extends Thread {
 
                     int length = in.readInt();
                     System.err.println("got something .. length "+length);
+
+                    if(length == Transporter.QUERIES_SESSION){
+                        int count = in.readInt();
+                        for(int i = 0 ; i < count ; i++){
+                            int queryNo = in.readInt();
+                            String query = in.readUTF();
+                            transporter.recievedQuery(query , queryNo);
+                        }
+                        continue;
+                    }
+
+                    if(length == Transporter.QUERIES_DONE_BATCH){
+                        int count = in.readInt();
+                        for(int i = 0 ; i < count ; i++){
+                            int queryNo = in.readInt();
+                            transporter.recievedQueryDone(queryNo);
+                        }
+                        continue;
+                    }
                     if(length == Transporter.QUERY_MSG){
                         System.out.println("Received Query from "+host);
                         int queryNo = in.readInt();
@@ -76,13 +96,30 @@ public class Receiver extends Thread {
                         transporter.gotPingReply(id);
                         continue;
                     }
+                    if (length == Transporter.TEST_MESSAGE) {
+                        length = in.readInt();
+                        System.out.println("recieved test msg from " + host + ":" + port);
+                        testMode = true;
+                        //continue;
+                    }
+                    if (length == Transporter.TEST_REPLY_MESSAGE) {
+                        transporter.gotTestReplyMsg(id);
+                        System.out.println("recieved test reply msg from " + host + ":" + port);
+                        continue;
+                    }
+
                     if (length > 0) {
                         byte[] data = new byte[length];
                         in.readFully(data, 0, data.length);
                         SendItem sendItem = SendItem.fromByte(data);
-                        if (transporter != null)
-                            transporter.receiverGotResult(sendItem);
+                        if (transporter != null){
+                            if(!testMode)
+                                transporter.receiverGotResult(sendItem);
+                            else
+                                transporter.replyTestMssg(data,id);
+                        }
 
+                    testMode = false;
                         /*if (host.matches("172.20.32.8")) { //TODO remove remove remove...
                             System.out.println("sending it back");
                             transporter.sendToAll(sendItem);
