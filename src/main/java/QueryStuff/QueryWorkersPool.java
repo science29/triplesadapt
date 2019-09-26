@@ -35,6 +35,7 @@ public class QueryWorkersPool {
 
     private final QueryCache queryCache;
 
+
     public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool) {
         this.dictionary = dictionary;
         this.transporter = transporter;
@@ -137,6 +138,11 @@ public class QueryWorkersPool {
         }
     }
 
+    public void queryDone(int queryNo){
+        if(session.queryDone(queryNo))
+            sessionDone();
+    }
+
     private void ImWorking(int threadID, boolean working) {
         synchronized(status) {
             System.out.println("thread "+threadID+" working:"+working);
@@ -183,9 +189,11 @@ public class QueryWorkersPool {
             while (!stop) {
                 try {
                    // Query query = sharedWorkQueues.get(threadID).take();
-                    Query query = sharedWorkQueue.take();
+                    final Query query = sharedWorkQueue.take();
                     if (stop)
                         return;
+                    if(session != null && session.isDone(query.ID))
+                        continue;
                //     System.out.println(" query no: "+query.ID+" is started by thread : "+threadID);
 
           /*      if(pendingQuery.containsKey(query))
@@ -197,7 +205,7 @@ public class QueryWorkersPool {
                             @Override
                             public void onComplete(Query queryProcessed) {
                                 if (!queryProcessed.isPendingBorder()) {
-                                    if(session == null || session.queryDone())
+                                    if(session == null || session.queryDone(query.ID))
                                         sessionDone();
                                     /*if(sessionID == query.ID){
                                         sessionDone();
@@ -241,13 +249,12 @@ public class QueryWorkersPool {
         int queriesCount;
         long startTime;
         long endTime;
-        private int doneCount ;
+        private HashMap<Integer , Boolean> doneQueries = new HashMap<>();
 
         public Session( int queriesCount){
             this.sessionID = new Random().nextInt(1000000);
             this.queriesCount = queriesCount;
             startTime = System.nanoTime();
-            doneCount = 0;
             endTime = 0;
         }
 
@@ -260,13 +267,17 @@ public class QueryWorkersPool {
             System.out.println("session done time :"+(endTime-startTime)/1000000.0 + " ms ");
         }
 
-        public synchronized boolean queryDone(){
-            doneCount++;
-            if (doneCount >= queriesCount){
+        public synchronized boolean queryDone(int no){
+            doneQueries.put(no , true);
+            if (doneQueries.size() >= queriesCount){
                 endTime = System.nanoTime();
                 return true;
             }
             return false;
+        }
+
+        public boolean isDone(int id) {
+            return doneQueries.containsKey(id);
         }
     }
 

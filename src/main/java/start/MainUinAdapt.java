@@ -93,6 +93,10 @@ try {
                 o.queryWorkersPool.addQuery(query , queryNo);
 
         }
+        @Override
+        public void queryDone(int queryNo) {
+            o.queryWorkersPool.queryDone(queryNo);
+        }
     });
 
     try {

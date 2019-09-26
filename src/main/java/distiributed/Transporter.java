@@ -110,7 +110,6 @@ public class Transporter {
             }
             for (int i = 0; i < senderPool.size(); i++) {
                 senderPool.get(i).sendQueryList(shareNos[i] , shareQueries[i]);
-                here ..
             }
         }
 
@@ -151,6 +150,9 @@ public class Transporter {
         }
     }
 
+    public void recievedQueryDone(int queryNo) {
+        remoteQueryListener.queryDone(queryNo);
+    }
 
     public void receiverGotResult(SendItem sendItem) {
         boolean forwarded = false;
@@ -230,6 +232,7 @@ public class Transporter {
 
     public interface RemoteQueryListener {
         void gotQuery(String query, int queryNo);
+        void queryDone(int queryNo);
     }
 
 
