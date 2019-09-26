@@ -37,6 +37,8 @@ public class Transporter {
     private final HashMap<Integer, Query> waitngQueries;
     private final HashMap<Integer, SendItem> tempBuffer;
 
+    private int currentRecieveBatchCount = -1;
+
     public Transporter(ArrayList<String> hosts, RemoteQueryListener remoteQueryListener) {
         myIP = removeMySelf(hosts);
         this.remoteQueryListener = remoteQueryListener;
@@ -104,9 +106,10 @@ public class Transporter {
                 shareNos[j] = new ArrayList<>();
                 shareQueries[j] = new ArrayList<>();
             }
-            for(int i = list.size() ; i >= 0 ; i--){
-                shareNos[(i+j)%senderPool.size()].add(queryNos.get(i));
-                shareQueries[(i+j)%senderPool.size()].add(list.get(i));
+            for(int i = list.size()-1 ; i >= 0 ; i--){
+                int senderIndex = (i+j)%senderPool.size();
+                shareNos[senderIndex].add(queryNos.get(i));
+                shareQueries[senderIndex].add(list.get(i));
             }
             for (int i = 0; i < senderPool.size(); i++) {
                 senderPool.get(i).sendQueryList(shareNos[i] , shareQueries[i]);
@@ -131,9 +134,10 @@ public class Transporter {
             receiverListenerMap.remove(queryNo);
     }
 
-    public void recievedQuery(String query, int queryNo) {
+    public void recievedQuery(String query, int queryNo , int batchCount) {
+        currentRecieveBatchCount = batchCount;
         if (remoteQueryListener != null)
-            remoteQueryListener.gotQuery(query, queryNo);
+            remoteQueryListener.gotQuery(query, queryNo , batchCount);
     }
 
     public void receive(TriplePattern2 triplePattern2, int queryNo) {
@@ -152,6 +156,23 @@ public class Transporter {
 
     public void recievedQueryDone(int queryNo) {
         remoteQueryListener.queryDone(queryNo);
+    }
+
+
+    ArrayList<Integer> queriesDoneList;
+
+    public void localQueryDone(int queryNo){
+        if(currentRecieveBatchCount < 0)
+            return;
+        if(queriesDoneList == null)
+            queriesDoneList = new ArrayList<>();
+        queriesDoneList.add(queryNo);
+        if(queriesDoneList.size() >= currentRecieveBatchCount){
+            for(int i = 0; i < senderPool.size() ; i++){
+                senderPool.get(i).sendQueryListDone(queriesDoneList);
+                queriesDoneList.clear();
+            }
+        }
     }
 
     public void receiverGotResult(SendItem sendItem) {
@@ -182,11 +203,11 @@ public class Transporter {
 
 
     private int numberOFTestMessageToRecieve = 100;
-    private int currentCount = 0;
+    private int currentTestCount = 0;
 
     public void replyTestMssg(byte[] data , int hostID) {
-        currentCount++;
-        if(currentCount > numberOFTestMessageToRecieve)
+        currentTestCount++;
+        if(currentTestCount > numberOFTestMessageToRecieve)
             senderPool.get(hostID).sendTestMesgBack();
     }
 
@@ -231,7 +252,7 @@ public class Transporter {
 
 
     public interface RemoteQueryListener {
-        void gotQuery(String query, int queryNo);
+        void gotQuery(String query, int queryNo , int count);
         void queryDone(int queryNo);
     }
 

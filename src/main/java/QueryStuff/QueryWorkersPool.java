@@ -123,7 +123,10 @@ public class QueryWorkersPool {
         return spQuery.ID;
     }*/
 
-    public void addQuery(String query, int queryNo) {
+    public void addQuery(String query, int queryNo , int batchCount) {
+        if(session == null){
+            session = new Session(batchCount);
+        }
         singleStartTime = System.nanoTime();
         Query spQuery = new Query(dictionary, query, indexPool, transporter);
         spQuery.ID = queryNo;
@@ -136,11 +139,13 @@ public class QueryWorkersPool {
         else{
             System.out.println("single Query done time :"+(System.nanoTime() - singleStartTime)/1000000.0 + " ms ");
         }
+        session = null;
     }
 
     public void queryDone(int queryNo){
-        if(session.queryDone(queryNo))
+        if(session == null || session.queryDone(queryNo))
             sessionDone();
+        transporter.localQueryDone(queryNo);
     }
 
     private void ImWorking(int threadID, boolean working) {
@@ -205,8 +210,7 @@ public class QueryWorkersPool {
                             @Override
                             public void onComplete(Query queryProcessed) {
                                 if (!queryProcessed.isPendingBorder()) {
-                                    if(session == null || session.queryDone(query.ID))
-                                        sessionDone();
+                                   queryDone(queryProcessed.ID);
                                     /*if(sessionID == query.ID){
                                         sessionDone();
                                         return;

@@ -88,9 +88,9 @@ try {
 
     transporter = new Transporter(hosts, new Transporter.RemoteQueryListener() {
         @Override
-        public void gotQuery(String query, int queryNo) {
+        public void gotQuery(String query, int queryNo , int count) {
             if(o.queryWorkersPool != null)
-                o.queryWorkersPool.addQuery(query , queryNo);
+                o.queryWorkersPool.addQuery(query , queryNo , count);
 
         }
         @Override
@@ -100,7 +100,7 @@ try {
     });
 
     try {
-     ////   o.porcess(filePaths, quad);
+        o.porcess(filePaths, quad);
     }catch (Exception e){
         e.printStackTrace();
     }
