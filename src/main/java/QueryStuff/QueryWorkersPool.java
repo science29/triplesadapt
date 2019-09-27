@@ -165,6 +165,7 @@ public class QueryWorkersPool {
         if(session == null || session.queryDone(queryNo))
             sessionDone();
         transporter.localQueryDone(queryNo);xx //local or remote???
+        xxx
     }
 
     public void queryDoneLocally(Query query){
