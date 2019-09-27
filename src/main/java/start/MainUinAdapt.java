@@ -88,9 +88,9 @@ try {
 
     transporter = new Transporter(hosts, new Transporter.RemoteQueryListener() {
         @Override
-        public void gotQuery(String query, int queryNo , int count) {
+        public void gotQuery(String query, int queryNo , int count , int batchID) {
             if(o.queryWorkersPool != null)
-                o.queryWorkersPool.addQuery(query , queryNo , count);
+                o.queryWorkersPool.addQuery(query , queryNo , count , batchID);
 
         }
         @Override

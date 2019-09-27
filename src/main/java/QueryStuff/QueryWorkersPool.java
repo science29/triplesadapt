@@ -123,13 +123,29 @@ public class QueryWorkersPool {
         return spQuery.ID;
     }*/
 
-    public void addQuery(String query, int queryNo , int batchCount) {
-        if(session == null){
-            session = new Session(batchCount);
-        }
-        singleStartTime = System.nanoTime();
+    private Session currentBatch;
+    private HashMap<Integer , Session> batchesMap = new HashMap<>();
+
+    public void addQuery(String query, int queryNo , int batchCount , int batchID) {
         Query spQuery = new Query(dictionary, query, indexPool, transporter);
         spQuery.ID = queryNo;
+        if(batchCount == -1){
+            addSingleQuery(query);
+            return;
+        }
+
+        Session batch;
+        if(currentBatch != null && currentBatch.sessionID == batchID)
+            batch = currentBatch;
+        else
+            batch = batchesMap.get(batchID);
+        if(batch == null){
+            batch = new Session(batchCount);
+            currentBatch = batch;
+            batchesMap.put(batchID , batch);
+        }
+        singleStartTime = System.nanoTime();
+        spQuery.setBatch(batch);
         addQuery(spQuery);
     }
 
@@ -141,12 +157,24 @@ public class QueryWorkersPool {
         }
         session = null;
     }
+    private void batchDone() {
+        //Do noting for now !!
+    }
 
-    public void queryDone(int queryNo){
+    public void remoteQueryDone(int queryNo){
         if(session == null || session.queryDone(queryNo))
             sessionDone();
-        transporter.localQueryDone(queryNo);
+        transporter.localQueryDone(queryNo);xx //local or remote???
     }
+
+    public void queryDoneLocally(Query query){
+        if(query.getBatch() != null){
+            if(query.getBatch().queryDone(query.ID))
+                batchDone();
+        }
+    }
+
+
 
     private void ImWorking(int threadID, boolean working) {
         synchronized(status) {
@@ -210,7 +238,7 @@ public class QueryWorkersPool {
                             @Override
                             public void onComplete(Query queryProcessed) {
                                 if (!queryProcessed.isPendingBorder()) {
-                                   queryDone(queryProcessed.ID);
+                                   localQueryDone(queryProcessed);
                                     /*if(sessionID == query.ID){
                                         sessionDone();
                                         return;
@@ -247,7 +275,7 @@ public class QueryWorkersPool {
 
 
 
-    private class Session{
+    public class Session{
 
         int sessionID;
         int queriesCount;

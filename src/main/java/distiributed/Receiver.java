@@ -63,10 +63,11 @@ public class Receiver extends Thread {
 
                     if(length == Transporter.QUERIES_SESSION){
                         int count = in.readInt();
+                        int batchID = in.readInt();
                         for(int i = 0 ; i < count ; i++){
                             int queryNo = in.readInt();
                             String query = in.readUTF();
-                            transporter.recievedQuery(query , queryNo , count);
+                            transporter.recievedQuery(query , queryNo , count , batchID);
                         }
                         continue;
                     }
@@ -84,7 +85,7 @@ public class Receiver extends Thread {
                         int queryNo = in.readInt();
                         String query = in.readUTF();
                         System.out.println("Received Query from "+host + " "+query);
-                        transporter.recievedQuery(query , queryNo , -1);
+                        transporter.recievedQuery(query , queryNo , -1 ,0);
                     }
                     if (length == Transporter.PING_MESSAGE) {
                         System.out.println("recieved ping msg from " + host + ":" + port);

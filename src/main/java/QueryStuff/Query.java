@@ -44,6 +44,7 @@ public class Query {
     private int allowedThreadCount = 1;
     private boolean silent = false;
     private QueryCache queryCache;
+    private QueryWorkersPool.Session batch;
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.ID = new Random().nextInt();
@@ -793,6 +794,14 @@ public class Query {
         for(int i = 0; i < size ; i++)
             nos.add(ran.nextInt());
         return nos;
+    }
+
+    public void setBatch(QueryWorkersPool.Session batch) {
+        this.batch = batch;
+    }
+
+    public QueryWorkersPool.Session getBatch() {
+        return batch;
     }
 
 

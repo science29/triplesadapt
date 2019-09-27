@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
@@ -288,6 +289,7 @@ public class Sender{
                     }else{
                         outToServer.writeInt(Transporter.QUERIES_SESSION);
                         outToServer.writeInt(sendItem.queriesNumberList.size());
+                        outToServer.writeInt(new Random().nextInt());
                         for(int i = 0 ; i < sendItem.queriesNumberList.size() ; i++){
                             outToServer.writeInt(sendItem.queriesNumberList.get(i));
                             outToServer.writeInt(sendItem.queries.get(i));

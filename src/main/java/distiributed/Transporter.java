@@ -134,10 +134,10 @@ public class Transporter {
             receiverListenerMap.remove(queryNo);
     }
 
-    public void recievedQuery(String query, int queryNo , int batchCount) {
+    public void recievedQuery(String query, int queryNo , int batchCount , int batchID) {
         currentRecieveBatchCount = batchCount;
         if (remoteQueryListener != null)
-            remoteQueryListener.gotQuery(query, queryNo , batchCount);
+            remoteQueryListener.gotQuery(query, queryNo , batchCount , batchID);
     }
 
     public void receive(TriplePattern2 triplePattern2, int queryNo) {
@@ -252,7 +252,7 @@ public class Transporter {
 
 
     public interface RemoteQueryListener {
-        void gotQuery(String query, int queryNo , int count);
+        void gotQuery(String query, int queryNo , int count , int batchID);
         void queryDone(int queryNo);
     }
 
