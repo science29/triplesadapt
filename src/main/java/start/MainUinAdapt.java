@@ -95,7 +95,7 @@ try {
         }
         @Override
         public void queryDone(int queryNo) {
-            o.queryWorkersPool.queryDone(queryNo);
+            o.queryWorkersPool.remoteQueryDone(queryNo);
         }
     });
 
@@ -1919,9 +1919,13 @@ try {
 
     private ArrayList<String> readFromQueryFile(){
         String path = "manyQueriesFile";
+        String path2 = "../../../manyQueriesFile";
         System.out.println("reading dictionary from temp file");
         ArrayList<String> res = new ArrayList<>();
         File file = new File(path);
+        if(!file.exists()){
+            file = new File(path2);
+        }
         LineIterator it = null;
         try {
             it = FileUtils.lineIterator(file);

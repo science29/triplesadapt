@@ -13,7 +13,7 @@ import java.util.Random;
 public class SendItem {
 
     public  ArrayList<Integer> queriesNumberList;
-    public ArrayList<Integer> queries;
+    public ArrayList<String> queries;
 
     public int queryNo;
     public int [] triple;
@@ -39,7 +39,7 @@ public class SendItem {
 
     }
 
-    public SendItem(ArrayList<Integer> queries, ArrayList<Integer> queriesNumberList) {
+    public SendItem(ArrayList<String> queries, ArrayList<Integer> queriesNumberList) {
         this.queries = queries;
         this.queriesNumberList = queriesNumberList;
     }

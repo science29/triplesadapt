@@ -10,6 +10,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Set;
 
 public class Transporter {
 
@@ -37,7 +38,6 @@ public class Transporter {
     private final HashMap<Integer, Query> waitngQueries;
     private final HashMap<Integer, SendItem> tempBuffer;
 
-    private int currentRecieveBatchCount = -1;
 
     public Transporter(ArrayList<String> hosts, RemoteQueryListener remoteQueryListener) {
         myIP = removeMySelf(hosts);
@@ -124,7 +124,12 @@ public class Transporter {
             }*/
     }
 
-   /* public void informDoneQuery()*/
+
+    public void informDoneQuery(Set<Integer> queriesNos){
+        for(int i = 0; i < senderPool.size() ; i++){
+            senderPool.get(i).sendQueryListDone(new ArrayList<>(queriesNos));
+        }
+    }
 
 
     public void receive(int queryNo, ReceiverListener cBack) {
@@ -135,7 +140,6 @@ public class Transporter {
     }
 
     public void recievedQuery(String query, int queryNo , int batchCount , int batchID) {
-        currentRecieveBatchCount = batchCount;
         if (remoteQueryListener != null)
             remoteQueryListener.gotQuery(query, queryNo , batchCount , batchID);
     }
@@ -159,21 +163,7 @@ public class Transporter {
     }
 
 
-    ArrayList<Integer> queriesDoneList;
 
-    public void localQueryDone(int queryNo){
-        if(currentRecieveBatchCount < 0)
-            return;
-        if(queriesDoneList == null)
-            queriesDoneList = new ArrayList<>();
-        queriesDoneList.add(queryNo);
-        if(queriesDoneList.size() >= currentRecieveBatchCount){
-            for(int i = 0; i < senderPool.size() ; i++){
-                senderPool.get(i).sendQueryListDone(queriesDoneList);
-                queriesDoneList.clear();
-            }
-        }
-    }
 
     public void receiverGotResult(SendItem sendItem) {
         boolean forwarded = false;

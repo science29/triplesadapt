@@ -75,7 +75,7 @@ public class Sender{
 
     public void sendQueryList(ArrayList<Integer> queriesNumberList , ArrayList<String> queryList){
         try {
-            sharedWorkQueue.put(new SendItem(null , queriesNumberList));
+            sharedWorkQueue.put(new SendItem(queryList , queriesNumberList));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -292,7 +292,7 @@ public class Sender{
                         outToServer.writeInt(new Random().nextInt());
                         for(int i = 0 ; i < sendItem.queriesNumberList.size() ; i++){
                             outToServer.writeInt(sendItem.queriesNumberList.get(i));
-                            outToServer.writeInt(sendItem.queries.get(i));
+                            outToServer.writeUTF(sendItem.queries.get(i));
                         }
                         outToServer.flush();
                     }

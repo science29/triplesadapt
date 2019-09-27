@@ -10,6 +10,7 @@ import triple.TriplePattern2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -150,29 +151,32 @@ public class QueryWorkersPool {
     }
 
     private void sessionDone() {
-        if(session != null)
-            session.printSessionTime();
+        if(session != null) {
+            if(!session.isPrinted())
+                session.printSessionTime();
+        }
         else{
             System.out.println("single Query done time :"+(System.nanoTime() - singleStartTime)/1000000.0 + " ms ");
         }
-        session = null;
     }
-    private void batchDone() {
-        //Do noting for now !!
+
+
+    private void batchDone(Session batch) {
+        Set<Integer> nos = batch.getDoneQueriesIDs();
+        transporter.informDoneQuery(nos);
     }
 
     public void remoteQueryDone(int queryNo){
         if(session == null || session.queryDone(queryNo))
             sessionDone();
-        transporter.localQueryDone(queryNo);xx //local or remote???
-        xxx
     }
 
     public void queryDoneLocally(Query query){
         if(query.getBatch() != null){
             if(query.getBatch().queryDone(query.ID))
-                batchDone();
-        }
+                batchDone(query.getBatch());
+        }else if(session == null || session.queryDone(query.ID))
+            sessionDone();
     }
 
 
@@ -239,7 +243,7 @@ public class QueryWorkersPool {
                             @Override
                             public void onComplete(Query queryProcessed) {
                                 if (!queryProcessed.isPendingBorder()) {
-                                   localQueryDone(queryProcessed);
+                                   queryDoneLocally(queryProcessed);
                                     /*if(sessionID == query.ID){
                                         sessionDone();
                                         return;
@@ -283,6 +287,7 @@ public class QueryWorkersPool {
         long startTime;
         long endTime;
         private HashMap<Integer , Boolean> doneQueries = new HashMap<>();
+        private boolean printed = false;
 
         public Session( int queriesCount){
             this.sessionID = new Random().nextInt(1000000);
@@ -297,6 +302,7 @@ public class QueryWorkersPool {
 
 
         public void printSessionTime(){
+            printed = true;
             System.out.println("session done time :"+(endTime-startTime)/1000000.0 + " ms ");
         }
 
@@ -311,6 +317,14 @@ public class QueryWorkersPool {
 
         public boolean isDone(int id) {
             return doneQueries.containsKey(id);
+        }
+
+        public Set<Integer> getDoneQueriesIDs() {
+            return doneQueries.keySet();
+        }
+
+        public boolean isPrinted() {
+            return printed;
         }
     }
 
