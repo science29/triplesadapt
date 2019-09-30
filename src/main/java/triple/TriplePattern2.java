@@ -38,7 +38,9 @@ public class TriplePattern2 {
     private MyHashMap<Integer, ArrayList<Triple>> Pso;
     private MyHashMap<Integer, ArrayList<Triple>> OPs;
     private MyHashMap<Integer, ArrayList<Triple>> SPo;
-    private WithinIndex withinIndex;
+
+    @Deprecated
+    private WithinIndex withinIndex; //TODO problem in multithreading
     private boolean goingLeft;
     private InterExecutersPool executerPool;
 
@@ -475,7 +477,7 @@ public class TriplePattern2 {
     }
 
     private void hashJoin(TriplePattern2 callerPattern, boolean deep) {
-
+        WithinIndex withinIndex = new WithinIndex(0);
         if (isVariable(triples[1])) {
             System.out.println(" the hash index supports only constant properties");
             return;
@@ -506,13 +508,10 @@ public class TriplePattern2 {
                 index = OPs;
                 withinIndex.index = 0;
                 List<Triple> list = index.get(triples[2], triples[1], 1, withinIndex);
-                //  result.clear();
                 if (list != null && list.size() > 0) {
-                    //     result.addAll(withinIndex.index, list);
                     headResultTriple = new ResultTriple(list);
                     resultTriple = headResultTriple;
-                }/*else
-                    System.out.println("no result here");*/
+                }
                 evaluatedStarted = true;
                 return;
             }
