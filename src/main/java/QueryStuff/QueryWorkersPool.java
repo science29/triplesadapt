@@ -4,6 +4,7 @@ import distiributed.SendItem;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.IndexesPool;
+import optimizer.HeatQuery;
 import optimizer.Threading;
 import triple.TriplePattern2;
 
@@ -36,6 +37,8 @@ public class QueryWorkersPool {
 
     private final QueryCache queryCache;
 
+    private final HeatQuery heatQuery;
+
 
     public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool) {
         this.dictionary = dictionary;
@@ -52,7 +55,7 @@ public class QueryWorkersPool {
         interExecutersPool = new InterExecutersPool(INTER_EXECUTER_THREAD_COUNT);
 
         queryCache = new QueryCache();
-
+        heatQuery = new HeatQuery();
     }
 
 
@@ -67,6 +70,7 @@ public class QueryWorkersPool {
     public synchronized void addQuery(Query query) {
         try {
             sharedWorkQueue.put(query);
+            heatQuery.addQuery(query);
            /* int min_size = sharedWorkQueues.get(0).size();
             int min_index = 0;
             for (int i = 0; i < NO_OF_THREADS; i++) {

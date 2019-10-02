@@ -94,5 +94,6 @@ public class IndexesPool {
             case PSo: return 0;
             case POs: return 2;
         }
+        return -1;
     }
 }

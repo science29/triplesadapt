@@ -721,11 +721,13 @@ try {
                     }
                     String[] triple;
                     if (quad) {
-                        triple = getTripleFromQuadLine(line);
-                        if (triple == null)
+                        triple = getTripleFromQuadLine(line , header , prefix);
+                        if (triple == null) {
+                            errQuadProcess++;
                             continue;
+                        }
                     } else {
-                        triple = getTripleFromTripleLine(line, errCount, errSolved);
+                        triple = getTripleFromTripleLine(line, errCount, errSolved , header , prefix);
 
 
                     }
@@ -750,7 +752,6 @@ try {
                                     //graph.put(nextCode, v);
                                     code[i] = nextCode;
                                     dictionary.put(triple[i], code[i]);
-                                    reverseDictionary.put(code[i], triple[i]);
                                     nextCode++;
                                 }
                             }
@@ -774,7 +775,6 @@ try {
                                 nextCode++;
                                 if(count>=skipToLine ) {
                                     dictionary.put(triple[i], code[i]);
-                                    reverseDictionary.put(code[i], triple[i]);
                                 }
                                 v = new ArrayList();
               ////                  vertecesID.add(code[i]);
@@ -785,7 +785,6 @@ try {
                                 nextPredicateCode++;
                                 if(count>=skipToLine ) {
                                     dictionary.put(triple[i], code[i]);
-                                    reverseDictionary.put(code[i], triple[i]);
                                 }
                             }
                         }
@@ -1135,13 +1134,13 @@ try {
     }
 
 
-    private String[] getTripleFromTripleLine(String line, Integer errCount, Integer errSolved) {
+    public static String[] getTripleFromTripleLine(String line, Integer errCount, Integer errSolved , ArrayList<String > header , HashMap<String,String> prefix) {
         String[] triple = new String[3];
         String [] linet = new String[1];
         linet[0] = line;
-        triple[0] = stripItem(linet);
-        triple[1] = stripItem(linet);
-        triple[2] = stripItem(linet);
+        triple[0] = stripItem(linet , header ,prefix);
+        triple[1] = stripItem(linet , header , prefix);
+        triple[2] = stripItem(linet , header , prefix);
         if(triple[2] != null)
             triple[2] = triple[2];
         if(triple[0] != null && triple[1] != null && triple[2] != null)
@@ -1152,7 +1151,7 @@ try {
 
 
 
-    private String stripItem(String []linet){
+    public static String stripItem(String []linet , ArrayList<String > header , HashMap<String,String> prefix){
         String line = linet[0].trim();
         String item = null;
         char startChar = line.charAt(0);
@@ -1212,26 +1211,26 @@ try {
     private int startErrQuadProcess = 0;
     private int quadProcess = 0;
 
-    private String[] getTripleFromQuadLine(String line) {
+    public static String[] getTripleFromQuadLine(String line , ArrayList<String> header , HashMap<String,String> prefix) {
         if(line.contains("<http://purl.org/rss/1.0/modules/content/encoded>"))
             line.contains("");
         String t = line.replace("qqq","");
         if (!line.startsWith("<") && !line.startsWith("_:")) {
-            errQuadProcess++;
-            startErrQuadProcess++;
+            /*errQuadProcess++;
+            startErrQuadProcess++;*/
             return null;
         }
         String[] triple = new String[3];
         String [] linet = new String[1];
         linet[0] = line;
-        triple[0] = stripItem(linet);
-        triple[1] = stripItem(linet);
-        triple[2] = stripItem(linet);
+        triple[0] = stripItem(linet , header ,prefix);
+        triple[1] = stripItem(linet , header , prefix);
+        triple[2] = stripItem(linet , header , prefix);
         if(triple[2] != null)
             triple[2] = triple[2]+'.';
         if(triple[0] != null && triple[1] != null && triple[2] != null)
             return triple;
-        errQuadProcess++;
+        //startErrQuadProcess++;
         return null;
     }
 
@@ -1873,7 +1872,7 @@ try {
 
 
                 if (quad) {
-                    triple = getTripleFromQuadLine(line);
+                    triple = getTripleFromQuadLine(line , header ,prefix);
                     if (triple == null) {
                         err++;
                         continue;

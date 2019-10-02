@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 
-
+@Deprecated
 public class Main2 {
 
     private static final int BASE_PREDICATE_CODE = 1000000000;

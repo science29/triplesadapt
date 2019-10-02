@@ -34,6 +34,9 @@ public class TriplePattern2 {
     //private List<Triple> result;
     private ResultTriple resultTriple;
     private ArrayList<TriplePattern2> rights;
+
+
+
     private ArrayList<TriplePattern2> lefts;
     private MyHashMap<Integer, ArrayList<Triple>> Pso;
     private MyHashMap<Integer, ArrayList<Triple>> OPs;
@@ -115,6 +118,15 @@ public class TriplePattern2 {
         this.stringTriple[1] = reverseDictionary.get(triples[1]);
         this.stringTriple[2] = reverseDictionary.get(triples[2]);
     }*/
+
+    public ArrayList<TriplePattern2> getRights() {
+        return rights;
+    }
+
+    public ArrayList<TriplePattern2> getLefts() {
+        return lefts;
+    }
+
 
     public int[] getTriples() {
         return triples;
