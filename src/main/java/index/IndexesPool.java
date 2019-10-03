@@ -8,20 +8,20 @@ import java.util.HashMap;
 
 public class IndexesPool {
 
-    public final static int Spo = 0;
-    public final static int SPo = 2;
-    public final static int Sop = 3;
-    public final static int SOp = 4;
+    public final static byte Spo = 0;
+    public final static byte SPo = 2;
+    public final static byte Sop = 3;
+    public final static byte SOp = 4;
 
-    public final static int Pso = 5;
-    public final static int PSo = 6;
-    public final static int Pos = 7;
-    public final static int POs = 8;
+    public final static byte Pso = 5;
+    public final static byte PSo = 6;
+    public final static byte Pos = 7;
+    public final static byte POs = 8;
 
-    public final static int Osp = 9;
-    public final static int OSp = 10;
-    public final static int Ops = 11;
-    public final static int OPs = 12;
+    public final static byte Osp = 9;
+    public final static byte OSp = 10;
+    public final static byte Ops = 11;
+    public final static byte OPs = 12;
 
 
     HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>> pool;
