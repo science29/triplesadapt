@@ -332,7 +332,7 @@ try {
                 VertexGraph vx = (VertexGraph) pair.getValue();
                 if (vx.writtenToFile)
                     continue;
-                if (reverseDictionary.get(vx.ID).contains("<") && reverseDictionary.get(vx.ID).contains(">")) {
+                if (reverseDictionary.getString(vx.ID).contains("<") && reverseDictionary.getString(vx.ID).contains(">")) {
                     dummyCount++;
                     String dummyTriple = reverseDictionary.get(vx.ID) + " " + "x:dummyRef" + " " + "\"" + 11 + "\""; // just write a dummy tripple to make this (non border triple) appears in the data set first before the writing the borders ones
                     outBuff[vx.partitionNumber].write(dummyTriple + " .");
@@ -351,7 +351,7 @@ try {
                 //first write all the remaining triples at the end
                 for (int j = 0; j < partitionCount; j++) {
                     int g = 2;
-                    String ss = reverseDictionary.get(g);
+                    String ss = reverseDictionary.getString(g);
                     String endTriple = ss + " " + "x:isOwnedBy" + " \"" + "ahmed_alghezi" + "\"";
                     outBuff[j].write(endTriple + " .");
                     outBuff[j].newLine();
@@ -413,7 +413,7 @@ try {
                 if (includeCompressed) {
                     for (int k = 0; k < partitionCount; k++) {//add the triple of fragment to all partitions excepts the owner one
                         int g = 2;
-                        String ss = reverseDictionary.get(g);
+                        String ss = reverseDictionary.getString(g);
                         String endTriple = ss + " " + "x:isOwnedBy" + " \"" + "compressed_tripless" + "\"";
                         outBuff[k].write(endTriple + " .");
                         outBuff[k].newLine();

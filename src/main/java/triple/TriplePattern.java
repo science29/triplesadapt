@@ -32,9 +32,9 @@ public class TriplePattern {
 
 
     public void findStringTriple(Dictionary reverseDictionary) {
-        this.stringTriple[0] = reverseDictionary.get(triples[0]);
-        this.stringTriple[1] = reverseDictionary.get(triples[1]);
-        this.stringTriple[2] = reverseDictionary.get(triples[2]);
+        this.stringTriple[0] = new String(reverseDictionary.get(triples[0]));
+        this.stringTriple[1] = new String(reverseDictionary.get(triples[1]));
+        this.stringTriple[2] = new String(reverseDictionary.get(triples[2]));
     }
 
     public static boolean isVariable(int code) {

@@ -23,8 +23,8 @@ public class Dictionary{
     private DB dbFileReverse;
     HTreeMap fastMap;
     HTreeMap reverseFastMap;
-    HashMap<char[],Integer> cache = new HashMap<char[], Integer>();
-    HashMap<Integer,String> reverseCache = new HashMap<Integer, String>();
+    HashMap<char[],Integer> cache = new HashMap<>();
+    HashMap<Integer,char[]> reverseCache = new HashMap<>();
 
     //HashMap<String,Integer> cache2 = new HashMap<String, Integer>();
    // HashMap<Integer,String> reverseCache2 = new HashMap<Integer, String>();
@@ -116,8 +116,9 @@ public class Dictionary{
     private double factor = 2;
     private boolean addToCache(String key, Integer value){
         if(cacheEnabled){
-            cache.put(key ,value);
-            reverseCache.put(value , key);
+            char [] chars = key.toCharArray();
+            cache.put(chars ,value);
+            reverseCache.put(value , chars);
             if(cache.size() > maxCacheSize){
                 writeCacheToPersist();
                 maxCacheSize =(int)(((double)maxCacheSize)/factor);
@@ -176,11 +177,11 @@ public class Dictionary{
 
 
 
-    public String get(Integer key){
-        String val = getFromCache(key);
+    public char[] get(Integer key){
+        char[] val = getFromCache(key);
         if(val != null)
             return val;
-        return (String) reverseFastMap.get(key);
+        return (char[]) reverseFastMap.get(key); //TODO fix wrong casting !
     }
 
 
@@ -191,10 +192,17 @@ public class Dictionary{
         return val;
     }
 
-    private String getFromCache(Integer key) {
+    private Integer getFromCache(char[] key) {
         if(!cacheEnabled)
             return null;
-        String val = reverseCache.get(key);
+        Integer val = cache.get(key);
+        return val;
+    }
+
+    private char[] getFromCache(Integer key) {
+        if(!cacheEnabled)
+            return null;
+        char [] val = reverseCache.get(key);
         return val;
     }
 
@@ -249,6 +257,10 @@ public class Dictionary{
             count++;
         }
         System.out.println("loaded "+count+ " item.");
+    }
+
+    public String getString(int key) {
+        return new String(get(key));
     }
 
 

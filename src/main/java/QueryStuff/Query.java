@@ -91,19 +91,19 @@ public class Query {
         for (int i = 0; i < triplePatterns.size(); i++) {
             String s, p, o;
             if (triplePatterns.get(i).triples[0] != TriplePattern.thisIsVariable) {
-                s = reverseDictionary.get(triplePatterns.get(i).triples[0]);
+                s = new String(reverseDictionary.get(triplePatterns.get(i).triples[0]));
                 s = getFullStringElem(s, prefixIndex);
             } else {
                 s = "?x" + -1 * triplePatterns.get(i).variablesIndex.get(triplePatterns.get(i).fixedTriples[0]);
                 varsList.add(s);
             }
             if (triplePatterns.get(i).triples[1] != TriplePattern.thisIsVariable) {
-                p = reverseDictionary.get(triplePatterns.get(i).triples[1]);
+                p = new String(reverseDictionary.get(triplePatterns.get(i).triples[1]));
                 p = getFullStringElem(p, prefixIndex);
             } else
                 p = "?x" + -1 * triplePatterns.get(i).variablesIndex.get(triplePatterns.get(i).fixedTriples[1]);
             if (triplePatterns.get(i).triples[2] != TriplePattern.thisIsVariable) {
-                o = reverseDictionary.get(triplePatterns.get(i).triples[2]);
+                o = new String(reverseDictionary.get(triplePatterns.get(i).triples[2]));
                 o = getFullStringElem(o, prefixIndex);
             } else
                 o = "?x" + -1 * triplePatterns.get(i).variablesIndex.get(triplePatterns.get(i).fixedTriples[2]);
@@ -672,7 +672,7 @@ public class Query {
         if(knownEmpty)
             return;
         results.remove(0);
-        results.add(triplePatterns2.get(0).getHeadResultTriple());//TODO fix this tomorrow 8 aug
+        results.add(triplePatterns2.get(0).getHeadResultTriple());//TODO fix this so soon
         if(results != null){
             int count = 0;
             for(int i =0 ; i < results.size() ; i++){
@@ -687,7 +687,7 @@ public class Query {
                         do {
                             Triple triple = pHTriple.getTriple();
                             if (!silent && triple != null) {
-                                String str = reverseDictionary.get(triple.triples[0]) + " " + reverseDictionary.get(triple.triples[1]) + " " + reverseDictionary.get(triple.triples[2]);
+                                String str = reverseDictionary.getString(triple.triples[0]) + " " + reverseDictionary.getString(triple.triples[1]) + " " + reverseDictionary.getString(triple.triples[2]);//TODO consider calling get and process the char [] more effciently
                                 System.out.print(str + " . ");
                             }
                             count = printExtra(pHTriple.getExtraDown() , reverseDictionary , count ,silent);
