@@ -1948,7 +1948,7 @@ try {
     private void listenToQuery() {
 
         String testquery = "select ?x1 ?x2 ?x3 ?x4  where {?x3 y:describes ?x2.?x2 y:created ?x1.?x1 y:hasSuccessor ?x4.?x4 rdfs:label ?x5}";
-        new Query(dictionary, testquery,indexPool , transporter);//warm up!!
+        new Query(dictionary, testquery,indexPool , transporter , null);//warm up!!
         Scanner scanner = new Scanner(System.in);
         InterExecutersPool executersPool = new InterExecutersPool(7);
         queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool);

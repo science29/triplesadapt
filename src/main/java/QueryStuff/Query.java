@@ -4,6 +4,7 @@ import distiributed.SendItem;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.IndexesPool;
+import optimizer.Optimiser;
 import triple.ResultTriple;
 import triple.Triple;
 import triple.TriplePattern;
@@ -45,6 +46,7 @@ public class Query {
     private boolean silent = false;
     private QueryCache queryCache;
     private QueryWorkersPool.Session batch;
+    private Optimiser optimizer;
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.ID = new Random().nextInt();
@@ -60,19 +62,21 @@ public class Query {
     }
 
 
-    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter) {
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , Optimiser optimizer) {
         this.transporter = transporter;
         ID = new Random().nextInt();
         this.dictionary = dictionary;
         this.indexPool = indexPool;
+        this.optimizer = optimizer;
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
     }
 
-    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , int queryNo) {
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , int queryNo , Optimiser optimizer) {
         this.transporter = transporter;
         ID = queryNo;
         this.dictionary = dictionary;
         this.indexPool = indexPool;
+        this.optimizer = optimizer;
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
     }
 
@@ -611,7 +615,7 @@ public class Query {
         //TODO do this
 ///        triplePattern.setProjected(projected);
         triplePatterns.add(triplePattern);
-        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool ,transporter,this);
+        TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool ,transporter,this , optimizer);
         connectTriplePatterns(triplePattern2);
         triplePatterns2.add(triplePattern2);
 

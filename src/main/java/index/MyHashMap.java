@@ -59,8 +59,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private MyHashMap<K, V>.Consumer consumer;
     private HashMap<K, V> queryTimeCache;
     public boolean queryTimeCacheEnabled = false;
-
-
+    public byte poolRefType;
 
 
     public boolean isSorted(){

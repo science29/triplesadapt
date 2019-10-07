@@ -1,5 +1,6 @@
 package index;
 
+import optimizer.Optimiser;
 import triple.Triple;
 import triple.TriplePattern2;
 
@@ -34,6 +35,7 @@ public class IndexesPool {
     }
 
     public void addIndex(MyHashMap index , int type){
+        index.poolRefType = (byte)type;
         pool.put(type , index);
     }
 
@@ -54,7 +56,7 @@ public class IndexesPool {
 
 
 
-    public ArrayList<Triple> get(int optimalIndexType , int first , int second , TriplePattern2.WithinIndex withinIndex){
+    public ArrayList<Triple> get(int optimalIndexType , int first , int second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser ){
         //first try the optimal
         MyHashMap<Integer,ArrayList<Triple>> optimal = pool.get(optimalIndexType);
         ArrayList<Triple> list;
@@ -63,8 +65,11 @@ public class IndexesPool {
            list =  optimal.get(first);
         else
             list = optimal.get(first , second ,sortedIndex ,withinIndex);
-        if(list != null)
+        if(list != null) {
+            if(optimiser != null)
+                optimiser.informOptimalIndexUsage(optimal , first , second );
             return list;
+        }
 
         //try to find another way
         MyHashMap<Integer, ArrayList<Triple>> index = null;
@@ -80,6 +85,8 @@ public class IndexesPool {
         if(index == null)
             return null;
         list = index.get(second , first ,sortedIndex ,withinIndex);
+        if(optimiser != null)
+            optimiser.informSubOptIndexUsage(index,optimal, first , second );
         if(list != null)
             return list;
         return null;

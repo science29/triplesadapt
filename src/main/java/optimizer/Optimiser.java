@@ -1,6 +1,8 @@
 package optimizer;
 
 import QueryStuff.Query;
+import index.MyHashMap;
+import triple.Triple;
 import triple.TriplePattern2;
 
 import java.util.ArrayList;
@@ -23,12 +25,21 @@ public class Optimiser {
         memoryMap.informIndexUsage(index , count);
     }
 
-    public void informIndexUsage(byte index , int count , TriplePattern2 pattern){
-        memoryMap.informSpecificIndexUsage(index , count , pattern);
+    public void informIndexUsage(byte index , int count , int first , int second){
+        memoryMap.informSpecificIndexUsage(index , count , first ,second);
     }
 
     public void addQuery(Query query) {
         heatQuery.addQuery(query);
+
+    }
+
+    public void informOptimalIndexUsage(MyHashMap<Integer, ArrayList<Triple>> optimal, int first, int second) {
+        informGenralIndexUsage(optimal.poolRefType ,1);
+        informIndexUsage(optimal.poolRefType ,1,first , second);
+    }
+
+    public void informSubOptIndexUsage(MyHashMap<Integer, ArrayList<Triple>> index, MyHashMap<Integer, ArrayList<Triple>> optimal, int first, int second) {
 
     }
 
@@ -52,10 +63,10 @@ public class Optimiser {
             rule.usage += count;
         }
 
-        public void informSpecificIndexUsage(byte index, int count, TriplePattern2 pattern) {
+        public void informSpecificIndexUsage(byte index, int count, int first , int second) {
             Rule rule = rulesMap.get(index);
             if(rule == null) {
-                rule = new SpecificRule(index, pattern);
+                rule = new SpecificRule(index, first , second);
                 rulesMap.put(index , rule);
             }
             rule.usage += count;
@@ -81,14 +92,16 @@ public class Optimiser {
     }
 
 
-    public class SpecificRule extends GeneralRule{
+    public class SpecificRule extends Rule{
 
-        public final TriplePattern2 pattern;
+        public final int first;
+        public final int second;
         public int cost;
 
-        public SpecificRule(byte indexType, TriplePattern2 pattern) {
+        public SpecificRule(byte indexType, int first , int second) {
             super(indexType);
-            this.pattern = pattern;
+            this.first = first;
+            this.second = second;
         }
     }
 

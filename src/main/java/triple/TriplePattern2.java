@@ -8,6 +8,7 @@ import distiributed.SendItem;
 import distiributed.Transporter;
 import index.IndexesPool;
 import index.MyHashMap;
+import optimizer.Optimiser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,7 +66,10 @@ public class TriplePattern2 {
     private  int parallelThreadCount = 1;
     private TriplePattern2 cachedPattern;
 
-    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, Query query) {
+
+    private Optimiser optimiser;
+
+    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, Query query , Optimiser optimiser) {
         triples = new int[3];
         triples[0] = triplePattern.triples[0];
         triples[1] = triplePattern.triples[1];
@@ -83,6 +87,8 @@ public class TriplePattern2 {
         this.transporter = transporter;
         this.queryNo = query.ID;
         this.query = query;
+
+        this.optimiser = optimiser;
     }
 
     private TriplePattern2(TriplePattern2 triplePattern) {
@@ -514,6 +520,8 @@ public class TriplePattern2 {
                     resultTriple = headResultTriple;
                 }
                 evaluatedStarted = true;
+                if(optimiser != null)
+                    optimiser.informGenralIndexUsage(index.poolRefType,1);
                 return;
             }
             if (!isVariable(triples[2])) {
@@ -525,6 +533,8 @@ public class TriplePattern2 {
                     resultTriple = headResultTriple;
                 }
                 evaluatedStarted = true;
+                if(optimiser != null)
+                    optimiser.informGenralIndexUsage(index.poolRefType,1);
                 return;
             }
             ArrayList<Triple> list = predicateEvaluate(!deep);
@@ -565,6 +575,8 @@ public class TriplePattern2 {
             if (hisVal == 0)
                 continue;
             List<Triple> list = index.get(hisVal, p, 1, withinIndex);
+            if(optimiser != null)
+                optimiser.informGenralIndexUsage(index.poolRefType,1);
             if (list != null && list.size() > 0) {
                 if (headResultTriple == null) {
                     headResultTriple = new ResultTriple(list.get(withinIndex.index));

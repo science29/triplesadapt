@@ -96,7 +96,7 @@ public class QueryWorkersPool {
         transporter.sendManyQueires(queriesList , queriesNo);
         for(int i = 0 ; i < queriesList.size() ; i++){
             try {
-                Query spQuery = new Query(dictionary, queriesList.get(i), indexPool, transporter , queriesNo.get(i));
+                Query spQuery = new Query(dictionary, queriesList.get(i), indexPool, transporter , queriesNo.get(i) , optimiser);
                 spQuery.setSilent(true);
                 addQuery(spQuery);
                // transporter.sendQuery(queriesList.get(i) , spQuery.ID);
@@ -111,7 +111,7 @@ public class QueryWorkersPool {
     public int addSingleQuery(String query){
         session = null;
         singleStartTime = System.nanoTime();
-        Query spQuery = new Query(dictionary, query, indexPool, transporter);
+        Query spQuery = new Query(dictionary, query, indexPool, transporter , optimiser);
         addQuery(spQuery);
         return spQuery.ID;
     }
@@ -133,7 +133,7 @@ public class QueryWorkersPool {
     private HashMap<Integer , Session> batchesMap = new HashMap<>();
 
     public void addQuery(String query, int queryNo , int batchCount , int batchID) {
-        Query spQuery = new Query(dictionary, query, indexPool, transporter);
+        Query spQuery = new Query(dictionary, query, indexPool, transporter , optimiser);
         spQuery.ID = queryNo;
         if(batchCount == -1){
             addSingleQuery(query);
