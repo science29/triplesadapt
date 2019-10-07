@@ -23,7 +23,7 @@ public class Dictionary{
     private DB dbFileReverse;
     HTreeMap fastMap;
     HTreeMap reverseFastMap;
-    HashMap<String,Integer> cache = new HashMap<String, Integer>();
+    HashMap<char[],Integer> cache = new HashMap<char[], Integer>();
     HashMap<Integer,String> reverseCache = new HashMap<Integer, String>();
 
     //HashMap<String,Integer> cache2 = new HashMap<String, Integer>();
@@ -142,7 +142,7 @@ public class Dictionary{
             Integer val = (Integer) pair.getValue();
             put(key , val);
         }
-        cache = new HashMap<String, Integer>();
+        cache = new HashMap<char[], Integer>();
         cacheEnabled = true;
     }
 
@@ -153,7 +153,7 @@ public class Dictionary{
     public void put(String key, Integer value) {
        // normalMap.put(key,value);
         if(!addToCache(key,value)) {
-            fastMap.put(key, value);
+            fastMap.put(key.toCharArray(), value);
             reverseFastMap.put(value,key);
         }
     }
@@ -187,7 +187,7 @@ public class Dictionary{
     private Integer getFromCache(String key) {
         if(!cacheEnabled)
             return null;
-        Integer val = cache.get(key);
+        Integer val = cache.get(key.toCharArray());//TODO performance issue?
         return val;
     }
 
