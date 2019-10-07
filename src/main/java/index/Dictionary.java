@@ -176,6 +176,14 @@ public class Dictionary{
     }
 
 
+    public Integer get(char [] key){
+        Integer val = getFromCache(key);
+        if(val != null) {
+            return val;
+        }else
+            return (Integer) fastMap.get(key);
+    }
+
 
     public char[] get(Integer key){
         char[] val = getFromCache(key);

@@ -6,6 +6,7 @@ import index.Dictionary;
 import index.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
+import org.mapdb.Atomic;
 import triple.Triple;
 import triple.Vertex;
 
@@ -1371,7 +1372,8 @@ try {
         } else {
             ArrayList<Triple> list = new ArrayList();
             list.add(triple);
-            POS.put(triple.triples[1], list);
+            Integer codeObj = dictionary.get(dictionary.get(triple.triples[1]));
+            POS.put(codeObj, list);
         }
     }
 
@@ -1384,7 +1386,8 @@ try {
         } else {
             ArrayList<Triple> list = new ArrayList();
             list.add(triple);
-            SPO.put(code[0], list);
+            Integer codeObj = dictionary.get(dictionary.get(code[0]));
+            SPO.put(codeObj, list);
         }
     }
 
@@ -1392,7 +1395,8 @@ try {
         int code[] = triple.triples;
         if (OPS == null)
             OPS = new MyHashMap("OPS" , new IndexType(1,1,0) );
-        OPS.addTripleLazy(code[2] , triple);
+        Integer codeObj = dictionary.get(dictionary.get(code[2]));
+        OPS.addTripleLazy(codeObj , triple);
         /*
         if (OPS.containsKey(code[2])) {
             OPS.get(code[2]).add(triple);
