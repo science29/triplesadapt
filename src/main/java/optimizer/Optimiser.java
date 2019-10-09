@@ -12,6 +12,9 @@ import java.util.*;
 public class Optimiser {
 
 
+    public static final int FULL_DATA_COST = 1000000000; //TODO consider adjusting it
+
+
     private final MemoryMap memoryMap;
     private final HeatQuery heatQuery;
     private final IndexesPool indexesPool;
@@ -20,6 +23,7 @@ public class Optimiser {
         memoryMap = new MemoryMap();
         heatQuery = new HeatQuery();
         indexesPool = new IndexesPool(null , dictionary );
+        intialZeroProtocol();
     }
 
 
@@ -56,6 +60,8 @@ public class Optimiser {
         indexSet.add(IndexesPool.PSo);
         indexSet.add(IndexesPool.SOp);
         indexSet.add(IndexesPool.OSp);
+
+        //TODO the replication stuff ..
 
     }
 
@@ -114,6 +120,7 @@ public class Optimiser {
             if(rule == null) {
                 rule = new GeneralRule(index);
                 generalRulesMap.put(index , rule);
+                rulesList.add(rule);
             }
             rule.usage += count;
         }
@@ -123,8 +130,15 @@ public class Optimiser {
             if(rule == null) {
                 rule = new SpecificRule(index, first , second);
                 specificRulesMap.put(index , rule);
+                rulesList.add(rule);
             }
             rule.usage += count;
+        }
+
+        public int getHighBenefit(int quantity){
+            sortRuleList();
+
+
         }
 
     }
@@ -149,7 +163,6 @@ public class Optimiser {
         }
     }
 
-
     public class SpecificRule extends Rule{
 
         public final int first;
@@ -162,5 +175,6 @@ public class Optimiser {
             this.second = second;
         }
     }
+
 
 }

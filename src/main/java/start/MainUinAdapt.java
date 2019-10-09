@@ -854,12 +854,18 @@ try {
             }
         }
 
-        optimizer.dataReadDone();
+
      //
-        tripleGraph = SPO;
+
        // op_S.close();
-        System.out.println("sorting indexes.. ");
-        System.out.println("spo");
+        System.out.println("building and sorting indexes.. ");
+        optimizer.dataReadDone();
+        OPS = indexPool.getIndex(IndexesPool.OPs);
+        SPO = indexPool.getIndex(IndexesPool.SPo);
+        POS = indexPool.getIndex(IndexesPool.POs);
+        tripleGraph = indexPool.getIndex(IndexesPool.SPo);
+
+       /* System.out.println("spo");
         OPS.sort(1,0);
         System.out.println("op_s");
         op_S.sort(0,-1);
@@ -868,7 +874,7 @@ try {
         indexPool = new IndexesPool(borderTripleMap ,dictionary);
         indexPool.addIndex(IndexesPool.Pso , POS , "Pso");
         indexPool.addIndex(IndexesPool.OPs , OPS , "OPs");
-        indexPool.addIndex(IndexesPool.SPo , SPO , "SPo");
+        indexPool.addIndex(IndexesPool.SPo , SPO , "SPo");*/
 
 //        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
@@ -983,7 +989,7 @@ try {
 
 
     private static void someTests(){
-        long m1 =checkMemory();
+        long m1 =checkMemory(true);
         ArrayList<ArrayList<Triple>> testa = new ArrayList();
         HashMap<Long , ArrayList<Triple>> mapInteger = new HashMap<Long , ArrayList<Triple>>();
         HashMap<KeyType , ArrayList<Triple>> mapKey = new HashMap<KeyType , ArrayList<Triple>>();
@@ -1023,7 +1029,7 @@ try {
         for(int i =0 ; i< 100000 ; i++) {
             testa.add(new ArrayList<Triple>());
         }
-        long m2 = checkMemory();
+        long m2 = checkMemory(true);
         System.out.println("memory :"+(m2-m1)/100000.0);
     }
 
@@ -1553,7 +1559,7 @@ try {
             cnt++;
             if(cnt % 100000 == 0) {
                 System.out.print(" , " + cnt * 100 / totalSize);
-                checkMemory();
+                checkMemory(true);
             }
         }
         //then iterate over OPS disk
@@ -1566,7 +1572,7 @@ try {
             cnt++;
             if(cnt % 100000 == 0){
                 System.out.print(" , "+cnt*100/totalSize);
-                checkMemory();
+                checkMemory(true);
 
             }
         }
