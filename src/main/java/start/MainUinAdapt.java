@@ -4,6 +4,7 @@ import QueryStuff.*;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.*;
+import optimizer.Optimiser;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.mapdb.Atomic;
@@ -27,9 +28,9 @@ public class MainUinAdapt {
     private HashMap<Integer, ArrayList<Triple>> tripleGraph = new HashMap();//duplicate with graph , remove one!
     private ArrayList<Integer> vertecesID = new ArrayList();
     private HashMap<Integer, VertexGraph> verticies = new HashMap<Integer, VertexGraph>();;
-    private Dictionary dictionary = new Dictionary("dictionary_int");
+    private Dictionary dictionary;
     //private HashMap<Integer, String> reverseDictionary = new HashMap();
-    Dictionary reverseDictionary = dictionary;
+    Dictionary reverseDictionary;
     private HashMap<Integer, ArrayList<VertexGraph>> distanceVertex;
     private HashMap<Integer, Integer> PredicatesAsSubject;
     private int edgesCount = 0;
@@ -68,6 +69,7 @@ public class MainUinAdapt {
     private HashMap<Integer,Boolean> borderTripleMap = new HashMap<>();
 
     private QueryWorkersPool queryWorkersPool;
+    private Optimiser optimizer;
 
 
     public static void main(String[] args) {
@@ -158,6 +160,16 @@ try {
 */
 
     }
+
+
+
+
+    public MainUinAdapt(){
+        dictionary = new Dictionary("dictionary_int");
+        reverseDictionary = dictionary;
+        optimizer = new Optimiser(dictionary);
+    }
+
 
 
     private void openIndexes() {
@@ -705,7 +717,7 @@ try {
                             printBuffer(0, k+" processing line " + count / 1000 + " k");
                         else
                             printBuffer(1, k+" processing line " + count / 1000 + " k");
-                        checkMemory();
+                        checkMemory(true);
 
                     }
                     count++;
@@ -820,9 +832,11 @@ try {
                         tripleToPartutPartitionMap.put(code[0] + "p" + code[1] + "p" + code[2], -1);
                     }
 
-                    addToPOSIndex(tripleObj);
+
+                    optimizer.addStartTripleToIndex(tripleObj);
+                   /* addToPOSIndex(tripleObj);xx
                     addToOPSIndex(tripleObj);
-                    addToSPOIndex(tripleObj);
+                    addToSPOIndex(tripleObj);*/
 
                     //           addToSPOIndex(tripleObj);
                    // addToOPSIndex(new Triple(88,87,43));
@@ -839,6 +853,8 @@ try {
                 LineIterator.closeQuietly(it);
             }
         }
+
+        optimizer.dataReadDone();
      //
         tripleGraph = SPO;
        // op_S.close();
@@ -849,7 +865,7 @@ try {
         op_S.sort(0,-1);
         POS.sort(2,0);
         SPO.sort(1,2);
-        indexPool = new IndexesPool(borderTripleMap);
+        indexPool = new IndexesPool(borderTripleMap ,dictionary);
         indexPool.addIndex(IndexesPool.Pso , POS , "Pso");
         indexPool.addIndex(IndexesPool.OPs , OPS , "OPs");
         indexPool.addIndex(IndexesPool.SPo , SPO , "SPo");
@@ -1951,7 +1967,7 @@ try {
         new Query(dictionary, testquery,indexPool , transporter , null);//warm up!!
         Scanner scanner = new Scanner(System.in);
         InterExecutersPool executersPool = new InterExecutersPool(7);
-        queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool);
+        queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool , optimizer);
         while (true) {
             try {
                 System.out.println("Please enter Sparql QueryStuff.Query:");
@@ -2020,11 +2036,13 @@ try {
     }
 
 
-    private static long checkMemory(){
+    public static long checkMemory(boolean log){
         long rem =  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         long max = Runtime.getRuntime().maxMemory();
-        System.out.println(" app used memory: "+rem/1000000000 + " GB");
-        System.out.println(" app used memory: "+rem/1000 + " KB");
+        if(log) {
+            System.out.println(" app used memory: " + rem / 1000000000 + " GB");
+            System.out.println(" app used memory: " + rem / 1000 + " KB");
+        }
         if((max-rem)/1000 < 2000000) {
             System.out.println(" Low memory detected, exiting ... ");
             //finish();

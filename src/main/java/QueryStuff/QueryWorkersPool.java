@@ -41,7 +41,7 @@ public class QueryWorkersPool {
     private final Optimiser optimiser;
 
 
-    public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool) {
+    public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool , Optimiser optimiser) {
         this.dictionary = dictionary;
         this.transporter = transporter;
         this.indexPool = indexesPool;
@@ -56,7 +56,10 @@ public class QueryWorkersPool {
         interExecutersPool = new InterExecutersPool(INTER_EXECUTER_THREAD_COUNT);
 
         queryCache = new QueryCache();
-        optimiser = new Optimiser();
+        if(optimiser == null)
+            this.optimiser = new Optimiser(dictionary);
+        else
+            this.optimiser = optimiser;
     }
 
 

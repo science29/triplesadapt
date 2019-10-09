@@ -1,23 +1,25 @@
 package optimizer;
 
 import QueryStuff.Query;
+import index.Dictionary;
+import index.IndexesPool;
 import index.MyHashMap;
 import triple.Triple;
 import triple.TriplePattern2;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class Optimiser {
 
 
     private final MemoryMap memoryMap;
     private final HeatQuery heatQuery;
+    private final IndexesPool indexesPool;
 
-
-    public Optimiser() {
+    public Optimiser(Dictionary dictionary) {
         memoryMap = new MemoryMap();
         heatQuery = new HeatQuery();
+        indexesPool = new IndexesPool(null , dictionary );
     }
 
 
@@ -42,6 +44,47 @@ public class Optimiser {
     public void informSubOptIndexUsage(MyHashMap<Integer, ArrayList<Triple>> index, MyHashMap<Integer, ArrayList<Triple>> optimal, int first, int second , int benefit) {
         memoryMap.informGenBenefitOfOptimal(optimal.poolRefType , benefit);
     }
+
+
+
+    private Set<Byte> indexSet = new LinkedHashSet<>();
+
+    private void intialZeroProtocol(){
+        indexSet.add(IndexesPool.SPo);
+        indexSet.add(IndexesPool.POs);
+        indexSet.add(IndexesPool.OPs);
+        indexSet.add(IndexesPool.PSo);
+        indexSet.add(IndexesPool.SOp);
+        indexSet.add(IndexesPool.OSp);
+
+    }
+
+    public void addStartTripleToIndex(Triple tripleObj) {
+        //Applying zero protocol
+        //initially add to SPo and POs then do latter do other
+        indexesPool.addToIndex(IndexesPool.SPo , tripleObj);
+    }
+
+
+
+    public void dataReadDone(){
+        Byte startType = null;
+        Iterator iterator = indexSet.iterator();
+        while (iterator.hasNext()){
+            if(startType == null){
+                startType = (Byte) iterator.next();
+                continue;
+            }
+            Byte indexType = (Byte) iterator.next();
+            boolean more = indexesPool.buildIndex(startType , indexType);
+            if(!more)
+                break;
+        }
+        indexesPool.sortAllSortedIndexes();
+    }
+
+
+
 
 
     public class MemoryMap{
@@ -83,7 +126,10 @@ public class Optimiser {
             }
             rule.usage += count;
         }
+
     }
+
+
 
     public abstract class Rule{
         public final byte indexType;

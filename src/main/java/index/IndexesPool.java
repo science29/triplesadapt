@@ -1,11 +1,14 @@
 package index;
 
 import optimizer.Optimiser;
+import start.MainUinAdapt;
 import triple.Triple;
 import triple.TriplePattern2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class IndexesPool {
 
@@ -23,8 +26,7 @@ public class IndexesPool {
     public final static byte OSp = 10;
     public final static byte Ops = 11;
     public final static byte OPs = 12;
-
-
+    private final Dictionary dictionary;
 
 
     HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>> pool;
@@ -33,9 +35,10 @@ public class IndexesPool {
 
     final HashMap<Integer , Boolean> isBorder;
 
-    public IndexesPool(HashMap<Integer , Boolean> isBorder){
+    public IndexesPool(HashMap<Integer , Boolean> isBorder , Dictionary dictionary){
         pool = new HashMap<>();
         this.isBorder = isBorder;
+        this.dictionary = dictionary;
         selectivity = new HashMap<>();
     }
 
@@ -114,4 +117,87 @@ public class IndexesPool {
         }
         return -1;
     }
+
+    private int getHashedIndex(int optimalIndexType) {
+        switch (optimalIndexType){
+            case OPs: return 2;
+            case SPo: return 0;
+            case OSp: return 2;
+            case SOp: return 0;
+            case PSo: return 1;
+            case POs: return 1;
+        }
+        return -1;
+    }
+
+
+
+    private int getLastIndex(int indexType) {
+        switch (indexType){
+            case OPs: return 0;
+            case SPo: return 2;
+            case OSp: return 1;
+            case SOp: return 1;
+            case PSo: return 2;
+            case POs: return 0;
+        }
+        return -1;
+    }
+
+
+    public void addToIndex(byte indexType, Triple tripleObj) {
+        MyHashMap<Integer, ArrayList<Triple>> index = pool.get(indexType);
+        if(index == null){
+            index = new MyHashMap<>(indexType+"");
+            pool.put(new Integer(indexType),index);
+        }
+
+        int key = getHashedIndex(indexType);
+       // int sortedKey = getSortedIndex(indexType);
+
+        if (index.containsKey(tripleObj.triples[1])) {
+            index.get(tripleObj.triples[1]).add(tripleObj);
+        } else {
+            ArrayList<Triple> list = new ArrayList();
+            list.add(tripleObj);
+            Integer codeObj = dictionary.get(dictionary.get(tripleObj.triples[key]));
+            index.put(codeObj, list);
+        }
+    }
+
+
+    public void sortAllSortedIndexes(){
+        Iterator it = pool.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            Integer indexType = (Integer) pair.getKey();
+            MyHashMap myHashMap = (MyHashMap) pair.getValue();
+            int index1 = getSortedIndex(indexType);
+            int index2 = getLastIndex(indexType);
+            myHashMap.sort(index1 , index2);
+        }
+    }
+
+
+
+    public boolean buildIndex(byte startIndexType , byte requiredIndexType){
+        Iterator it = getIndex(startIndexType).entrySet().iterator();
+        int count = 0;
+        while (it.hasNext()) {
+            if(count % 1000 == 0){
+                if(MainUinAdapt.checkMemory(false) < 1000000)
+                    return false;
+            }
+            Map.Entry pair = (Map.Entry)it.next();
+           // Integer key = (Integer) pair.getKey();
+            ArrayList<Triple> list = (ArrayList<Triple>) pair.getValue();
+            for (Triple triple:list) {
+                this.addToIndex(requiredIndexType , triple);
+                count++;
+            }
+        }
+
+        return true;
+    }
+
 }
