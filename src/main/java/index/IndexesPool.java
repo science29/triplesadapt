@@ -25,13 +25,18 @@ public class IndexesPool {
     public final static byte OPs = 12;
 
 
+
+
     HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>> pool;
+
+    final HashMap<Integer , Integer> selectivity;
 
     final HashMap<Integer , Boolean> isBorder;
 
     public IndexesPool(HashMap<Integer , Boolean> isBorder){
         pool = new HashMap<>();
         this.isBorder = isBorder;
+        selectivity = new HashMap<>();
     }
 
     public void addIndex(MyHashMap index , int type){
@@ -54,7 +59,9 @@ public class IndexesPool {
         return isBorder.containsKey(triple.triples[index]);
     }
 
-
+    public int getSelectivity(int index){
+        return selectivity.get(index);
+    }
 
     public ArrayList<Triple> get(int optimalIndexType , int first , int second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser ){
         //first try the optimal
@@ -82,11 +89,15 @@ public class IndexesPool {
             index = pool.get(POs);
             sortedIndex = 2;
         }
-        if(index == null)
+        if(index == null) {
+            if(optimiser != null)
+                optimiser.informSubOptIndexUsage(index,optimal, first , second , Optimiser.FULL_DATA_COST);
             return null;
+        }
         list = index.get(second , first ,sortedIndex ,withinIndex);
+        int benefit = (int)(withinIndex.cost - Math.log(getSelectivity(first))) ;
         if(optimiser != null)
-            optimiser.informSubOptIndexUsage(index,optimal, first , second );
+            optimiser.informSubOptIndexUsage(index,optimal, first , second , benefit);
         if(list != null)
             return list;
         return null;

@@ -1225,7 +1225,7 @@ public class TriplePattern2 {
 
     public class WithinIndex {
         public int index;
-
+        public int cost;
         public WithinIndex(int index) {
             this.index = index;
         }

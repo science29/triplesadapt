@@ -39,35 +39,47 @@ public class Optimiser {
         informIndexUsage(optimal.poolRefType ,1,first , second);
     }
 
-    public void informSubOptIndexUsage(MyHashMap<Integer, ArrayList<Triple>> index, MyHashMap<Integer, ArrayList<Triple>> optimal, int first, int second) {
-
+    public void informSubOptIndexUsage(MyHashMap<Integer, ArrayList<Triple>> index, MyHashMap<Integer, ArrayList<Triple>> optimal, int first, int second , int benefit) {
+        memoryMap.informGenBenefitOfOptimal(optimal.poolRefType , benefit);
     }
 
 
     public class MemoryMap{
         private final ArrayList<Rule> rulesList;
-        private final HashMap<Byte , Rule> rulesMap;
+        private final HashMap<Byte , SpecificRule> specificRulesMap;
+        private final HashMap<Byte , GeneralRule> generalRulesMap;
 
         public MemoryMap() {
             this.rulesList = new ArrayList<>();
-            this.rulesMap = new HashMap<>();
+            this.generalRulesMap = new HashMap<>();
+            this.specificRulesMap = new HashMap<>();
         }
 
 
-        public void informIndexUsage(byte index , int count) {
-            Rule rule = rulesMap.get(index);
+        public void informGenBenefitOfOptimal(byte index , int benefit ){
+            GeneralRule rule = generalRulesMap.get(index);
             if(rule == null) {
                 rule = new GeneralRule(index);
-                rulesMap.put(index , rule);
+                generalRulesMap.put(index , rule);
+            }
+            rule.generalBenefit += benefit;
+
+        }
+
+        public void informIndexUsage(byte index , int count) {
+            GeneralRule rule = generalRulesMap.get(index);
+            if(rule == null) {
+                rule = new GeneralRule(index);
+                generalRulesMap.put(index , rule);
             }
             rule.usage += count;
         }
 
         public void informSpecificIndexUsage(byte index, int count, int first , int second) {
-            Rule rule = rulesMap.get(index);
+            SpecificRule rule = specificRulesMap.get(index);
             if(rule == null) {
                 rule = new SpecificRule(index, first , second);
-                rulesMap.put(index , rule);
+                specificRulesMap.put(index , rule);
             }
             rule.usage += count;
         }
@@ -75,8 +87,8 @@ public class Optimiser {
 
     public abstract class Rule{
         public final byte indexType;
-        public int occupation;
-        public int usage;
+        public int occupation = 0;
+        public int usage  = 0 ;
         public Rule(byte indexType) {
             this.indexType = indexType;
         }
@@ -84,7 +96,7 @@ public class Optimiser {
 
     public class GeneralRule extends Rule{
 
-        int generalBenefit;
+        int generalBenefit = 0 ;
 
         public GeneralRule(byte indexType) {
             super(indexType);

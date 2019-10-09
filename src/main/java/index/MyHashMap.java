@@ -290,10 +290,10 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         ArrayList<Triple> triples = (ArrayList<Triple>)get(key1);
         if(triples == null)
             return null;
-        int fIndex = binarySearch(triples ,sortedIndex, key2);
-        if(fIndex == -1)
+        int cost = binarySearch(triples ,sortedIndex, key2 , withinIndex);
+        if(cost == -1)
             return null;
-        withinIndex.index = fIndex;
+        withinIndex.cost = cost;
         return (V) triples;
     }
 
@@ -1003,11 +1003,13 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
 
 
-    public static int binarySearch(ArrayList<Triple> arr,int index, int key){
+    public static int binarySearch(ArrayList<Triple> arr, int index, int key , TriplePattern2.WithinIndex withinIndex){
         int last = arr.size()-1;
         int first = 0;
         int mid = (first + last)/2;
+        int cost = 0;
         while( first <= last ){
+            cost++;
             if ( arr.get(mid).triples[index] < key ){
                 first = mid + 1;
             }else if (arr.get(mid).triples[index]  == key ){
@@ -1015,9 +1017,11 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
                 int found = arr.get(mid).triples[index];
                 int t = mid;
                 while( t > 0 && arr.get(t-1).triples[index] == found ){
+                    cost++;
                     t--;
                 }
-                return t;
+                withinIndex.index = t;
+                return cost;
             }else{
                 last = mid - 1;
             }
