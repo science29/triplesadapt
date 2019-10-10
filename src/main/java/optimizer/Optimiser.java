@@ -137,31 +137,85 @@ public class Optimiser {
 
         public int getHighBenefit(int quantity){
             sortRuleList();
-
+            int toMoveCount = 0 ;
+            for(int i = 0 ; i < rulesList.size() ; i++){
+                 if(rulesList.get(i) instanceof GeneralRule){
+                     rulesList.get(i).evictUp(quantity);
+                 }
+            }
 
         }
 
     }
 
+    private byte getStartIndexType(byte indexType) {
 
+    }
 
     public abstract class Rule{
         public final byte indexType;
         public int occupation = 0;
+        public boolean moreToBuild = true;
         public int usage  = 0 ;
+        public int effectiveness = 0 ;
         public Rule(byte indexType) {
             this.indexType = indexType;
         }
+
+        public void countAddedToMemory(int count){
+            occupation += count;
+        }
+
+        public void setMoreToBuild(boolean more) {
+            moreToBuild = more;
+        }
+
+        public abstract void evictUp(int quantity);
+
+
+
     }
 
     public class GeneralRule extends Rule{
 
         int generalBenefit = 0 ;
+        Iterator addIterator;
+        Iterator removeIterator;
 
         public GeneralRule(byte indexType) {
             super(indexType);
         }
+
+        public void evictUp(int quantity){
+            byte startIndexType = getStartIndexType(indexType);
+            addIterator = indexesPool.buildIndex(startIndexType , indexType , addIterator , quantity, this);
+        }
+
+        public void evictOut(int quantity){
+            MyHashMap<Integer, ArrayList<Triple>> index = indexesPool.getIndex(indexType);
+            if(removeIterator == null)
+                removeIterator  = index.entrySet().iterator();
+            int count = 0;
+            ArrayList<Integer> listToRemove = new ArrayList<>();
+            while (removeIterator.hasNext()){
+                Map.Entry pair = (Map.Entry)removeIterator.next();
+                Integer key = (Integer)pair.getKey();
+                listToRemove.add(key);
+                count += index.get(key).size();
+                if(count > quantity)
+                    break;
+            }
+
+            for(int i = 0 ; i < listToRemove.size() ; i++){
+                index.remove(listToRemove.get(i));
+            }
+
+        }
+
+
     }
+
+
 
     public class SpecificRule extends Rule{
 

@@ -188,16 +188,42 @@ public class IndexesPool {
                 if(MainUinAdapt.checkMemory(false) < 1000000)
                     return false;
             }
-            Map.Entry pair = (Map.Entry)it.next();
-           // Integer key = (Integer) pair.getKey();
-            ArrayList<Triple> list = (ArrayList<Triple>) pair.getValue();
-            for (Triple triple:list) {
-                this.addToIndex(requiredIndexType , triple);
-                count++;
-            }
+            count = addCountToIndex(requiredIndexType, it, count);
         }
 
         return true;
     }
 
+    public Iterator buildIndex(byte startIndexType, byte indexType, Iterator prevoiusIterator, int quantity , Optimiser.Rule rule) {
+        Iterator it = prevoiusIterator;
+        if(it == null )
+            it = getIndex(startIndexType).entrySet().iterator();
+        int count = 0;
+
+        while (it.hasNext()) {
+            if(count % 1000 == 0){
+                if(MainUinAdapt.checkMemory(false) < 1000000)
+                    return it;
+            }
+            if(count >= quantity)
+                return it;
+            count = addCountToIndex(indexType, it, count);
+            if(rule != null)
+                rule.countAddedToMemory(count );
+        }
+        rule.setMoreToBuild(false);
+        return it;
+    }
+
+
+
+    private int addCountToIndex(byte indexType, Iterator it, int count) {
+        Map.Entry pair = (Map.Entry)it.next();
+        ArrayList<Triple> list = (ArrayList<Triple>) pair.getValue();
+        for (Triple triple:list) {
+            this.addToIndex(indexType , triple);
+            count++;
+        }
+        return count;
+    }
 }
