@@ -66,7 +66,7 @@ public class IndexesPool {
         return selectivity.get(index);
     }
 
-    public ArrayList<Triple> get(int optimalIndexType , int first , int second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser ){
+    public ArrayList<Triple> get(int optimalIndexType , Integer first , Integer second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser ){
         //first try the optimal
         MyHashMap<Integer,ArrayList<Triple>> optimal = pool.get(optimalIndexType);
         ArrayList<Triple> list;
@@ -92,7 +92,7 @@ public class IndexesPool {
             index = pool.get(POs);
             sortedIndex = 2;
         }
-        if(index == null) {
+        if(index == null || second < 0) {
             if(optimiser != null)
                 optimiser.informSubOptIndexUsage(index,optimal, first , second , Optimiser.FULL_DATA_COST);
             return null;

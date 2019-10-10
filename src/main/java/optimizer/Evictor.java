@@ -13,7 +13,7 @@ public class Evictor extends Thread{
     public void run(){
 
         //look for the highest important data  and replace it with lower importnat
-        optimizer.get
+        //optimizer.get
 
 
     }

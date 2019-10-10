@@ -31,7 +31,7 @@ public class Optimiser {
         memoryMap.informIndexUsage(index , count);
     }
 
-    public void informIndexUsage(byte index , int count , int first , int second){
+    public void informIndexUsage(byte index , int count , Integer first , Integer second){
         memoryMap.informSpecificIndexUsage(index , count , first ,second);
     }
 
@@ -40,7 +40,7 @@ public class Optimiser {
 
     }
 
-    public void informOptimalIndexUsage(MyHashMap<Integer, ArrayList<Triple>> optimal, int first, int second) {
+    public void informOptimalIndexUsage(MyHashMap<Integer, ArrayList<Triple>> optimal, Integer first, Integer second) {
         informGenralIndexUsage(optimal.poolRefType ,1);
         informIndexUsage(optimal.poolRefType ,1,first , second);
     }
@@ -125,7 +125,7 @@ public class Optimiser {
             rule.usage += count;
         }
 
-        public void informSpecificIndexUsage(byte index, int count, int first , int second) {
+        public void informSpecificIndexUsage(byte index, int count, Integer first , Integer second) {
             SpecificRule rule = specificRulesMap.get(index);
             if(rule == null) {
                 rule = new SpecificRule(index, first , second);
@@ -139,9 +139,10 @@ public class Optimiser {
             sortRuleList();
             int toMoveCount = 0 ;
             for(int i = 0 ; i < rulesList.size() ; i++){
-                 if(rulesList.get(i) instanceof GeneralRule){
-                     rulesList.get(i).evictUp(quantity);
-                 }
+                 //if(rulesList.get(i) instanceof GeneralRule)
+                rulesList.get(i).evictUp(quantity);
+
+
             }
 
         }
@@ -181,6 +182,7 @@ public class Optimiser {
         int generalBenefit = 0 ;
         Iterator addIterator;
         Iterator removeIterator;
+        int totalEvictedOut = 0;
 
         public GeneralRule(byte indexType) {
             super(indexType);
@@ -188,18 +190,25 @@ public class Optimiser {
 
         public void evictUp(int quantity){
             byte startIndexType = getStartIndexType(indexType);
+            if(totalEvictedOut > 0 && quantity < totalEvictedOut) {//TODO test this
+                int currentOcuupation = occupation;
+                indexesPool.buildIndex(startIndexType, indexType, null, quantity, this);
+                totalEvictedOut -= (occupation - currentOcuupation);
+                quantity -= (occupation - currentOcuupation);
+            }
             addIterator = indexesPool.buildIndex(startIndexType , indexType , addIterator , quantity, this);
         }
 
         public void evictOut(int quantity){
             MyHashMap<Integer, ArrayList<Triple>> index = indexesPool.getIndex(indexType);
-            if(removeIterator == null)
-                removeIterator  = index.entrySet().iterator();
+            removeIterator  = index.entrySet().iterator();
             int count = 0;
             ArrayList<Integer> listToRemove = new ArrayList<>();
             while (removeIterator.hasNext()){
                 Map.Entry pair = (Map.Entry)removeIterator.next();
                 Integer key = (Integer)pair.getKey();
+                if(isSpecific(index , key))
+                    continue;
                 listToRemove.add(key);
                 count += index.get(key).size();
                 if(count > quantity)
@@ -209,6 +218,12 @@ public class Optimiser {
             for(int i = 0 ; i < listToRemove.size() ; i++){
                 index.remove(listToRemove.get(i));
             }
+            if(count > 0) {
+                moreToBuild = true;
+                occupation -= count;
+                totalEvictedOut += count;
+            }
+
 
         }
 
@@ -219,16 +234,31 @@ public class Optimiser {
 
     public class SpecificRule extends Rule{
 
-        public final int first;
-        public final int second;
+        public final Integer first;
+        public final Integer second;
         public int cost;
 
-        public SpecificRule(byte indexType, int first , int second) {
+        public SpecificRule(byte indexType, Integer first , Integer second) {
             super(indexType);
             this.first = first;
             this.second = second;
         }
+
+        @Override
+        public void evictUp(int quantity) {
+            indexesPool.get(indexType , first ,second,withiIndex, Optimiser.this);
+        }
     }
 
 
+    private static Triple specificTriple = new Triple(-77 , -66,-55);
+
+    public static  boolean isSpecific(MyHashMap<Integer , ArrayList<Triple>> index , Integer key){
+        ArrayList<Triple> list = index.get(key);
+        if(list == null || list.size() == 0)
+            return false;
+
+        return list.get(0).triples[0] == specificTriple.triples[0];
+
+    }
 }
