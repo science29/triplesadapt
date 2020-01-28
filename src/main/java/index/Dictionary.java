@@ -4,7 +4,6 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
-import triple.Triple;
 
 import java.io.File;
 import java.util.HashMap;
@@ -269,6 +268,10 @@ public class Dictionary{
 
     public String getString(int key) {
         return new String(get(key));
+    }
+
+    public Iterator<Map.Entry<Integer, char[]>> getIterator() {
+        return this.reverseCache.entrySet().iterator();
     }
 
 

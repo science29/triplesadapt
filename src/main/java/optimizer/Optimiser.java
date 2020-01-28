@@ -19,10 +19,13 @@ public class Optimiser {
     private final HeatQuery heatQuery;
     private final IndexesPool indexesPool;
 
+    private final Evictor evictor;
+
     public Optimiser(Dictionary dictionary) {
         memoryMap = new MemoryMap();
         heatQuery = new HeatQuery();
         indexesPool = new IndexesPool(null , dictionary );
+        evictor = new Evictor(indexesPool);
         intialZeroProtocol();
     }
 
@@ -46,7 +49,7 @@ public class Optimiser {
     }
 
     public void informSubOptIndexUsage(MyHashMap<Integer, ArrayList<Triple>> index, MyHashMap<Integer, ArrayList<Triple>> optimal, int first, int second , int benefit) {
-        memoryMap.informGenBenefitOfOptimal(optimal.poolRefType , benefit);
+        memoryMap.informGenBenefitOfOptimal(optimal.poolRefType , index.poolRefType , benefit);
     }
 
 
@@ -96,7 +99,7 @@ public class Optimiser {
     public class MemoryMap{
         private final ArrayList<Rule> rulesList;
         private final HashMap<Byte , SpecificRule> specificRulesMap;
-        private final HashMap<Byte , GeneralRule> generalRulesMap;
+        private final HashMap<Byte , ArrayList<GeneralRule>> generalRulesMap;
 
         public MemoryMap() {
             this.rulesList = new ArrayList<>();
@@ -105,37 +108,47 @@ public class Optimiser {
         }
 
 
-        public void informGenBenefitOfOptimal(byte index , int benefit ){
-            GeneralRule rule = generalRulesMap.get(index);
-            if(rule == null) {
-                rule = new GeneralRule(index);
-                generalRulesMap.put(index , rule);
+        public void informGenBenefitOfOptimal(byte requiredIndex , byte sourceIndex , int benefit ){
+            ArrayList<GeneralRule> rules = generalRulesMap.get(requiredIndex);
+            if(rules == null) {
+                SourceItem sourceItem = new SourceItem(sourceIndex , Optimiser.LOCALHOST);
+                GeneralRule rule = new GeneralRule(requiredIndex , sourceItem) ;
+                rules = new ArrayList<>();
+                rules.add(rule);
+                generalRulesMap.put(requiredIndex , rules);
+                rulesList.add(rule);
             }
-            rule.generalBenefit += benefit;
-
+            for(int i =  0 ; i < rules.size() ; i++){
+                if(rules.get(i).source == null || rules.get(i).source.equals(sourceIndex))
+                    rules.get(i).generalBenefit += benefit;
+            }
         }
 
         public void informIndexUsage(byte index , int count) {
-            GeneralRule rule = generalRulesMap.get(index);
-            if(rule == null) {
-                rule = new GeneralRule(index);
-                generalRulesMap.put(index , rule);
+            ArrayList<GeneralRule> rules = generalRulesMap.get(index);
+            if(rules == null) {
+                GeneralRule rule = new GeneralRule(index , null) ;
+                rules = new ArrayList<>();
+                rules.add(rule);
+                generalRulesMap.put(index , rules);
                 rulesList.add(rule);
             }
-            rule.usage += count;
+            for(int i =  0 ; i < rules.size() ; i++){
+                rules.get(i).usage += count;
+            }
         }
 
         public void informSpecificIndexUsage(byte index, int count, Integer first , Integer second) {
             SpecificRule rule = specificRulesMap.get(index);
             if(rule == null) {
-                rule = new SpecificRule(index, first , second);
+                rule = new SpecificRule(index, first , second );
                 specificRulesMap.put(index , rule);
                 rulesList.add(rule);
             }
             rule.usage += count;
         }
 
-        public int getHighBenefit(int quantity){
+       /* public int getHighBenefit(int quantity){
             sortRuleList();
             int toMoveCount = 0 ;
             for(int i = 0 ; i < rulesList.size() ; i++){
@@ -145,12 +158,13 @@ public class Optimiser {
 
             }
 
-        }
+        }*/
 
     }
 
-    private byte getStartIndexType(byte indexType) {
-
+    private byte getStartIndexType(byte indexType , SourceItem sourceItem ) {
+        //TODO consider if it is not localhost
+        return sourceItem.sourceIndex;
     }
 
     public abstract class Rule{
@@ -159,8 +173,10 @@ public class Optimiser {
         public boolean moreToBuild = true;
         public int usage  = 0 ;
         public int effectiveness = 0 ;
-        public Rule(byte indexType) {
+        final SourceItem source;
+        public Rule(byte indexType , SourceItem source) {
             this.indexType = indexType;
+            this.source = source;
         }
 
         public void countAddedToMemory(int count){
@@ -184,12 +200,14 @@ public class Optimiser {
         Iterator removeIterator;
         int totalEvictedOut = 0;
 
-        public GeneralRule(byte indexType) {
-            super(indexType);
+
+        public GeneralRule(byte indexType , SourceItem source) {
+            super(indexType , source);
+
         }
 
         public void evictUp(int quantity){
-            byte startIndexType = getStartIndexType(indexType);
+            byte startIndexType = getStartIndexType(indexType ,source);
             if(totalEvictedOut > 0 && quantity < totalEvictedOut) {//TODO test this
                 int currentOcuupation = occupation;
                 indexesPool.buildIndex(startIndexType, indexType, null, quantity, this);
@@ -230,24 +248,45 @@ public class Optimiser {
 
     }
 
-
-
     public class SpecificRule extends Rule{
 
         public final Integer first;
         public final Integer second;
         public int cost;
 
-        public SpecificRule(byte indexType, Integer first , Integer second) {
-            super(indexType);
+        public SpecificRule(byte indexType, Integer first , Integer second , byte sourceIndex) {
+            super(indexType , new SourceItem(sourceIndex, LOCALHOST));
+            this.first = first;
+            this.second = second;
+        }
+
+        public SpecificRule(byte indexType, Integer first , Integer second ){
+            super(indexType , null);
             this.first = first;
             this.second = second;
         }
 
         @Override
         public void evictUp(int quantity) {
-            indexesPool.get(indexType , first ,second,withiIndex, Optimiser.this);
+            //TODO it needs to be done all togather becuse it could require scanning the whole data from one index
+           ArrayList<Triple> list = indexesPool.get(indexType , first ,-1,null, null);
+           if(list == null){
+               evictor.addToFullScan(this);
+           }
+           indexesPool.getIndex(indexType).put(first , list);
         }
+    }
+
+    public static final int LOCALHOST = -1;
+
+    public class SourceItem{
+       public final byte sourceIndex;
+       public final  int host;
+
+       public SourceItem(byte sourceIndex , int host){
+           this.sourceIndex = sourceIndex;
+           this.host = host;
+       }
     }
 
 

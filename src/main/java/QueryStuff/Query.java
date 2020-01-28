@@ -47,6 +47,14 @@ public class Query {
     private QueryCache queryCache;
     private QueryWorkersPool.Session batch;
     private Optimiser optimizer;
+    private QueryDoneListener queryDoneListener;
+
+
+
+
+    public interface QueryDoneListener{
+        void done();
+    }
 
     public Query(ArrayList<TriplePattern> triplePattern, int queryFrquency, ArrayList<TriplePattern> simpleAnswer) {
         this.ID = new Random().nextInt();
@@ -80,6 +88,15 @@ public class Query {
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
     }
 
+
+    public void setDoneListener(QueryDoneListener queryDoneListener) {
+        this.queryDoneListener = queryDoneListener;
+    }
+
+    public void done() {
+        if(queryDoneListener != null)
+            queryDoneListener.done();
+    }
 
     public void findStringTriple(Dictionary reverseDictionary) {
         for (int i = 0; i < triplePatterns.size(); i++) {
@@ -666,6 +683,12 @@ public class Query {
             varNameMap.put(x, n);
         }
         return n;
+    }
+
+
+
+    public ResultTriple getTripleResults() {
+       return triplePatterns2.get(0).getHeadResultTriple();
     }
 
 

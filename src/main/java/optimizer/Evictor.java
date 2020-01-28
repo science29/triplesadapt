@@ -1,21 +1,57 @@
 package optimizer;
 
-public class Evictor extends Thread{
+import index.IndexesPool;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
-    private final Optimiser optimizer;
+public class Evictor{
+    private final IndexesPool indexPool;
 
-    public Evictor(Optimiser optimiser){
-        this.optimizer = optimiser;
+    //look for the highest important data  and replace it with lower importnat
+    //optimizer.get
+
+    private boolean fullScanWorking = false;
+    private  final BlockingQueue <Optimiser.SpecificRule> fullScanQueue;
+
+    public Evictor(IndexesPool indexesPool){
+        this.indexPool = indexesPool;
+        fullScanQueue = new ArrayBlockingQueue<Optimiser.SpecificRule>(100);
+
     }
 
-    @Override
-    public void run(){
+   public void addToFullScan(Optimiser.SpecificRule rule){
+       try {
+           if(rule.source.host == Optimiser.LOCALHOST)  //TODO consider other sources..
+               fullScanQueue.put(rule);
+       } catch (InterruptedException e) {
+           e.printStackTrace();
+       }
+   }
 
-        //look for the highest important data  and replace it with lower importnat
-        //optimizer.get
 
+   private void startFullScan(){
+        LocalFullScanWork fullScanWork = new LocalFullScanWork();
+        fullScanWork.start();
+   }
+
+
+
+    public class LocalFullScanWork extends  Thread{
+
+
+        @Override
+        public void run(){
+            fullScanWorking = true;
+
+
+            fullScanWorking = false;
+
+
+
+        }
 
     }
+
 
 }

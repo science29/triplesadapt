@@ -180,6 +180,7 @@ public class QueryWorkersPool {
     }
 
     public void queryDoneLocally(Query query){
+        query.done();
         if(query.getBatch() != null){
             if(query.getBatch().queryDone(query.ID))
                 batchDone(query.getBatch());

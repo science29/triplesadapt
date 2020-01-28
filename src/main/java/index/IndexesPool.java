@@ -42,6 +42,23 @@ public class IndexesPool {
         selectivity = new HashMap<>();
     }
 
+    public static int getFirstIndex(byte type) {
+        if(type == OPs || type == OSp || type == Osp || type == Ops )
+            return 2;
+        if(type == SOp || type == SPo || type == Sop || type == Spo )
+            return 0;
+        return 1;
+    }
+
+
+    public static int getSecondIndex(byte type) {
+        if(type == SOp || type == POs )
+            return 2;
+        if(type == PSo || type == OSp)
+            return 0;
+        return 1;
+    }
+
     public void addIndex(MyHashMap index , int type){
         index.poolRefType = (byte)type;
         pool.put(type , index);
@@ -225,5 +242,16 @@ public class IndexesPool {
             count++;
         }
         return count;
+    }
+
+    public ArrayList<Triple> getTriples(Integer v) {
+        Iterator<Map.Entry<Integer, MyHashMap<Integer, ArrayList<Triple>>>> iter = pool.entrySet().iterator();
+        while (iter.hasNext()){
+            Map.Entry<Integer, MyHashMap<Integer, ArrayList<Triple>>> entery = iter.next();
+            MyHashMap<Integer, ArrayList<Triple>> index = entery.getValue();
+            if(index.containsKey(v))
+                return index.get(v);
+        }
+        return null;
     }
 }
