@@ -4,7 +4,9 @@ import QueryStuff.*;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.*;
+import optimizer.GUI.StarterGUI;
 import optimizer.Optimiser;
+import optimizer.Optimizer2;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.mapdb.Atomic;
@@ -69,7 +71,11 @@ public class MainUinAdapt {
     private HashMap<Integer,Boolean> borderTripleMap = new HashMap<>();
 
     private QueryWorkersPool queryWorkersPool;
-    private Optimiser optimizer;
+    private Optimizer2 optimizer;
+
+    private StarterGUI starterGUI;
+
+    private int vertexCount = 0;
 
 
     public static void main(String[] args) {
@@ -80,33 +86,27 @@ public class MainUinAdapt {
 
         MainUinAdapt o = new MainUinAdapt();
 
+        try{
+            o.startGUI();
+        }catch (Exception e){
+            System.err.println("no GUI started..");
+        }
+
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
     filePaths.add("/home/keg/Desktop/BTC/yago.n3");
     o.openIndexes();
-    System.out.println("starting transporter ..");
-    ArrayList<String> hosts = new ArrayList<>();
-    hosts.add("172.20.32.8");
-    hosts.add("172.20.32.7");
-
-    transporter = new Transporter(hosts, new Transporter.RemoteQueryListener() {
-        @Override
-        public void gotQuery(String query, int queryNo , int count , int batchID) {
-            if(o.queryWorkersPool != null)
-                o.queryWorkersPool.addQuery(query , queryNo , count , batchID);
-
-        }
-        @Override
-        public void queryDone(int queryNo) {
-            o.queryWorkersPool.remoteQueryDone(queryNo);
-        }
-    });
-
     try {
+
         o.porcess(filePaths, quad);
     }catch (Exception e){
         e.printStackTrace();
     }
+
+
+    o.iniIndexPool();
+   o.iniTransporter();
+
     transporter.printSummary();
     o.listenToQuery();
 
@@ -162,12 +162,85 @@ try {
     }
 
 
+    private void startGUI(){
+        starterGUI = new StarterGUI(new StarterGUI.ButtonsListener() {
+            @Override
+            public void makeIntialMetisFile() {
+                if(vertexCount == 0) {
+                    starterGUI.writeAction("Graph not ready!");
+                    return;
+                }
+                writeMetisInitialFile(vertexCount);
+            }
+
+            @Override
+            public void readOutMetisFile() {
+               readMetisOutFile();
+            }
+        });
+    }
+
+    private void readMetisOutFile() {
+        File file = new File("metisFile_new.part." + PARTITION_COUNT);
+        MyHashMap<Integer, ArrayList<Triple>> index = indexPool.getIndex(IndexesPool.SPo);
+        LineIterator it;
+        try {
+            it = FileUtils.lineIterator(file, "UTF-8");
+            int count = 1;
+            while (it.hasNext()) {
+                String line = it.nextLine();
+                int n = Integer.valueOf(line);
+                if(n != 1)
+                xx
+                count++;
+            }
+
+            //reset the ierator
+            it = FileUtils.lineIterator(file, "UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+    }
+
+    private void iniIndexPool() {
+        indexPool = new IndexesPool(borderTripleMap ,dictionary);
+        indexPool.addIndex(IndexesPool.Pso , POS , "Pso");
+        indexPool.addIndex(IndexesPool.OPs , OPS , "OPs");
+        indexPool.addIndex(IndexesPool.SPo , SPO , "SPo");
+
+    }
+
+    private void iniTransporter() {
+        System.out.println("starting transporter ..");
+        ArrayList<String> hosts = new ArrayList<>();
+        hosts.add("172.20.32.8");
+        hosts.add("172.20.32.7");
+        Transporter.RemoteQueryListener remoteQueryListener = new Transporter.RemoteQueryListener() {
+            @Override
+            public void gotQuery(String query, int queryNo , int count , int batchID) {
+                if(queryWorkersPool != null)
+                    queryWorkersPool.addQuery(query , queryNo , count , batchID);
+
+            }
+            @Override
+            public void queryDone(int queryNo) {
+                queryWorkersPool.remoteQueryDone(queryNo);
+            }
+        };
+        transporter = new Transporter(hosts, remoteQueryListener , optimizer , new Transporter.TransporterReadyListener() {
+            @Override
+            public void ready() {
+
+            }
+        });
+    }
 
 
     public MainUinAdapt(){
         dictionary = new Dictionary("dictionary_int");
         reverseDictionary = dictionary;
-        optimizer = new Optimiser(dictionary);
+        optimizer = new Optimizer2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap);
     }
 
 
@@ -300,8 +373,8 @@ try {
                         /*if(p1 == -1 || p2 == -1)
                             break;
                         if (p1 != p2)*/
-                        boolean bsource = false;//isBorder(count);
-                        boolean bdest = v.get(i).isBorder;//isBorder(v.get(i).v);
+                        boolean bsource = false;//isBorderMap(count);
+                        boolean bdest = v.get(i).isBorder;//isBorderMap(v.get(i).v);
                         if (bsource || bdest) {
                             if (!bsource && !verticies.get(count).writtenToFile) // it is not border and not been written yet
                                 toBeCheckedVertexes.put(count, verticies.get(count)); // add to chekmap
@@ -548,6 +621,50 @@ try {
         return res;
 
     }
+
+
+    private void writeMetisInitialFile(int numberOfVertices){
+        if(numberOfVertices == 0)
+            return;
+        BufferedWriter bufferWriter = null;
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter("metisFile_new");
+            bufferWriter = new BufferedWriter(fw);
+            bufferWriter.append(numberOfVertices + " " + edgesCount + " 001"); //TODO edit the code
+            bufferWriter.newLine();
+            MyHashMap<Integer, ArrayList<Triple>> SPo = indexPool.getIndex(IndexesPool.SPo);
+            StringBuilder stringBuilder;
+            for(int i = 0 ; i < numberOfVertices ; i++) {
+                ArrayList<Triple> list = SPo.get(i);
+                stringBuilder = new StringBuilder();
+                if( i % 10000 == 0 ){
+                    starterGUI.writeAction("done:"+ (i/numberOfVertices) );
+                }
+                for(int j = 0 ; j < list.size() ; j++){
+                    Integer o = list.get(j).triples[3];
+                    stringBuilder.append(" "+o);
+                    bufferWriter.write(stringBuilder.toString());
+                    bufferWriter.newLine();
+                }
+            }
+            bufferWriter.close();
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        starterGUI.writeAction("Done writing initail metis file ..");
+        performMetis();
+    }
+
+
+    private void performMetis(){
+        starterGUI.writeAction("Done writing initail metis file, please do the metis command in the terminal");
+        //TODO the command line stuff
+    }
+
+
 
     private void writeFile(boolean weighting) {
 
@@ -840,7 +957,7 @@ try {
 
                     //           addToSPOIndex(tripleObj);
                    // addToOPSIndex(new Triple(88,87,43));
-                   // ArrayList<Triple> test2 = OPS.get(new Integer(2));
+                   // ArrayList<Triple> OptimizerGUI = OPS.get(new Integer(2));
 
                    // if(test == 0)
                      //   test = code[2];
@@ -858,6 +975,7 @@ try {
      //
 
        // op_S.close();
+
         System.out.println("building and sorting indexes.. ");
         optimizer.dataReadDone();
         OPS = indexPool.getIndex(IndexesPool.OPs);
@@ -877,6 +995,7 @@ try {
         indexPool.addIndex(IndexesPool.SPo , SPO , "SPo");*/
 
 //        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
+        vertexCount = nextCode;
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
 

@@ -5,7 +5,6 @@ import index.Dictionary;
 import index.IndexesPool;
 import index.MyHashMap;
 import triple.Triple;
-import triple.TriplePattern2;
 
 import java.util.*;
 
@@ -99,7 +98,7 @@ public class Optimiser {
     public class MemoryMap{
         private final ArrayList<Rule> rulesList;
         private final HashMap<Byte , SpecificRule> specificRulesMap;
-        private final HashMap<Byte , ArrayList<GeneralRule>> generalRulesMap;
+        private final HashMap<Byte , ArrayList<GeneralRule_old>> generalRulesMap;
 
         public MemoryMap() {
             this.rulesList = new ArrayList<>();
@@ -109,10 +108,10 @@ public class Optimiser {
 
 
         public void informGenBenefitOfOptimal(byte requiredIndex , byte sourceIndex , int benefit ){
-            ArrayList<GeneralRule> rules = generalRulesMap.get(requiredIndex);
+            ArrayList<GeneralRule_old> rules = generalRulesMap.get(requiredIndex);
             if(rules == null) {
                 SourceItem sourceItem = new SourceItem(sourceIndex , Optimiser.LOCALHOST);
-                GeneralRule rule = new GeneralRule(requiredIndex , sourceItem) ;
+                GeneralRule_old rule = new GeneralRule_old(requiredIndex , sourceItem) ;
                 rules = new ArrayList<>();
                 rules.add(rule);
                 generalRulesMap.put(requiredIndex , rules);
@@ -125,9 +124,9 @@ public class Optimiser {
         }
 
         public void informIndexUsage(byte index , int count) {
-            ArrayList<GeneralRule> rules = generalRulesMap.get(index);
+            ArrayList<GeneralRule_old> rules = generalRulesMap.get(index);
             if(rules == null) {
-                GeneralRule rule = new GeneralRule(index , null) ;
+                GeneralRule_old rule = new GeneralRule_old(index , null) ;
                 rules = new ArrayList<>();
                 rules.add(rule);
                 generalRulesMap.put(index , rules);
@@ -152,7 +151,7 @@ public class Optimiser {
             sortRuleList();
             int toMoveCount = 0 ;
             for(int i = 0 ; i < rulesList.size() ; i++){
-                 //if(rulesList.get(i) instanceof GeneralRule)
+                 //if(rulesList.get(i) instanceof GeneralRule_old)
                 rulesList.get(i).evictUp(quantity);
 
 
@@ -193,7 +192,8 @@ public class Optimiser {
 
     }
 
-    public class GeneralRule extends Rule{
+    @Deprecated
+    public class GeneralRule_old extends Rule{
 
         int generalBenefit = 0 ;
         Iterator addIterator;
@@ -201,7 +201,7 @@ public class Optimiser {
         int totalEvictedOut = 0;
 
 
-        public GeneralRule(byte indexType , SourceItem source) {
+        public GeneralRule_old(byte indexType , SourceItem source) {
             super(indexType , source);
 
         }

@@ -1,5 +1,6 @@
 package distiributed;
 
+import optimizer.Optimizer2;
 import org.omg.PortableServer.POA;
 
 import java.io.BufferedInputStream;
@@ -20,13 +21,23 @@ public class Receiver extends Thread {
     private ServerSocket serverSocket;
     private final int id;
     private boolean testMode  =false;
+    private final Optimizer2 optimizer;
+    public Transporter.DataReceivedListener replicationListener;
 
-    public Receiver(Transporter transporter, String host, int id) {
+    private RecieverReadyListener recieverReadyListener;
+    public interface RecieverReadyListener{
+        void recieverReady(int id);
+    }
+
+
+    public Receiver(Transporter transporter, String host, int id ,Optimizer2 optimizer , RecieverReadyListener recieverReadyListener) {
         this.transporter = transporter;
         this.host = host;
         String[] arr = host.split("\\.");
         this.port = Integer.valueOf(arr[arr.length - 1]) + BASE_PORT;
         this.id = id;
+        this.optimizer = optimizer;
+        this.recieverReadyListener = recieverReadyListener;
     }
 
     public void stopWorking() {
@@ -56,6 +67,7 @@ public class Receiver extends Thread {
                 server = serverSocket.accept();
                 ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(server.getInputStream()));
                 System.out.println("ready to receive from remote at port:" + port);
+                informReady();
                 while (!stop) {
 
                     int length = in.readInt();
@@ -108,6 +120,22 @@ public class Receiver extends Thread {
                         System.out.println("recieved test reply msg from " + host + ":" + port);
                         continue;
                     }
+                    if(length == Transporter.REPLICATION_REQUEST){
+                        int dist = in.readInt();
+                        int from = in.readInt();
+                        int to = in.readInt();
+                        optimizer.sendRequiredReplications(id , dist , from , to);
+                        continue;
+                    }
+                    if(length == Transporter.SEND_REPLICATION_BACK || length == Transporter.FINISHED_SENDING_REPLICATION_ON_DIST){
+                        int lengthT = in.readInt();
+                        byte[] data = new byte[lengthT];
+                        in.readFully(data, 0, data.length);
+                        SendItem sendItem = SendItem.fromByte(data);
+                        sendItem.queryNo = length;
+                        replicationListener.gotData(sendItem);
+                        continue;
+                    }
 
                     if (length > 0) {
                         byte[] data = new byte[length];
@@ -135,5 +163,9 @@ public class Receiver extends Thread {
             e.printStackTrace();
         }
         closeSockets();
+    }
+
+    private void informReady() {
+        recieverReadyListener.recieverReady(this.id);
     }
 }

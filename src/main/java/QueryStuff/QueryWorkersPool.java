@@ -6,6 +6,7 @@ import index.Dictionary;
 import index.IndexesPool;
 import optimizer.HeatQuery;
 import optimizer.Optimiser;
+import optimizer.Optimizer2;
 import optimizer.Threading;
 import triple.TriplePattern2;
 
@@ -38,10 +39,10 @@ public class QueryWorkersPool {
 
     private final QueryCache queryCache;
 
-    private final Optimiser optimiser;
+    private final Optimizer2 optimiser;
 
 
-    public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool , Optimiser optimiser) {
+    public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool , Optimizer2 optimiser) {
         this.dictionary = dictionary;
         this.transporter = transporter;
         this.indexPool = indexesPool;
@@ -56,10 +57,10 @@ public class QueryWorkersPool {
         interExecutersPool = new InterExecutersPool(INTER_EXECUTER_THREAD_COUNT);
 
         queryCache = new QueryCache();
-        if(optimiser == null)
-            this.optimiser = new Optimiser(dictionary);
-        else
-            this.optimiser = optimiser;
+        /*if(optimiser == null)
+            this.optimiser = new Optimizer2(this , indexesPool ,dictionary , transporter , border);
+        else*/
+        this.optimiser = optimiser;
     }
 
 

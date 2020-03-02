@@ -301,8 +301,8 @@ try {
                         /*if(p1 == -1 || p2 == -1)
                             break;
                         if (p1 != p2)*/
-                        boolean bsource = false;//isBorder(count);
-                        boolean bdest = v.get(i).isBorder;//isBorder(v.get(i).v);
+                        boolean bsource = false;//isBorderMap(count);
+                        boolean bdest = v.get(i).isBorder;//isBorderMap(v.get(i).v);
                         if (bsource || bdest) {
                             if (!bsource && !verticies.get(count).writtenToFile) // it is not border and not been written yet
                                 toBeCheckedVertexes.put(count, verticies.get(count)); // add to chekmap
@@ -842,7 +842,7 @@ try {
                     //          addToPOSIndex(tripleObj);
                     //           addToSPOIndex(tripleObj);
                    // addToOPSIndex(new Triple(88,87,43));
-                   // ArrayList<Triple> test2 = OPS.get(new Integer(2));
+                   // ArrayList<Triple> OptimizerGUI = OPS.get(new Integer(2));
                     addToOPSIndex(tripleObj);
                    // if(test == 0)
                      //   test = code[2];

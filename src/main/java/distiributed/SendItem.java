@@ -44,15 +44,39 @@ public class SendItem {
         this.queriesNumberList = queriesNumberList;
     }
 
+    //TODO new not tested
+    public SendItem(int type ,ArrayList<Triple> triples){
+        queryNo = type;
+        if(triples == null)
+            return;
+        triple = new int [3]; triple[0] = 0; triple[1] = 1 ; triple[2] = 0;
+        if(triples.size() > 0) {
+            System.err.println("warring trying to send zero triples list");
+            return;
+        }
+        ResultTriple resultTriple = new ResultTriple(triples.get(0));
+        for(int i = 1; i < triples.size() ; i++){
+            resultTriple.setDown(new ResultTriple(triples.get(i)));
+            resultTriple = resultTriple.getDown();
+        }
+        resultTripleList = new ArrayList<>();
+        resultTripleList.add(resultTriple);
+    }
+
+
     public ArrayList<ResultTriple> getResultTripleList() {
         return resultTripleList;
     }
+
+
 
 
     public byte[] getBytes() {
         if(data != null)
             return data;
         ArrayList<Integer> intList = new ArrayList<>();
+        if(resultTripleList == null)
+            return null;
         serialize(intList);
         byte [] data = new byte[(intList.size())*4];
         int bIndex = 0;
@@ -351,5 +375,20 @@ public class SendItem {
         data = new byte[length];
         Random random = new Random();
         random.nextBytes(data);
+    }
+
+
+    //TODO warining this method only mover vertically over result triple
+    public ArrayList<Triple> toTripleList() {
+        ArrayList<Triple> res = new ArrayList<>();
+        for(int i = 0 ; i < resultTripleList.size() ; i++){
+            ResultTriple resultTriple = resultTripleList.get(i) ;
+            do {
+                Triple triple = resultTriple.getTriple();
+                res.add(triple);
+                resultTriple = resultTriple.getDown();
+            }while (resultTriple != null);
+        }
+        return res;
     }
 }

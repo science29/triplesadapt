@@ -5,6 +5,7 @@ import distiributed.Transporter;
 import index.Dictionary;
 import index.IndexesPool;
 import optimizer.Optimiser;
+import optimizer.Optimizer2;
 import triple.ResultTriple;
 import triple.Triple;
 import triple.TriplePattern;
@@ -46,7 +47,7 @@ public class Query {
     private boolean silent = false;
     private QueryCache queryCache;
     private QueryWorkersPool.Session batch;
-    private Optimiser optimizer;
+    private Optimizer2 optimizer;
     private QueryDoneListener queryDoneListener;
 
 
@@ -70,7 +71,7 @@ public class Query {
     }
 
 
-    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , Optimiser optimizer) {
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , Optimizer2 optimizer) {
         this.transporter = transporter;
         ID = new Random().nextInt();
         this.dictionary = dictionary;
@@ -79,13 +80,22 @@ public class Query {
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
     }
 
-    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , int queryNo , Optimiser optimizer) {
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , int queryNo , Optimizer2 optimizer) {
         this.transporter = transporter;
         ID = queryNo;
         this.dictionary = dictionary;
         this.indexPool = indexPool;
         this.optimizer = optimizer;
         knownEmpty = !parseSparqlChain(SPARQL, dictionary);
+    }
+
+    public Query(Dictionary dictionary, TriplePattern2 first , IndexesPool indexPool , Transporter transporter , int queryNo , Optimizer2 optimizer) {
+        this.transporter = transporter;
+        ID = queryNo;
+        this.dictionary = dictionary;
+        this.indexPool = indexPool;
+        this.optimizer = optimizer;
+        addToTriplePatterns(first , true , null);
     }
 
 
@@ -622,7 +632,7 @@ public class Query {
     }
 
 
-    private boolean addToTriplePatterns(Integer[] code , boolean[] projected){
+    public boolean addToTriplePatterns(Integer[] code , boolean[] projected){
 
         if (code[0] == null || code[1] == null || code[2] == null) {
             System.err.println("query answer is empty");
@@ -640,7 +650,25 @@ public class Query {
         return true;
     }
 
+    public void addToTriplePatterns(TriplePattern2 triplePatternObj , boolean rolling , TriplePattern2 prevPattern){
+        if(triplePatternObj == null)
+            return;
+        if(rolling && triplePatternObj.getLefts() != null && triplePatternObj.getLefts().size() > 0){
+            addToTriplePatterns(triplePatternObj.getLefts().get(0) , true , null);
+            return;
+        }
+        triplePatterns2.add(triplePatternObj);
 
+        for(int i = 0 ; triplePatternObj.getRights() != null && i < triplePatternObj.getRights().size(); i++ ){
+            addToTriplePatterns(triplePatternObj.getRights().get(i) , false , triplePatternObj);
+        }
+
+
+        for(int i = 0 ; triplePatternObj.getLefts() != null && i < triplePatternObj.getLefts().size(); i++ ){
+            addToTriplePatterns(triplePatternObj.getLefts().get(i) , false , triplePatternObj);
+        }
+
+    }
 
 
 

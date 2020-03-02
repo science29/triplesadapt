@@ -1,6 +1,7 @@
 package index;
 
 import optimizer.Optimiser;
+import optimizer.Optimizer2;
 import start.MainUinAdapt;
 import triple.Triple;
 import triple.TriplePattern2;
@@ -26,6 +27,9 @@ public class IndexesPool {
     public final static byte OSp = 10;
     public final static byte Ops = 11;
     public final static byte OPs = 12;
+
+    public final static byte SPo_r = 13;
+
     private final Dictionary dictionary;
 
 
@@ -33,13 +37,19 @@ public class IndexesPool {
 
     final HashMap<Integer , Integer> selectivity;
 
-    final HashMap<Integer , Boolean> isBorder;
+    final public HashMap<Integer , Boolean> isBorderMap;
 
-    public IndexesPool(HashMap<Integer , Boolean> isBorder , Dictionary dictionary){
+    public IndexesPool(HashMap<Integer , Boolean> isBorderMap, Dictionary dictionary){
         pool = new HashMap<>();
-        this.isBorder = isBorder;
+        this.isBorderMap = isBorderMap;
         this.dictionary = dictionary;
         selectivity = new HashMap<>();
+    }
+
+    public MyHashMap<Integer,ArrayList<Triple>> getRanIndex(){
+        MyHashMap<Integer,ArrayList<Triple>> indexXX =  pool.entrySet().iterator()
+                .next().getValue();
+        return indexXX;
     }
 
     public static int getFirstIndex(byte type) {
@@ -76,7 +86,7 @@ public class IndexesPool {
 
 
     public boolean isBorder(Triple triple , int index){
-        return isBorder.containsKey(triple.triples[index]);
+        return isBorderMap.containsKey(triple.triples[index]);
     }
 
     public int getSelectivity(int index){
@@ -123,6 +133,52 @@ public class IndexesPool {
         return null;
     }
 
+
+    public ArrayList<Triple> get(Integer first , Integer second , int firstIndex, int secondIndex ,
+                                 Optimizer2.OperationCost operationCost){
+        byte optimalIndex = getOptimalIndex(firstIndex , secondIndex);
+        byte nearestIndex = getNearestIndex(optimalIndex , true);
+        if(nearestIndex == -1) {
+            if(operationCost != null)
+                operationCost.addNoSuitableIndexCost();
+            return null;
+        }
+
+        if(second == null)
+            return  getIndex(nearestIndex).get(first);
+
+        if(getFirstIndex(nearestIndex)  == getFirstIndex(optimalIndex)){
+            if(getSortedIndex(nearestIndex) == getSortedIndex(optimalIndex))
+                return getIndex(optimalIndex).get(first ,second,getSortedIndex(nearestIndex),null);
+            else{
+                //use the first as key then filter on the second
+                return filter(getIndex(nearestIndex).get(first) , second , secondIndex , operationCost);
+            }
+
+        }else if(getFirstIndex(nearestIndex) == getSortedIndex(optimalIndex)){ // it is a reverse
+            return getIndex(nearestIndex).get(second ,first, firstIndex,null);
+        }
+
+
+        //use the second as first key then filter on the first
+        return filter(getIndex(nearestIndex).get(second) , first , firstIndex , operationCost);
+
+    }
+
+    private ArrayList<Triple> filter(ArrayList<Triple> triples, Integer filterItem, int filterIndex ,
+                                     Optimizer2.OperationCost operationCost) {
+        ArrayList<Triple> res = new ArrayList<>();
+        for(int i = 0 ; i < triples.size() ; i++){
+            if(triples.get(i).triples[filterIndex] == filterItem)
+                res.add(triples.get(i));
+        }
+        if(operationCost != null){
+            operationCost.cost += triples.size() + res.size();
+        }
+        return res;
+    }
+
+
     private int getSortedIndex(int optimalIndexType) {
         switch (optimalIndexType){
             case OPs: return 1;
@@ -131,9 +187,11 @@ public class IndexesPool {
             case SOp: return 2;
             case PSo: return 0;
             case POs: return 2;
+            case SPo_r: return 1;
         }
         return -1;
     }
+
 
     private int getHashedIndex(int optimalIndexType) {
         switch (optimalIndexType){
@@ -143,11 +201,10 @@ public class IndexesPool {
             case SOp: return 0;
             case PSo: return 1;
             case POs: return 1;
+            case SPo_r: return 0;
         }
         return -1;
     }
-
-
 
     private int getLastIndex(int indexType) {
         switch (indexType){
@@ -157,6 +214,7 @@ public class IndexesPool {
             case SOp: return 1;
             case PSo: return 2;
             case POs: return 0;
+            case SPo_r: return 2;
         }
         return -1;
     }
@@ -164,6 +222,10 @@ public class IndexesPool {
 
     public void addToIndex(byte indexType, Triple tripleObj) {
         MyHashMap<Integer, ArrayList<Triple>> index = pool.get(indexType);
+        if(index == null){
+            index = new MyHashMap<>(indexType+"");
+            pool.put(new Integer(indexType) , index);
+        }
         if(index == null){
             index = new MyHashMap<>(indexType+"");
             pool.put(new Integer(indexType),index);
@@ -180,6 +242,10 @@ public class IndexesPool {
             Integer codeObj = dictionary.get(dictionary.get(tripleObj.triples[key]));
             index.put(codeObj, list);
         }
+    }
+
+    public void addToReplication(Triple triple) {
+        addToIndex(SPo_r , triple);
     }
 
 
@@ -254,4 +320,194 @@ public class IndexesPool {
         }
         return null;
     }
+
+   /// OPs , SOp ,PSo      SPo,OSp,POs
+
+    public byte getNearestIndex(byte indexType , boolean allowReverse){
+        MyHashMap<Integer, ArrayList<Triple>> returnIndex;
+        switch (indexType){
+            case OPs:
+                returnIndex = pool.get(OPs);
+                if(returnIndex != null)
+                    return OPs;
+                if(allowReverse){
+                    returnIndex = pool.get(POs);
+                    if(returnIndex != null)
+                        return POs;
+                }
+                returnIndex = pool.get(OSp);
+                if(returnIndex != null)
+                    return OSp;
+                returnIndex = pool.get(Osp);
+                if(returnIndex != null)
+                    return Osp;
+                returnIndex = pool.get(Ops);
+                if(returnIndex != null)
+                    return Ops;
+                returnIndex = pool.get(POs);
+                if(returnIndex != null)
+                    return POs;
+                returnIndex = pool.get(PSo);
+                if(returnIndex != null)
+                    return PSo;
+                return -1;
+
+            case OSp:
+                returnIndex = pool.get(OSp);
+                if(returnIndex != null)
+                    return OSp;
+                if(allowReverse){
+                    returnIndex = pool.get(SOp);
+                    if(returnIndex != null)
+                        return SOp;
+                }
+                returnIndex = pool.get(OPs);
+                if(returnIndex != null)
+                    return OPs;
+
+                returnIndex = pool.get(SOp);
+                if(returnIndex != null)
+                    return SOp;
+                returnIndex = pool.get(SPo);
+                if(returnIndex != null)
+                    return SPo;
+                return -1;
+
+                case SPo:
+                    returnIndex = pool.get(SPo);
+                    if(returnIndex != null)
+                        return SPo;
+                    if(allowReverse){
+                        returnIndex = pool.get(PSo);
+                        if(returnIndex != null)
+                            return PSo;
+                    }
+                    returnIndex = pool.get(SOp);
+                    if(returnIndex != null)
+                        return SOp;
+                    returnIndex = pool.get(Spo);
+                    if(returnIndex != null)
+                        return Spo;
+                    returnIndex = pool.get(Sop);
+                    if(returnIndex != null)
+                        return Sop;
+                    returnIndex = pool.get(PSo);
+                    if(returnIndex != null)
+                        return PSo;
+                    returnIndex = pool.get(PSo);
+                    if(returnIndex != null)
+                        return PSo;
+                    return -1;
+
+            case SOp:
+                returnIndex = pool.get(SOp);
+                if(returnIndex != null)
+                    return SOp;
+                if(allowReverse){
+                    returnIndex = pool.get(OSp);
+                    if(returnIndex != null)
+                        return OSp;
+                }
+                returnIndex = pool.get(SPo);
+                if(returnIndex != null)
+                    return SPo;
+
+                returnIndex = pool.get(POs);
+                if(returnIndex != null)
+                    return POs;
+                returnIndex = pool.get(PSo);
+                if(returnIndex != null)
+                    return PSo;
+                return -1;
+
+
+            case POs:
+                returnIndex = pool.get(POs);
+                if(returnIndex != null)
+                    return POs;
+                if(allowReverse){
+                    returnIndex = pool.get(OPs);
+                    if(returnIndex != null)
+                        return OPs;
+                }
+                returnIndex = pool.get(PSo);
+                if(returnIndex != null)
+                    return PSo;
+
+                returnIndex = pool.get(OSp);
+                if(returnIndex != null)
+                    return OSp;
+                returnIndex = pool.get(OPs);
+                if(returnIndex != null)
+                    return OPs;
+                return -1;
+
+
+            case PSo:
+                returnIndex = pool.get(PSo);
+                if(returnIndex != null)
+                    return PSo;
+                if(allowReverse){
+                    returnIndex = pool.get(SPo);
+                    if(returnIndex != null)
+                        return SPo;
+                }
+                returnIndex = pool.get(POs);
+                if(returnIndex != null)
+                    return PSo;
+
+                returnIndex = pool.get(SPo);
+                if(returnIndex != null)
+                    return OSp;
+                returnIndex = pool.get(OPs);
+                if(returnIndex != null)
+                    return OPs;
+                return -1;
+
+
+
+        }
+        return -1;
+    }
+
+
+    public byte getOptimalIndex(int firstIndex, int secondIndex){
+        switch (firstIndex){
+            case 0:
+                switch (secondIndex) {
+                    case -1:
+                        return Spo;
+                    case 1:
+                        return SPo;
+                    case 2:
+                        return SOp;
+                }
+
+
+            case 1:
+                switch (secondIndex) {
+                    case -1:
+                        return Pso;
+                    case 0:
+                        return PSo;
+                    case 2:
+                        return POs;
+                }
+
+
+            case 2:
+                switch (secondIndex) {
+                    case -1:
+                        return Ops;
+                    case 0:
+                        return OSp;
+                    case 1:
+                        return OPs;
+                }
+
+        }
+        return -1;
+    }
+
+
 }

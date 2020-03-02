@@ -1,6 +1,5 @@
 package QueryStuff;
 
-import QueryStuff.Query;
 import index.Dictionary;
 import index.MyHashMap;
 import start.MainUinAdapt;
@@ -276,11 +275,10 @@ public class QueryGenrator {
         return keys;
     }
 
-
+    static Random random = new Random();
     public static  ArrayList<String> buildFastHeavyQueryZero(Dictionary reverseDicitionary , MyHashMap<Integer , ArrayList<Triple>> OPS, int numbderOfQuereies , int requiredDepth ){
         long maximum_trial = 1000000;
         int count = 0;
-        Random random = new Random();
         ArrayList<Triple> res = null;
         ArrayList<ArrayList<Triple>> finalRes = new ArrayList<ArrayList<Triple>>();
         while(finalRes.size() < numbderOfQuereies && count < maximum_trial){
@@ -314,6 +312,25 @@ public class QueryGenrator {
             quereisStrList.add(SPARQLfull);
         }
         return quereisStrList;
+    }
+
+    public static String translateDeepQuery(ArrayList<Triple> triples,Dictionary reverseDicitionary ){
+        String predicates ="";
+        String predicatesFull ="";
+        String vars = "?x1 ?x2 ?x3 ?x4 ";
+        //for (int jj = resIn.size() - 1; resIn != null && jj >= 0; jj--) {
+        for (int jj = 0; jj < triples.size(); jj++) {
+            //   int ch = new Random().nextInt(quereis.size()) + 1;
+            Triple triple = triples.get(jj);
+            if(jj == triples.size() - 1)
+                predicates = "?x"+jj +" "+ reverseDicitionary.get(triple.triples[1]) + " " + reverseDicitionary.get(triple.triples[2]) +"." +predicates;
+            else
+                predicates = "?x"+jj +" "+ reverseDicitionary.get(triple.triples[1]) + " ?x"+(jj+1) +" . "+ predicates;
+            predicatesFull = reverseDicitionary.get(triple.triples[0])+" " + reverseDicitionary.get(triple.triples[1]) + " "+reverseDicitionary.get(triple.triples[2]) +"." + predicatesFull;
+        }
+        String SPARQL = "select " + vars + " where {" + predicates + "}";
+        String SPARQLfull = "select " + vars + " where {" + predicatesFull + "}";
+        return SPARQL;
     }
 
     private static ArrayList<Triple> getDeepStep(int key , MyHashMap<Integer , ArrayList<Triple>> OPS ,ArrayList<Triple> res , int requiredDepth){

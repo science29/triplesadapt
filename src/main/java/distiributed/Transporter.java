@@ -2,6 +2,8 @@ package distiributed;
 
 
 import QueryStuff.Query;
+import optimizer.Optimizer2;
+import triple.Triple;
 import triple.TriplePattern2;
 
 import java.net.InetAddress;
@@ -12,9 +14,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Set;
 
-public class Transporter {
-
-
+public class Transporter implements Receiver.RecieverReadyListener {
 
     private final ArrayList<String> hosts;
     private final ArrayList<Sender> senderPool;
@@ -30,6 +30,12 @@ public class Transporter {
     public static final int QUERIES_SESSION = -994 ;
     public static final int QUERIES_DONE_BATCH = -993;
 
+    public static final int REPLICATION_REQUEST = -992;
+
+    public static final int SEND_REPLICATION_BACK = -991;
+
+    public static final int FINISHED_SENDING_REPLICATION_ON_DIST = -990;
+
     private final String myIP;
 
     private final RemoteQueryListener remoteQueryListener;
@@ -37,9 +43,29 @@ public class Transporter {
     private final HashMap<Integer, ArrayList<TriplePattern2>> waitngTriplePatterns;
     private final HashMap<Integer, Query> waitngQueries;
     private final HashMap<Integer, SendItem> tempBuffer;
+    private double networkCostMB = -1;
+    private int readyReciever = 0 ;
+    private TransporterReadyListener transporterReadyListener;
 
 
-    public Transporter(ArrayList<String> hosts, RemoteQueryListener remoteQueryListener) {
+    public interface DataReceivedListener{
+        void gotData(SendItem sendItem);
+    }
+
+    public interface TransporterReadyListener{
+        void ready();
+    }
+
+
+    public int getSendersCount(){
+        if(senderPool == null)
+            return 0;
+        return senderPool.size();
+    }
+
+
+
+    public Transporter(ArrayList<String> hosts, RemoteQueryListener remoteQueryListener , Optimizer2 optimizer , TransporterReadyListener transporterReadyListener) {
         myIP = removeMySelf(hosts);
         this.remoteQueryListener = remoteQueryListener;
         this.hosts = hosts;
@@ -50,15 +76,37 @@ public class Transporter {
         for (int i = 0; i < hosts.size(); i++) {
             Sender sender = new Sender(hosts.get(i), myIP, this, i);
             senderPool.add(sender);
-            Receiver receiver = new Receiver(this, hosts.get(i), i);
+            Receiver receiver = new Receiver(this, hosts.get(i), i , optimizer, this);
             receiver.start();
             receiversPool.add(receiver);
         }
         waitngTriplePatterns = new HashMap<>();
         waitngQueries = new HashMap<>();
         tempBuffer = new HashMap<>();
+        this.transporterReadyListener = transporterReadyListener;
+        setSedingCost();
     }
 
+
+    public double getSendingItemCostMB() {
+        return networkCostMB;
+    }
+
+
+    public void setSedingCost(){
+        long startTime = System.nanoTime();
+        pingListeners.put(984721, new Sender.PingListener() {
+            @Override
+            public void onPingReply() {
+                long stopTime = System.nanoTime();;
+                long elapsedTimeS = (stopTime - startTime) / 1000;
+                networkCostMB = elapsedTimeS;
+                checkIfReady();
+            }
+        });
+        senderPool.get(0).sendTestMesg(1000000);
+
+    }
 
     private String removeMySelf(ArrayList<String> hosts) {
 
@@ -233,6 +281,44 @@ public class Transporter {
     }
 
 
+
+
+    public void getReplication(int currentWorkingNode, int currentTargetedDistance, int from , int to ,
+                               DataReceivedListener dataReceivedListener){
+
+        senderPool.get(currentWorkingNode).sendFullReplicationRequst(currentTargetedDistance, from, to, dataReceivedListener);
+
+    }
+
+    public void setReplicationListener(int hostID, DataReceivedListener dataReceivedListener) {
+        receiversPool.get(hostID).replicationListener = dataReceivedListener;
+    }
+
+
+    public void sendReplicationBack(int toId, ArrayList<Triple> res , boolean finished) {
+        senderPool.get(toId).sendFullReplicationBack(res , finished);
+    }
+
+
+    @Override
+    public synchronized void recieverReady(int id) {
+        readyReciever++;
+        if(readyReciever >= receiversPool.size()){
+            checkIfReady();
+        }
+    }
+
+    private void checkIfReady() {
+        //check the recievers
+        if(readyReciever < receiversPool.size())
+            return;
+        //check the network cost
+        if(networkCostMB < 0)
+            return;
+
+        if(transporterReadyListener != null)
+            transporterReadyListener.ready();
+    }
 
 
     public interface ReceiverListener {

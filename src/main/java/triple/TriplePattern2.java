@@ -9,6 +9,7 @@ import distiributed.Transporter;
 import index.IndexesPool;
 import index.MyHashMap;
 import optimizer.Optimiser;
+import optimizer.Optimizer2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,13 +68,36 @@ public class TriplePattern2 {
     private TriplePattern2 cachedPattern;
 
 
-    private Optimiser optimiser;
+    private Optimizer2 optimiser;
 
-    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, Query query , Optimiser optimiser) {
+    public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, Query query , Optimizer2 optimiser) {
         triples = new int[3];
         triples[0] = triplePattern.triples[0];
         triples[1] = triplePattern.triples[1];
         triples[2] = triplePattern.triples[2];
+        //fixedTriples[0] = fixedTriples[0];
+        //fixedTriples[1] = fixedTriples[1];
+        // fixedTriples[2] = fixedTriples[2];
+
+        withinIndex = new WithinIndex(0);
+        Pso = indexesPool.getIndex(IndexesPool.Pso);
+        SPo = indexesPool.getIndex(IndexesPool.SPo);
+        OPs = indexesPool.getIndex(IndexesPool.OPs);
+        this.indexesPool = indexesPool;
+
+        this.transporter = transporter;
+        this.queryNo = query.ID;
+        this.query = query;
+
+        this.optimiser = optimiser;
+    }
+
+
+    public TriplePattern2(int s, int p , int o, IndexesPool indexesPool, Transporter transporter, Query query , Optimizer2 optimiser) {
+        triples = new int[3];
+        triples[0] = s;
+        triples[1] = p;
+        triples[2] = o;
         //fixedTriples[0] = fixedTriples[0];
         //fixedTriples[1] = fixedTriples[1];
         // fixedTriples[2] = fixedTriples[2];
@@ -797,7 +821,7 @@ public class TriplePattern2 {
             if (myResultTriple == null) {
                 myResultTriple = new ResultTriple(t);
                 myResultTriple.cached = deepLeftTripleResult.cached;
-                /*if(isBorder(t ,0) && !addedToBorderFlag) {
+                /*if(isBorderMap(t ,0) && !addedToBorderFlag) {
                     addTempResultBorder(myResultTriple);
                     addedToBorderFlag = true;
                 }*/
@@ -835,7 +859,7 @@ public class TriplePattern2 {
                 myResultTriple = new ResultTriple(t);
                 myResultTriple.cached = deepRightTripleResult.cached;
             }
-            /*if(isBorder(t ,2) && !addedToBorderFlag) {
+            /*if(isBorderMap(t ,2) && !addedToBorderFlag) {
                 addTempResultBorder(myResultTriple);
                 addedToBorderFlag = true;
             }*/

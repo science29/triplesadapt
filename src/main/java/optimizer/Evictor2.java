@@ -15,16 +15,18 @@ public class Evictor2 {
 
     private static final int ALLOCATE_STEP = 1000000;
     private final Dictionary dictionary;
+    private final Optimizer2 optimizer;
     private  EvictorThread evictorThread;
     private QueryWorkersPool queryWorkersPool;
     private IndexesPool indexPool;
 
-    public Evictor2(QueryWorkersPool queryWorkersPool , IndexesPool indexesPool , Dictionary dictionary){
+    public Evictor2(QueryWorkersPool queryWorkersPool , IndexesPool indexesPool , Dictionary dictionary ,Optimizer2 optimizer2){
         evictorThread = new EvictorThread();
         evictorThread.start();
         this.queryWorkersPool = queryWorkersPool;
         this.indexPool = indexesPool;
         this.dictionary = dictionary ;
+        this.optimizer = optimizer2;
     }
 
     private PriorityQueue<EvictQueueElement> highQBlock = new PriorityQueue<>(new Comparator<EvictQueueElement>() {
@@ -80,6 +82,10 @@ public class Evictor2 {
 
     }
 
+    public void clear() {
+        highQBlock.clear();
+        lowQBlock.clear();
+    }
 
 
     public class EvictorThread extends  Thread{
@@ -93,8 +99,8 @@ public class Evictor2 {
             while (!stop){
                 try {
                     EvictorJob job = threadQueue.take();
-                    job.lowEvictQueueElement.deAllocate(queryWorkersPool , indexPool);
-                    job.highEvictQueueElement.allocate(queryWorkersPool , indexPool, dictionary ,ALLOCATE_STEP);
+                    job.lowEvictQueueElement.deAllocate(queryWorkersPool , indexPool , dictionary ,ALLOCATE_STEP ,optimizer.replication);
+                    job.highEvictQueueElement.allocate(queryWorkersPool , indexPool, dictionary ,ALLOCATE_STEP ,optimizer.replication);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

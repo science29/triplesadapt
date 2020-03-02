@@ -1,5 +1,8 @@
 package distiributed;
 
+import org.omg.CORBA.TRANSACTION_MODE;
+import triple.Triple;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
@@ -120,7 +123,29 @@ public class Sender{
         return 0;
     }
 
+    public void sendFullReplicationRequst(int currentTargetedDistance, int from, int to, Transporter.DataReceivedListener dataReceivedListener) {
+        int arr [] = {currentTargetedDistance, from , to };
+        SendItem sendItem = new SendItem(Transporter.REPLICATION_REQUEST , arr,null);
+        transporter.setReplicationListener(this.hostID , dataReceivedListener);
+        try {
+            sharedWorkQueue.put(sendItem);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void sendFullReplicationBack(ArrayList<Triple> res , boolean finished) {
+        SendItem sendItem;
+        if(finished)
+            sendItem = new SendItem(Transporter.FINISHED_SENDING_REPLICATION_ON_DIST , res);
+        else
+            sendItem = new SendItem(Transporter.SEND_REPLICATION_BACK , res);
+        try {
+            sharedWorkQueue.put(sendItem);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     private class SenderThread extends Thread {
@@ -277,7 +302,6 @@ public class Sender{
 
         private synchronized void send(SendItem sendItem) {
             try {
-
                 if(sendItem.queriesNumberList != null){
                     if(sendItem.queries == null){
                         outToServer.writeInt(Transporter.QUERIES_DONE_BATCH);
@@ -330,9 +354,28 @@ public class Sender{
                     outToServer.flush();
                     return;
                 }
+                if(sendItem.queryNo == Transporter.REPLICATION_REQUEST){
+                    System.out.println("sending replication request "+host+":"+port);
+                    outToServer.writeInt(Transporter.TEST_REPLY_MESSAGE);
+                    outToServer.writeInt(sendItem.triple[0]);
+                    outToServer.writeInt(sendItem.triple[1]);
+                    outToServer.writeInt(sendItem.triple[2]);
+                    outToServer.flush();
+                    return;
+                }
                 if(sendItem.queryNo == Transporter.TEST_MESSAGE){
                     System.out.println("sending test message to "+host+":"+port);
                     outToServer.writeInt(Transporter.TEST_MESSAGE);
+                }
+                if(sendItem.queryNo == Transporter.FINISHED_SENDING_REPLICATION_ON_DIST){
+                    System.out.println("finshed sending replication back to "+host+":"+port);
+                    outToServer.writeInt(Transporter.FINISHED_SENDING_REPLICATION_ON_DIST);
+                    if(sendItem.getResultTripleList() == null)
+                        return;
+                }
+                if(sendItem.queryNo == Transporter.SEND_REPLICATION_BACK){
+                    System.out.println("sending replication back to "+host+":"+port);
+                    outToServer.writeInt(Transporter.SEND_REPLICATION_BACK);
                 }
                 byte [] data = sendItem.getBytes();
                 outToServer.writeInt(data.length);

@@ -205,8 +205,8 @@ public class Main {
                         *//*if(p1 == -1 || p2 == -1)
                             break;
                         if (p1 != p2)*//*
-                        boolean bsource = false;//isBorder(count);
-                        boolean bdest = v.get(i).isBorder;//isBorder(v.get(i).v);
+                        boolean bsource = false;//isBorderMap(count);
+                        boolean bdest = v.get(i).isBorderMap;//isBorderMap(v.get(i).v);
                         if (bsource || bdest) {
                             if (!bsource && !verticies.get(count).writtenToFile) // it is not border and not been written yet
                                 toBeCheckedVertexes.put(count, verticies.get(count)); // add to chekmap
@@ -366,7 +366,7 @@ public class Main {
 
     }
 
-    private boolean isBorder(long vid) {
+    private boolean isBorderMap(long vid) {
         int sp = verticies.get(vid).partitionNumber;
         ArrayList<Vertex> v = graph.get(vid);
         for (int i = 0; i < v.size(); i++) {
@@ -385,7 +385,7 @@ public class Main {
             for (int j = 0; j < ves.size(); j++) {
                 int cp = verticies.get(ves.get(j).v).partitionNumber;
                 if (sp != cp)
-                    ves.get(j).isBorder = true;
+                    ves.get(j).isBorderMap = true;
             }
         }
         System.out.println("done ");
