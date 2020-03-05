@@ -1,5 +1,6 @@
 package distiributed;
 
+import index.MyHashMap;
 import org.omg.CORBA.TRANSACTION_MODE;
 import triple.Triple;
 
@@ -8,9 +9,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
@@ -140,6 +139,49 @@ public class Sender{
             sendItem = new SendItem(Transporter.FINISHED_SENDING_REPLICATION_ON_DIST , res);
         else
             sendItem = new SendItem(Transporter.SEND_REPLICATION_BACK , res);
+        try {
+            sharedWorkQueue.put(sendItem);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendFullIndex(MyHashMap<Integer, ArrayList<Triple>> index , byte type) {
+        Iterator<Map.Entry<Integer, ArrayList<Triple>>> iterator = index.entrySet().iterator();
+        int[] arr = new int[10000];
+        int cnt = 0;
+        while (iterator.hasNext()){
+            if(cnt >= arr.length){
+                performSendFullIndex(arr , type);
+                arr = new int [10000];
+                cnt = 0;
+            }
+            ArrayList<Triple> list = iterator.next().getValue();
+            for(int i = 0 ; i < list.size() ; i++){
+                arr[cnt] = list.get(i).triples[0];
+                cnt++;
+            }
+        }
+        if(cnt > 0){
+            int [] farr = new int[cnt];
+            for(int i = 0; i < farr.length ; i++){
+                farr[i] = arr[i];
+            }
+            performSendFullIndex(farr , type );
+        }
+        SendItem sendItem2 = new SendItem(Transporter.SEND_FULL_INDEX_FINSHED, null, null);
+        try {
+            sharedWorkQueue.put(sendItem2);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void performSendFullIndex(int [] arr , byte indexType){
+        SendItem sendItem = new SendItem(Transporter.SEND_FULL_INDEX, arr,null);
+        sendItem.data = new byte[1];
+        sendItem.data[0] = indexType;
         try {
             sharedWorkQueue.put(sendItem);
         } catch (InterruptedException e) {
@@ -377,6 +419,24 @@ public class Sender{
                     System.out.println("sending replication back to "+host+":"+port);
                     outToServer.writeInt(Transporter.SEND_REPLICATION_BACK);
                 }
+                if(sendItem.queryNo == Transporter.SEND_FULL_INDEX){
+                    System.out.println("sending full index batch to "+host+":"+port);
+                    outToServer.writeInt(Transporter.SEND_FULL_INDEX);
+                    outToServer.writeByte(sendItem.data[0]);//index type
+                    outToServer.writeInt(sendItem.triple.length);
+                    for(int i = 0 ; i < sendItem.triple.length ; i++){
+                        outToServer.writeInt(sendItem.triple[i]);
+                    }
+                    outToServer.flush();
+                    return;
+                }
+                if(sendItem.queryNo == Transporter.SEND_FULL_INDEX_FINSHED){
+                    System.err.println("finished sending full index to "+host+":"+port);
+                    outToServer.writeInt(Transporter.SEND_FULL_INDEX_FINSHED);
+                    return;
+                }
+
+
                 byte [] data = sendItem.getBytes();
                 outToServer.writeInt(data.length);
                 outToServer.write(data);

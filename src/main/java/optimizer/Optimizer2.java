@@ -19,6 +19,7 @@ public class Optimizer2 extends  Optimiser{
 
     private final IndexesPool indexPool;
     public final GeneralReplicationInfo genralReplicationInfo;
+    private final HashMap<Integer, Boolean> borderTripleMap;
 
     public ArrayList<GeneralRule> generalRule;
     public ArrayList<GeneralReplicationRule> generalReplicationRules;
@@ -48,6 +49,7 @@ public class Optimizer2 extends  Optimiser{
         generalReplicationRules.add(new GeneralReplicationRule(IndexesPool.SPo, genralReplicationInfo ,source ));
 
         this.indexPool = indexesPool;
+        this.borderTripleMap = borderTripleMap;
 
         evictor = new Evictor2(queryWorkersPool , indexesPool, dictionary , this);
         replication = new Replication(this.transporter, borderTripleMap, indexesPool , this);
@@ -174,6 +176,46 @@ public class Optimizer2 extends  Optimiser{
     public byte getReplicationDestiIndexType() {
         //TODO should be grantied to be sorted
         return generalRule.get(0).indexType;
+    }
+
+
+    //during the partitioing , i'm been assigned my share
+    public void recievedIndexBatch(int[] arr, byte indexType) {
+        if(arr == null)//TODO this means its done
+            return;
+        MyHashMap<Integer, ArrayList<Triple>> index = indexPool.getIndex(indexType);
+        ArrayList<Triple> list = new ArrayList<Triple>();
+        int prev = Math.abs(arr[0]);
+        for(int i = 0 ; i < arr.length ; i++){
+            if(arr[i] < 0) {
+                arr[i] = -1 * arr[i];
+                addToBorderMap(arr[i]);
+            }
+            if(arr[i] != prev){
+                addShareToIndex(index, list, prev);
+                list = new ArrayList<Triple>();
+                prev = arr[i];
+            }
+            list.add(new Triple(arr[i],arr[i+1],arr[i+2]));
+            i+=2;
+        }
+        addShareToIndex(index, list, prev);
+    }
+
+    private void addToBorderMap(int v) {
+        borderTripleMap.put(v,true);
+    }
+
+
+    private void addShareToIndex(MyHashMap<Integer, ArrayList<Triple>> index, ArrayList<Triple> list, int key) {
+        if(!index.containsKey(key))
+            index.put(key , list);
+        else{
+            ArrayList<Triple> alreadyList = index.get(key);
+            for(int j = 0 ; j < list.size() ; j++){
+                alreadyList.add(list.get(j));
+            }
+        }
     }
 
 

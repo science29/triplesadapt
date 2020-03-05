@@ -2,6 +2,7 @@ package distiributed;
 
 
 import QueryStuff.Query;
+import index.MyHashMap;
 import optimizer.Optimizer2;
 import triple.Triple;
 import triple.TriplePattern2;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class Transporter implements Receiver.RecieverReadyListener {
+
 
     private final ArrayList<String> hosts;
     private final ArrayList<Sender> senderPool;
@@ -35,6 +37,8 @@ public class Transporter implements Receiver.RecieverReadyListener {
     public static final int SEND_REPLICATION_BACK = -991;
 
     public static final int FINISHED_SENDING_REPLICATION_ON_DIST = -990;
+    public static final int SEND_FULL_INDEX_FINSHED = -989;
+    public static final int SEND_FULL_INDEX = -988;
 
     private final String myIP;
 
@@ -46,6 +50,10 @@ public class Transporter implements Receiver.RecieverReadyListener {
     private double networkCostMB = -1;
     private int readyReciever = 0 ;
     private TransporterReadyListener transporterReadyListener;
+
+    public void sendShare(MyHashMap <Integer,ArrayList<Triple>> index, byte indexType ,int to) {
+        senderPool.get(to).sendFullIndex(index , indexType);
+    }
 
 
     public interface DataReceivedListener{

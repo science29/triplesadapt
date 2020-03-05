@@ -184,24 +184,63 @@ try {
         File file = new File("metisFile_new.part." + PARTITION_COUNT);
         MyHashMap<Integer, ArrayList<Triple>> index = indexPool.getIndex(IndexesPool.SPo);
         LineIterator it;
+        ArrayList<MyHashMap<Integer , ArrayList<Triple>>> indexes = new ArrayList<>();
+        MyHashMap<Integer,ArrayList<Triple>> spoIn = indexPool.getIndex(IndexesPool.SPo);
+        for(int i = 0 ; i < PARTITION_COUNT ; i++){
+            indexes.add(new MyHashMap(i+"temp"));
+        }
         try {
             it = FileUtils.lineIterator(file, "UTF-8");
             int count = 1;
             while (it.hasNext()) {
                 String line = it.nextLine();
                 int n = Integer.valueOf(line);
-                if(n != 1)
-                xx
+                if(n != 1){
+                    indexes.get(n).put(count , spoIn.remove(count));
+                }
                 count++;
             }
+            indexes.add(1,spoIn);
+            //check border
+            int cnt = 1;
+            for(int i = 0 ; i < PARTITION_COUNT ; i++){
+                if(indexes.get(i).containsKey(cnt)){
+                    for(int j = 0 ; j < PARTITION_COUNT && j != i ; j++){
+                        ArrayList<Triple> list = indexes.get(i).get(cnt);
+                        for(int k = 0 ; k < list.size() ; k++){
+                            if(indexes.get(i).containsKey(list.get(k).triples[2])){
+                                //it is a border
+                                if( i == 1)
+                                    borderTripleMap.put(cnt , true);
+                                else {
+                                    indexes.get(i).put(-cnt, list);
+                                    indexes.get(i).remove(cnt);
+                                }
+                                j = -1;
+                                break;
+                            }
+                        }
+                        if(j == -1)
+                            break;
+                    }
+                }
+            }
+            //done border
 
-            //reset the ierator
-            it = FileUtils.lineIterator(file, "UTF-8");
+            int j = 0;
+            for(int i = 0 ; i < PARTITION_COUNT && i != 1 ; i++){
+                transporter.sendShare(indexes.get(i) , IndexesPool.SPo, j);
+                j++;
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
+        if(it != null)
+            it.close();
     }
+
+
 
     private void iniIndexPool() {
         indexPool = new IndexesPool(borderTripleMap ,dictionary);

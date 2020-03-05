@@ -137,6 +137,22 @@ public class Receiver extends Thread {
                         continue;
                     }
 
+                    if(length == Transporter.SEND_FULL_INDEX){
+                        byte indexType = in.readByte();
+                        int count = in.readInt();
+                        int [] arr = new int[count];
+                        for(int j = 0 ; j < count ; j++){
+                            arr[j] = in.readInt();
+                        }
+                        optimizer.recievedIndexBatch(arr , indexType);
+                        continue;
+                    }
+
+                    if(length == Transporter.SEND_FULL_INDEX_FINSHED){
+                        optimizer.recievedIndexBatch(null ,(byte)0);
+                        continue;
+                    }
+
                     if (length > 0) {
                         byte[] data = new byte[length];
                         in.readFully(data, 0, data.length);
