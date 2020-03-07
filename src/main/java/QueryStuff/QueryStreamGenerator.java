@@ -12,6 +12,7 @@ import triple.TriplePattern2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class QueryStreamGenerator extends Thread {
 
@@ -22,7 +23,7 @@ public class QueryStreamGenerator extends Thread {
     private int maxLength;
     private int meanFrequency;
     private int quality;
-    private long period;
+    private double period;
     private Transporter transporter;
     private final Dictionary reverseDictionary;
     private final MyHashMap<Integer, ArrayList<Triple>> OPS;
@@ -30,6 +31,9 @@ public class QueryStreamGenerator extends Thread {
     private HeatQuery heatMap;
     private Optimizer2 optimizer;
     private int queryNoSequence = 84734;
+    private boolean stop = false;
+    public boolean working;
+    private ArrayBlockingQueue<Object> queue ;
 
 
     public QueryStreamGenerator(int averageLength, int maxLength, int meanFrequency, int quality, int period, Transporter transporter,
@@ -47,17 +51,38 @@ public class QueryStreamGenerator extends Thread {
         this.heatMap = heatMap;
         this.optimizer = optimizer2;
     }
-    
+
+    public static QueryStreamGenerator getDefault(Transporter transporter, QueryWorkersPool queryWorkersPool, Dictionary reverseDictionary
+            , IndexesPool indexesPool, HeatQuery heatMap , Optimizer2 optimizer2) {
+
+        return new QueryStreamGenerator(2,4 , 10 , 50,10,transporter,queryWorkersPool,reverseDictionary,indexesPool,heatMap,optimizer2);
+    }
+
+
+    public void stopGenearaingThread(){
+        stop = true;
+    }
 
     @Override
     public void run(){
-       String query = generartNext();
-        int queryNo = queryWorkersPool.addSingleQuery(query);
-        transporter.sendQuery(query , queryNo);
-        try {
-            sleep((long) getNextPeriod());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        while (true) {
+            if(stop) {
+                working = false;
+                try {
+                    queue.take();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            working = true;
+            String query = generartNext();
+            int queryNo = queryWorkersPool.addSingleQuery(query);
+            transporter.sendQuery(query, queryNo);
+            try {
+                sleep((long) getNextPeriod());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -73,7 +98,7 @@ public class QueryStreamGenerator extends Thread {
         Random qualityRandom = new Random();
         int ch = qualityRandom.nextInt(100);
         String query;
-        if(ch > 50)
+        if(ch > quality)
             query = getNewRandomQuery(nextLength);
         else
             query = getSeenQuery(nextLength);
@@ -124,4 +149,57 @@ public class QueryStreamGenerator extends Thread {
         return l;
     }
 
+    public void increaseMaxLength(boolean increase) {
+        if(increase)
+            maxLength++;
+        else
+            maxLength--;
+    }
+
+    public void increasePeroid(boolean increase) {
+        if(increase)
+            period = period*1.1;
+        else
+            period = period/1.1;
+    }
+
+    public void increaseQuality(boolean increase) {
+        if(increase)
+            quality = quality+10;
+        else
+            quality = quality-10;
+        if(quality > 100)
+            quality = 100;
+        if(quality < 0)
+            quality = 0;
+
+    }
+
+    public double getCurrentQueryQuality() {
+        return quality;
+    }
+
+    public double getCurrentPeroid() {
+        return period;
+    }
+
+    public int getMaxLength() {
+        return maxLength;
+    }
+
+
+    public void startThread() {
+        if(queue == null) {
+            queue = new ArrayBlockingQueue<Object>(1);
+            start();
+        }
+        else
+            try {
+                if(queue.size() == 0)
+                    queue.put(new Object());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+    }
 }

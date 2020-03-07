@@ -1,5 +1,6 @@
 package optimizer;
 
+import QueryStuff.QueryStreamGenerator;
 import QueryStuff.QueryWorkersPool;
 import distiributed.Transporter;
 import index.Dictionary;
@@ -20,6 +21,7 @@ public class Optimizer2 extends  Optimiser{
     private final IndexesPool indexPool;
     public final GeneralReplicationInfo genralReplicationInfo;
     private final HashMap<Integer, Boolean> borderTripleMap;
+    private final QueryStreamGenerator queryGenerator;
 
     public ArrayList<GeneralRule> generalRule;
     public ArrayList<GeneralReplicationRule> generalReplicationRules;
@@ -53,8 +55,8 @@ public class Optimizer2 extends  Optimiser{
 
         evictor = new Evictor2(queryWorkersPool , indexesPool, dictionary , this);
         replication = new Replication(this.transporter, borderTripleMap, indexesPool , this);
-
-        GUI = OptimizerGUI.createForm();
+        this.queryGenerator = QueryStreamGenerator.getDefault(transporter,queryWorkersPool,dictionary,indexesPool, heatQuery,this);
+        GUI = OptimizerGUI.createForm(queryGenerator , this);
     }
 
 

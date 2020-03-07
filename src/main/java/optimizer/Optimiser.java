@@ -15,7 +15,7 @@ public class Optimiser {
 
 
     private final MemoryMap memoryMap;
-    private final HeatQuery heatQuery;
+    protected final HeatQuery heatQuery;
     private final IndexesPool indexesPool;
 
     private final Evictor evictor;
