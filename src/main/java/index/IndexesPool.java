@@ -33,13 +33,14 @@ public class IndexesPool {
     private final Dictionary dictionary;
 
 
+
     HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>> pool;
 
     final HashMap<Integer , Integer> selectivity;
 
     final public HashMap<Integer , Boolean> isBorderMap;
 
-    public IndexesPool(HashMap<Integer , Boolean> isBorderMap, Dictionary dictionary){
+    public IndexesPool(HashMap<Integer , Boolean> isBorderMap, Dictionary dictionary ){
         pool = new HashMap<>();
         this.isBorderMap = isBorderMap;
         this.dictionary = dictionary;

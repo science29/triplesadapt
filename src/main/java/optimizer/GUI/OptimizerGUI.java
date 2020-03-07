@@ -131,24 +131,28 @@ public class OptimizerGUI {
 
 
 
-    void setIndexes(IndexesPool indexesPool){
-        if(indexesPool.getIndex(IndexesPool.SPo) != null )
-            SPo.setText("SPo:"+indexesPool.getIndex(IndexesPool.SPo).size());
+    public void setIndexes(IndexesPool indexesPool){
+        try {
+            if (indexesPool.getIndex(IndexesPool.SPo) != null)
+                SPo.setText("SPo:" + indexesPool.getIndex(IndexesPool.SPo).size());
 
-        if(indexesPool.getIndex(IndexesPool.OPs) != null )
-            OPs.setText("OPs:"+indexesPool.getIndex(IndexesPool.OPs).size());
+            if (indexesPool.getIndex(IndexesPool.OPs) != null)
+                OPs.setText("OPs:" + indexesPool.getIndex(IndexesPool.OPs).size());
 
-        if(indexesPool.getIndex(IndexesPool.PSo) != null )
-            PSo.setText("PSo:"+indexesPool.getIndex(IndexesPool.PSo).size());
+            if (indexesPool.getIndex(IndexesPool.PSo) != null)
+                PSo.setText("PSo:" + indexesPool.getIndex(IndexesPool.PSo).size());
 
-        if(indexesPool.getIndex(IndexesPool.SOp) != null )
-            SOp.setText("SOp:"+indexesPool.getIndex(IndexesPool.SOp).size());
+            if (indexesPool.getIndex(IndexesPool.SOp) != null)
+                SOp.setText("SOp:" + indexesPool.getIndex(IndexesPool.SOp).size());
 
-        if(indexesPool.getIndex(IndexesPool.OSp) != null )
-            OSp.setText("OSp:"+indexesPool.getIndex(IndexesPool.OSp).size());
+            if (indexesPool.getIndex(IndexesPool.OSp) != null)
+                OSp.setText("OSp:" + indexesPool.getIndex(IndexesPool.OSp).size());
 
-        if(indexesPool.getIndex(IndexesPool.POs) != null )
-            POs.setText("POs:"+indexesPool.getIndex(IndexesPool.POs).size());
+            if (indexesPool.getIndex(IndexesPool.POs) != null)
+                POs.setText("POs:" + indexesPool.getIndex(IndexesPool.POs).size());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     void setReplication(IndexesPool indexesPool){

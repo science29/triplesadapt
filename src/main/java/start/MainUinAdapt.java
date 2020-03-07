@@ -80,7 +80,7 @@ public class MainUinAdapt {
 
     public static void main(String[] args) {
 
-
+        tempp.createForm();
         System.out.println();
         System.out.println("starting ..");
 
@@ -104,8 +104,8 @@ try {
     }
 
 
-    o.iniIndexPool();
-   o.iniTransporter();
+    //o.iniIndexPool();
+   //o.iniTransporter();
 
     transporter.printSummary();
     o.listenToQuery();
@@ -244,9 +244,9 @@ try {
 
     private void iniIndexPool() {
         indexPool = new IndexesPool(borderTripleMap ,dictionary);
-        indexPool.addIndex(IndexesPool.Pso , POS , "Pso");
-        indexPool.addIndex(IndexesPool.OPs , OPS , "OPs");
-        indexPool.addIndex(IndexesPool.SPo , SPO , "SPo");
+        indexPool.addIndex(IndexesPool.Pso ,new HashMap<>(), "Pso");
+        indexPool.addIndex(IndexesPool.OPs , new HashMap<>() , "OPs");
+        indexPool.addIndex(IndexesPool.SPo , new HashMap<>() , "SPo");
 
     }
 
@@ -279,6 +279,8 @@ try {
     public MainUinAdapt(){
         dictionary = new Dictionary("dictionary_int");
         reverseDictionary = dictionary;
+        iniTransporter();
+        iniIndexPool();
         optimizer = new Optimizer2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap);
     }
 
@@ -990,6 +992,7 @@ try {
 
 
                     optimizer.addStartTripleToIndex(tripleObj);
+
                    /* addToPOSIndex(tripleObj);xx
                     addToOPSIndex(tripleObj);
                     addToSPOIndex(tripleObj);*/

@@ -16,7 +16,7 @@ public class Optimiser {
 
     private final MemoryMap memoryMap;
     protected final HeatQuery heatQuery;
-    private final IndexesPool indexesPool;
+    protected final IndexesPool indexesPool;
 
     private final Evictor evictor;
 
@@ -67,11 +67,7 @@ public class Optimiser {
 
     }
 
-    public void addStartTripleToIndex(Triple tripleObj) {
-        //Applying zero protocol
-        //initially add to SPo and POs then do latter do other
-        indexesPool.addToIndex(IndexesPool.SPo , tripleObj);
-    }
+
 
 
 

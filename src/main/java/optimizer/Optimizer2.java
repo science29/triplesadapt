@@ -60,6 +60,13 @@ public class Optimizer2 extends  Optimiser{
     }
 
 
+    public void addStartTripleToIndex(Triple tripleObj) {
+        //Applying zero protocol
+        //initially add to SPo and POs then do latter do other
+        indexesPool.addToIndex(IndexesPool.SPo , tripleObj);
+        GUI.setIndexes(indexPool);
+    }
+
     public void work(){
         evictor.evict();
         workGeneral();

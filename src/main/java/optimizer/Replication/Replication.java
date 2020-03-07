@@ -32,9 +32,9 @@ public class Replication {
         this.transporter = transporter;
         this.borderTripleMap = borderTripleMap;
         this.indexesPool = indexesPool;
-        this.fullReplicationManger = new FullReplicationManger();
         this.optimizer = optimizer;
         this.generalReplicationInfo = optimizer.genralReplicationInfo;
+        this.fullReplicationManger = new FullReplicationManger();
     }
 
 
