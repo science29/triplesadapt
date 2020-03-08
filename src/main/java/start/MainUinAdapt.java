@@ -80,7 +80,7 @@ public class MainUinAdapt {
 
     public static void main(String[] args) {
 
-        tempp.createForm();
+
         System.out.println();
         System.out.println("starting ..");
 
@@ -992,7 +992,6 @@ try {
 
 
                     optimizer.addStartTripleToIndex(tripleObj);
-
                    /* addToPOSIndex(tripleObj);xx
                     addToOPSIndex(tripleObj);
                     addToSPOIndex(tripleObj);*/

@@ -241,6 +241,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     @Override
     public boolean containsKey(Object key) {
+        if(onlyMem)
+            return hashMap.containsKey(key);
         if (hashMap.containsKey(key))
             return true;
         if (fastFileMap != null && fastFileMap.containsKey(key))
@@ -330,11 +332,12 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
 
     @Override
     public V put(K key, V value) {
-        setSize();
-        //todo fix this
-        if (diskMemPut)
-            fileHashMap.put(key, value);
-
+        if(!onlyMem) {
+            setSize();
+            //todo fix this
+            if (diskMemPut)
+                fileHashMap.put(key, value);
+        }
         if (addToCache(key, value))
             return value;
         /*
@@ -433,7 +436,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     private boolean addToCache(K key, V value) {
         if (cacheEnabled) {
             hashMap.put(key, value);
-            if (hashMap.size() > maxCacheSize) {
+            if (!onlyMem && hashMap.size() > maxCacheSize) {
                 writeCacheToPersist();
                 maxCacheSize = (int) (((double) maxCacheSize) / factor);
                 factor = factor - 0.18;

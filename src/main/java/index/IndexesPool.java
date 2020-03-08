@@ -227,16 +227,12 @@ public class IndexesPool {
             index = new MyHashMap<>(indexType+"");
             pool.put(new Integer(indexType) , index);
         }
-        if(index == null){
-            index = new MyHashMap<>(indexType+"");
-            pool.put(new Integer(indexType),index);
-        }
 
         int key = getHashedIndex(indexType);
        // int sortedKey = getSortedIndex(indexType);
 
-        if (index.containsKey(tripleObj.triples[1])) {
-            index.get(tripleObj.triples[1]).add(tripleObj);
+        if (index.containsKey(tripleObj.triples[key])) {
+            index.get(tripleObj.triples[key]).add(tripleObj);
         } else {
             ArrayList<Triple> list = new ArrayList();
             list.add(tripleObj);
