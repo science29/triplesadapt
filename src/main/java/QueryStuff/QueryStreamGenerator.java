@@ -111,6 +111,8 @@ public class QueryStreamGenerator extends Thread {
 
     private String getSeenQuery(int length) {
         TriplePattern2 first = heatMap.getNextStoredQuery(length , indexPool);
+        if(first == null)
+            return null;
         ArrayList<Triple> list = new ArrayList<>();
         while (first != null){
             list.add(new Triple(first.getTriples()[0] , first.getTriples()[1]  , first.getTriples()[2] ));

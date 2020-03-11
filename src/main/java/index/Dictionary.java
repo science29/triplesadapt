@@ -118,6 +118,8 @@ public class Dictionary{
             char [] chars = key.toCharArray();
             cache.put(chars ,value);
             reverseCache.put(value , chars);
+            if(ONLY_MEMORY)
+                return true;
             if(cache.size() > maxCacheSize){
                 writeCacheToPersist();
                 maxCacheSize =(int)(((double)maxCacheSize)/factor);
@@ -168,7 +170,7 @@ public class Dictionary{
 
     public Integer get(String key){
         Integer val = getFromCache(key);
-       if(val != null) {
+       if(ONLY_MEMORY || val != null) {
            return val;
        }else
             return (Integer) fastMap.get(key);

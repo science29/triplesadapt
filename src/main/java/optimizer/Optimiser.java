@@ -20,10 +20,10 @@ public class Optimiser {
 
     private final Evictor evictor;
 
-    public Optimiser(Dictionary dictionary) {
+    public Optimiser(Dictionary dictionary , IndexesPool indexesPool) {
         memoryMap = new MemoryMap();
         heatQuery = new HeatQuery();
-        indexesPool = new IndexesPool(null , dictionary );
+        this.indexesPool = indexesPool;//new IndexesPool(null , dictionary );
         evictor = new Evictor(indexesPool);
         intialZeroProtocol();
     }

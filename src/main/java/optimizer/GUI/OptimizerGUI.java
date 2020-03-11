@@ -2,11 +2,14 @@ package optimizer.GUI;
 
 import QueryStuff.QueryStreamGenerator;
 import index.IndexesPool;
+import index.MyHashMap;
 import optimizer.Optimizer2;
+import triple.Triple;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 public class OptimizerGUI {
     private JPanel panel1;
@@ -133,8 +136,10 @@ public class OptimizerGUI {
 
     public void setIndexes(IndexesPool indexesPool){
         try {
-            if (indexesPool.getIndex(IndexesPool.SPo) != null)
-                SPo.setText("SPo:" + indexesPool.getIndex(IndexesPool.SPo).size());
+            MyHashMap<Integer, ArrayList<Triple>> indexx = indexesPool.getIndex(IndexesPool.SPo);
+            if (indexx != null) {
+                SPo.setText("SPo:" + indexx.size());
+            }
 
             if (indexesPool.getIndex(IndexesPool.OPs) != null)
                 OPs.setText("OPs:" + indexesPool.getIndex(IndexesPool.OPs).size());

@@ -991,7 +991,7 @@ try {
                     }
 
 
-                    optimizer.addStartTripleToIndex(tripleObj);
+                    optimizer.addStartTripleToIndex(tripleObj , count);
                    /* addToPOSIndex(tripleObj);xx
                     addToOPSIndex(tripleObj);
                     addToSPOIndex(tripleObj);*/

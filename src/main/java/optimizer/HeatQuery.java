@@ -144,6 +144,8 @@ public class HeatQuery {
     Random random = new Random();
 
     public TriplePattern2 getNextStoredQuery(int length, IndexesPool indexesPool) {
+        if(predicateList.size() < 10)
+            return null;
         double index = random.nextGaussian() * predicateList.size() / 2;
         index = Math.abs(index);
         if (index >= predicateList.size()) {

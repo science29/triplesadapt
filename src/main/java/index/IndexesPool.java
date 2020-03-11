@@ -34,7 +34,7 @@ public class IndexesPool {
 
 
 
-    HashMap<Integer, MyHashMap<Integer,ArrayList<Triple>>> pool;
+    HashMap<Byte, MyHashMap<Integer,ArrayList<Triple>>> pool;
 
     final HashMap<Integer , Integer> selectivity;
 
@@ -70,17 +70,17 @@ public class IndexesPool {
         return 1;
     }
 
-    public void addIndex(MyHashMap index , int type){
+    public void addIndex(MyHashMap index , byte type){
         index.poolRefType = (byte)type;
         pool.put(type , index);
     }
 
 
-    public MyHashMap<Integer , ArrayList<Triple>> getIndex(int type){
+    public MyHashMap<Integer , ArrayList<Triple>> getIndex(byte type){
         return pool.get(type);
     }
 
-    public void addIndex(int type, HashMap<Integer, ArrayList<Triple>> map , String name ) {
+    public void addIndex(byte type, HashMap<Integer, ArrayList<Triple>> map , String name ) {
         MyHashMap<Integer , ArrayList<Triple>> cov = new MyHashMap<Integer, ArrayList<Triple>>(name , map);
         addIndex(cov , type);
     }
@@ -94,7 +94,7 @@ public class IndexesPool {
         return selectivity.get(index);
     }
 
-    public ArrayList<Triple> get(int optimalIndexType , Integer first , Integer second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser ){
+    public ArrayList<Triple> get(byte optimalIndexType , Integer first , Integer second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser ){
         //first try the optimal
         MyHashMap<Integer,ArrayList<Triple>> optimal = pool.get(optimalIndexType);
         ArrayList<Triple> list;
@@ -180,7 +180,7 @@ public class IndexesPool {
     }
 
 
-    private int getSortedIndex(int optimalIndexType) {
+    private int getSortedIndex(byte optimalIndexType) {
         switch (optimalIndexType){
             case OPs: return 1;
             case SPo: return 1;
@@ -194,7 +194,7 @@ public class IndexesPool {
     }
 
 
-    private int getHashedIndex(int optimalIndexType) {
+    private int getHashedIndex(byte optimalIndexType) {
         switch (optimalIndexType){
             case OPs: return 2;
             case SPo: return 0;
@@ -207,7 +207,7 @@ public class IndexesPool {
         return -1;
     }
 
-    private int getLastIndex(int indexType) {
+    private int getLastIndex(byte indexType) {
         switch (indexType){
             case OPs: return 0;
             case SPo: return 2;
@@ -225,7 +225,7 @@ public class IndexesPool {
         MyHashMap<Integer, ArrayList<Triple>> index = pool.get(indexType);
         if(index == null){
             index = new MyHashMap<>(indexType+"");
-            pool.put(new Integer(indexType) , index);
+            pool.put(indexType , index);
         }
 
         int key = getHashedIndex(indexType);
@@ -250,7 +250,7 @@ public class IndexesPool {
         Iterator it = pool.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-            Integer indexType = (Integer) pair.getKey();
+            Byte indexType = (Byte) pair.getKey();
             MyHashMap myHashMap = (MyHashMap) pair.getValue();
             int index1 = getSortedIndex(indexType);
             int index2 = getLastIndex(indexType);
@@ -308,9 +308,9 @@ public class IndexesPool {
     }
 
     public ArrayList<Triple> getTriples(Integer v) {
-        Iterator<Map.Entry<Integer, MyHashMap<Integer, ArrayList<Triple>>>> iter = pool.entrySet().iterator();
+        Iterator<Map.Entry<Byte, MyHashMap<Integer, ArrayList<Triple>>>> iter = pool.entrySet().iterator();
         while (iter.hasNext()){
-            Map.Entry<Integer, MyHashMap<Integer, ArrayList<Triple>>> entery = iter.next();
+            Map.Entry<Byte, MyHashMap<Integer, ArrayList<Triple>>> entery = iter.next();
             MyHashMap<Integer, ArrayList<Triple>> index = entery.getValue();
             if(index.containsKey(v))
                 return index.get(v);

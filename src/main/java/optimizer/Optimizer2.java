@@ -18,7 +18,7 @@ import java.util.*;
 
 public class Optimizer2 extends  Optimiser{
 
-    private final IndexesPool indexPool;
+    //private final IndexesPool indexesPool;
     public final GeneralReplicationInfo genralReplicationInfo;
     private final HashMap<Integer, Boolean> borderTripleMap;
     private final QueryStreamGenerator queryGenerator;
@@ -35,7 +35,7 @@ public class Optimizer2 extends  Optimiser{
     private OptimizerGUI GUI;
 
     public Optimizer2(QueryWorkersPool queryWorkersPool, IndexesPool indexesPool, Dictionary dictionary, Transporter transporter, HashMap<Integer, Boolean> borderTripleMap){
-        super(dictionary);
+        super(dictionary,indexesPool);
         this.transporter = transporter;
         generalRule = new ArrayList<>();
         generalRule.add(new GeneralRule(IndexesPool.OPs ,SourceSelection.getLocalIndexInstance(null)));
@@ -50,7 +50,7 @@ public class Optimizer2 extends  Optimiser{
         SourceSelection source = SourceSelection.getBorderReplicationInstance(new BorderReplicationSource());
         generalReplicationRules.add(new GeneralReplicationRule(IndexesPool.SPo, genralReplicationInfo ,source ));
 
-        this.indexPool = indexesPool;
+
         this.borderTripleMap = borderTripleMap;
 
         evictor = new Evictor2(queryWorkersPool , indexesPool, dictionary , this);
@@ -60,11 +60,12 @@ public class Optimizer2 extends  Optimiser{
     }
 
 
-    public void addStartTripleToIndex(Triple tripleObj) {
+    public void addStartTripleToIndex(Triple tripleObj , int cnt) {
         //Applying zero protocol
         //initially add to SPo and POs then do latter do other
         indexesPool.addToIndex(IndexesPool.SPo , tripleObj);
-        GUI.setIndexes(indexPool);
+        if(cnt % 1000 == 0 || cnt == -1)
+            GUI.setIndexes(indexesPool);
     }
 
     public void work(){
@@ -83,10 +84,10 @@ public class Optimizer2 extends  Optimiser{
         for(int i = 0; i < generalRule.size() ; i++){
             GeneralRule generalRule = this.generalRule.get(i);
             unifiedList.add(generalRule);
-            //byte nearestIndex = indexPool.getNearestIndex(generalRuleOld.indexType, true);
+            //byte nearestIndex = indexesPool.getNearestIndex(generalRuleOld.indexType, true);
             double cost = getGenralConversionCost(generalRule.indexType , false); //TODO consider using the cache
             generalRule.calculateGeneralBenefit(cost);
-            generalRule.occupation = indexPool.getIndex(generalRule.indexType).size();
+            generalRule.occupation = indexesPool.getIndex(generalRule.indexType).size();
             totalIndexSizeT += generalRule.occupation;
         }
         totalIndexSize = totalIndexSizeT;
@@ -145,7 +146,7 @@ public class Optimizer2 extends  Optimiser{
         }
 
         //get random triples then measure the cost of retrieveing them
-        MyHashMap<Integer,ArrayList<Triple>> indexx = indexPool.getRanIndex();
+        MyHashMap<Integer,ArrayList<Triple>> indexx = indexesPool.getRanIndex();
         Iterator<Map.Entry<Integer, ArrayList<Triple>>> iterator = indexx.entrySet().iterator();
 
         OperationCost operationCost = new OperationCost();
@@ -154,9 +155,9 @@ public class Optimizer2 extends  Optimiser{
         while (iterator.hasNext() && cnt < requiredNumberOfChecks){
             ArrayList<Triple> list = iterator.next().getValue();
             Triple triple = list.get(0);
-            indexPool.get(triple.triples[indexPool.getFirstIndex(optimalIndex)] ,
-                    triple.triples[indexPool.getSecondIndex(optimalIndex)] , indexPool.getFirstIndex(optimalIndex) ,
-                    indexPool.getSecondIndex(optimalIndex), operationCost );
+            indexesPool.get(triple.triples[indexesPool.getFirstIndex(optimalIndex)] ,
+                    triple.triples[indexesPool.getSecondIndex(optimalIndex)] , indexesPool.getFirstIndex(optimalIndex) ,
+                    indexesPool.getSecondIndex(optimalIndex), operationCost );
             cnt++;
         }
         operationCost.cost = operationCost.cost/cnt;
@@ -192,7 +193,7 @@ public class Optimizer2 extends  Optimiser{
     public void recievedIndexBatch(int[] arr, byte indexType) {
         if(arr == null)//TODO this means its done
             return;
-        MyHashMap<Integer, ArrayList<Triple>> index = indexPool.getIndex(indexType);
+        MyHashMap<Integer, ArrayList<Triple>> index = indexesPool.getIndex(indexType);
         ArrayList<Triple> list = new ArrayList<Triple>();
         int prev = Math.abs(arr[0]);
         for(int i = 0 ; i < arr.length ; i++){
