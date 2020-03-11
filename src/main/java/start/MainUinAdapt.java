@@ -910,7 +910,7 @@ try {
                     ArrayList<Vertex> v = null;
                     boolean ignoreFlag = false;
                     for (int i = 0; i < 3; i++) {
-                        if (dictionary.containsKey(triple[i])) {
+                        if (dictionary.containsKey(triple[i] , true)) {
                             code[i] = dictionary.get(triple[i]);
                             if (i != 1 && code[i] >= BASE_PREDICATE_CODE) {
                                 //ignoreFlag = true; //just ignore the predicate which came as subj or obj
@@ -1017,8 +1017,8 @@ try {
 
        // op_S.close();
 
-        System.out.println("building and sorting indexes.. ");
-        optimizer.dataReadDone();
+       // System.out.println("building and sorting indexes.. ");
+      ///  optimizer.dataReadDone();
         OPS = indexPool.getIndex(IndexesPool.OPs);
         SPO = indexPool.getIndex(IndexesPool.SPo);
         POS = indexPool.getIndex(IndexesPool.POs);

@@ -82,6 +82,7 @@ public class OptimizerGUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 queryStreamGenerator.increaseMaxLength(true);
+                setStreamVal(queryStreamGenerator);
             }
         });
 
@@ -89,6 +90,7 @@ public class OptimizerGUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 queryStreamGenerator.increaseMaxLength(false);
+                setStreamVal(queryStreamGenerator);
             }
         });
 

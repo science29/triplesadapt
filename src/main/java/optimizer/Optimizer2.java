@@ -64,6 +64,7 @@ public class Optimizer2 extends  Optimiser{
         //Applying zero protocol
         //initially add to SPo and POs then do latter do other
         indexesPool.addToIndex(IndexesPool.SPo , tripleObj);
+        //indexesPool.addToIndex(IndexesPool.OPs , tripleObj);
         if(cnt % 1000 == 0 || cnt == -1)
             GUI.setIndexes(indexesPool);
     }

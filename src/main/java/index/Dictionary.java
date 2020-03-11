@@ -22,7 +22,7 @@ public class Dictionary{
     private DB dbFileReverse;
     HTreeMap fastMap;
     HTreeMap reverseFastMap;
-    HashMap<char[],Integer> cache = new HashMap<>();
+    HashMap<Integer,Integer> cache = new HashMap<>(); // the key is the hash of the char arr of the string
     HashMap<Integer,char[]> reverseCache = new HashMap<>();
 
     //HashMap<String,Integer> cache2 = new HashMap<String, Integer>();
@@ -116,7 +116,8 @@ public class Dictionary{
     private boolean addToCache(String key, Integer value){
         if(cacheEnabled){
             char [] chars = key.toCharArray();
-            cache.put(chars ,value);
+            Integer keyInt = getDictionaryIntKey(chars);
+            cache.put(keyInt ,value);
             reverseCache.put(value , chars);
             if(ONLY_MEMORY)
                 return true;
@@ -132,6 +133,17 @@ public class Dictionary{
         return false;
     }
 
+    private Integer getDictionaryIntKey(char [] chars ) {
+        //char [] chars = key.toCharArray();
+        int r = chars.length*10000;
+        for(int i = 0 ; i < chars.length ; i++){
+            int n = chars[i];
+            r = r+n*i;
+        }
+        System.out.println(r);
+        return r;
+    }
+
     public void writeCacheToPersist() {
         if(cache == null || !cacheEnabled)
             return;
@@ -144,7 +156,7 @@ public class Dictionary{
             Integer val = (Integer) pair.getValue();
             put(key , val);
         }
-        cache = new HashMap<char[], Integer>();
+        cache = new HashMap<>();
         cacheEnabled = true;
     }
 
@@ -197,14 +209,16 @@ public class Dictionary{
     private Integer getFromCache(String key) {
         if(!cacheEnabled)
             return null;
-        Integer val = cache.get(key.toCharArray());//TODO performance issue?
+        int intKey = getDictionaryIntKey(key.toCharArray());
+        Integer val = cache.get(intKey);//TODO performance issue?
         return val;
     }
 
     private Integer getFromCache(char[] key) {
         if(!cacheEnabled)
             return null;
-        Integer val = cache.get(key);
+        int intKey = getDictionaryIntKey(key);
+        Integer val = cache.get(intKey);
         return val;
     }
 
@@ -215,10 +229,34 @@ public class Dictionary{
         return val;
     }
 
+    private HashMap<String, Integer> collissionMap = new HashMap<>();
+
+    public boolean containsKey(String key, boolean building) {
+        boolean res = containsKey(key);
+        if(!building){
+            return res;
+        }
+        if(res){
+            Integer val = get(key);
+            char[] val2 = get(val);
+            char[] keyArr = key.toCharArray();
+            //int keyInt = getDictionaryIntKey(keyArr);
+            for(int j =0 ; j < val2.length ;j++){
+                if(val2[j] != keyArr[j]){
+                    String val2Str = new String(val2);
+                    collissionMap.put(key,)
+                    System.err.println("error detected in Dictionary building vals:"+key+" , "+val+ " , " + val2Str+".. exiting");
+                    System.exit(0);
+                }
+            }
+        }
+        return  res;
+    }
 
     public boolean containsKey(String key) {
         //return normalMap.containsKey(key);
-        if(cacheEnabled && cache.containsKey(key))
+        int keyInt = getDictionaryIntKey(key.toCharArray());
+        if(cacheEnabled && cache.containsKey(keyInt))
             return true;
         if(ONLY_MEMORY)
             return false;
