@@ -137,6 +137,7 @@ public class Transporter implements Receiver.RecieverReadyListener {
                 }
             }
         }
+        System.err.println("the IP is not correctly set!");
         return null;
     }
 

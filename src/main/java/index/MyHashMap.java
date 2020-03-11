@@ -781,6 +781,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         File file = new File(HOME_DIR + fileName + "db.db");
        /*if (file.exists())
             file.delete();*/
+
         if (dbFile == null || dbFile.isClosed()) {
             dbFile = DBMaker
                     .fileDB(file)

@@ -94,8 +94,10 @@ public class MainUinAdapt {
 
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
-    filePaths.add("/home/keg/Desktop/BTC/yago.n3");
-    o.openIndexes();
+   // filePaths.add("/home/keg/Desktop/BTC/yago.n3");
+    filePaths.add("/Users/apple/Downloads/yago.n3");
+
+    //o.openIndexes(); disable the disk map
     try {
 
         o.porcess(filePaths, quad);
@@ -253,7 +255,8 @@ try {
     private void iniTransporter() {
         System.out.println("starting transporter ..");
         ArrayList<String> hosts = new ArrayList<>();
-        hosts.add("172.20.32.8");
+        hosts.add("192.168.1.195");
+        //hosts.add("172.20.32.8");
         hosts.add("172.20.32.7");
         Transporter.RemoteQueryListener remoteQueryListener = new Transporter.RemoteQueryListener() {
             @Override
@@ -863,7 +866,7 @@ try {
                 return;
             }
             try {
-                while (it.hasNext() && count < 10000000) {
+                while (it.hasNext() && count < 1000000) {
                     if (count % 100000 == 0 || count == 2082) {
                         File stopFile = new File("/home/ahmed/stop");
                         if(stopFile.exists()){

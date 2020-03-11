@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 
 public class VertexGraphIndex {
 
-    private final String fileName;
+    private  String fileName;
     private DB dbMemory;
     private DB dbFile;
     HTreeMap inMemory;
@@ -25,6 +25,7 @@ public class VertexGraphIndex {
     private final String HOME_DIR = "/home/ahmed/";
 
     public VertexGraphIndex(String fileName){
+        /*
         this.fileName = fileName;
         File file = new File(HOME_DIR + fileName + "db.db");
         if (file.exists())
@@ -42,7 +43,7 @@ public class VertexGraphIndex {
                     .memoryDB()
                     .make();
         }
-        inMemory = getMap();
+        inMemory = getMap();*/
     }
 
 

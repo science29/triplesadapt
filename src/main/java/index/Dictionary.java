@@ -24,6 +24,8 @@ public class Dictionary{
     HTreeMap reverseFastMap;
     HashMap<Integer,Integer> cache = new HashMap<>(); // the key is the hash of the char arr of the string
     HashMap<Integer,char[]> reverseCache = new HashMap<>();
+    private HashMap<String, Integer> collissionMap = new HashMap<>();
+    private HashMap< Integer , String> reverseCollissionMap = new HashMap<>();
 
     //HashMap<String,Integer> cache2 = new HashMap<String, Integer>();
    // HashMap<Integer,String> reverseCache2 = new HashMap<Integer, String>();
@@ -166,6 +168,11 @@ public class Dictionary{
 
     public void put(String key, Integer value) {
        // normalMap.put(key,value);
+        if(collissionMap.containsKey(key)){
+            collissionMap.put(key,value);
+            this.reverseCollissionMap.put(value,key);
+            return;
+        }
         if(!addToCache(key,value)) {
             fastMap.put(key.toCharArray(), value);
             reverseFastMap.put(value,key);
@@ -207,29 +214,38 @@ public class Dictionary{
 
 
     private Integer getFromCache(String key) {
+        Integer val = collissionMap.get(key);
+        if(val != null)
+            return val;
         if(!cacheEnabled)
             return null;
         int intKey = getDictionaryIntKey(key.toCharArray());
-        Integer val = cache.get(intKey);//TODO performance issue?
+        val = cache.get(intKey);//TODO performance issue?
         return val;
     }
 
     private Integer getFromCache(char[] key) {
+        Integer val = collissionMap.get(new String(key));
+        if(val != null)
+            return val;
         if(!cacheEnabled)
             return null;
         int intKey = getDictionaryIntKey(key);
-        Integer val = cache.get(intKey);
+        val = cache.get(intKey);
         return val;
     }
 
     private char[] getFromCache(Integer key) {
+        String strVal = reverseCollissionMap.get(key);
+        if(strVal != null)
+            return strVal.toCharArray();
         if(!cacheEnabled)
             return null;
         char [] val = reverseCache.get(key);
         return val;
     }
 
-    private HashMap<String, Integer> collissionMap = new HashMap<>();
+
 
     public boolean containsKey(String key, boolean building) {
         boolean res = containsKey(key);
@@ -244,9 +260,11 @@ public class Dictionary{
             for(int j =0 ; j < val2.length ;j++){
                 if(val2[j] != keyArr[j]){
                     String val2Str = new String(val2);
-                    collissionMap.put(key,)
-                    System.err.println("error detected in Dictionary building vals:"+key+" , "+val+ " , " + val2Str+".. exiting");
-                    System.exit(0);
+                    collissionMap.put(key,-1);
+                    return false;
+                    //collissionMap.put(key,)
+                   // System.err.println("error detected in Dictionary building vals:"+key+" , "+val+ " , " + val2Str+".. exiting");
+                   // System.exit(0);
                 }
             }
         }

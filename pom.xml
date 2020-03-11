@@ -34,11 +34,13 @@
             <artifactId>mapdb</artifactId>
             <version>3.0.7</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.jgoodies/forms -->
         <dependency>
             <groupId>com.jgoodies</groupId>
-            <artifactId>jgoodies-forms</artifactId>
-            <version>1.8.0</version>
+            <artifactId>forms</artifactId>
+            <version>1.2.1</version>
         </dependency>
+
     </dependencies>
 
 
