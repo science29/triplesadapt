@@ -39,10 +39,10 @@ public class QueryWorkersPool {
 
     private final QueryCache queryCache;
 
-    private final Optimizer2 optimiser;
+    private  Optimizer2 optimiser;
 
 
-    public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool , Optimizer2 optimiser) {
+    public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool) {
         this.dictionary = dictionary;
         this.transporter = transporter;
         this.indexPool = indexesPool;
@@ -60,6 +60,10 @@ public class QueryWorkersPool {
         /*if(optimiser == null)
             this.optimiser = new Optimizer2(this , indexesPool ,dictionary , transporter , border);
         else*/
+
+    }
+
+    public void setOptimiser(Optimizer2 optimiser){
         this.optimiser = optimiser;
     }
 

@@ -94,8 +94,8 @@ public class MainUinAdapt {
 
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
-   // filePaths.add("/home/keg/Desktop/BTC/yago.n3");
-    filePaths.add("/Users/apple/Downloads/yago.n3");
+    filePaths.add("/home/keg/Desktop/BTC/yago.n3");
+    //filePaths.add("/Users/apple/Downloads/yago.n3");
 
     //o.openIndexes(); disable the disk map
     try {
@@ -255,8 +255,8 @@ try {
     private void iniTransporter() {
         System.out.println("starting transporter ..");
         ArrayList<String> hosts = new ArrayList<>();
-        hosts.add("192.168.1.195");
-        //hosts.add("172.20.32.8");
+        //hosts.add("192.168.1.195");
+        hosts.add("172.20.32.8");
         hosts.add("172.20.32.7");
         Transporter.RemoteQueryListener remoteQueryListener = new Transporter.RemoteQueryListener() {
             @Override
@@ -284,7 +284,9 @@ try {
         reverseDictionary = dictionary;
         iniTransporter();
         iniIndexPool();
+        queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool);
         optimizer = new Optimizer2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap);
+        queryWorkersPool.setOptimiser(optimizer);
     }
 
 
@@ -1040,6 +1042,7 @@ try {
 
 //        ArrayList<triple.Vertex> vv = graph.get(vertecesID.get(3));
         vertexCount = nextCode;
+        System.out.println("dictionary collison count is:"+dictionary.collistionCount);
         System.out.println("done ... errors: " + errCount + " solved:" + errSolved + ", duplicate:" + duplicateCount);
         System.out.println(" error quad processing :" + errQuadProcess + " sucess:" + quadProcess + " err start:" + startErrQuadProcess + " ratio of failure : " + (double) errQuadProcess / (double) quadProcess);
 
@@ -2136,7 +2139,6 @@ try {
         new Query(dictionary, testquery,indexPool , transporter , null);//warm up!!
         Scanner scanner = new Scanner(System.in);
         InterExecutersPool executersPool = new InterExecutersPool(7);
-        queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool , optimizer);
         while (true) {
             try {
                 System.out.println("Please enter Sparql QueryStuff.Query:");

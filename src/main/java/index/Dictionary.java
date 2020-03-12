@@ -35,6 +35,7 @@ public class Dictionary{
 
     private final String HOME_DIR = "/home/ahmed/";
     private boolean cacheEnabled = true;
+    public int collistionCount = 0;
 
 
     public void open() {
@@ -135,14 +136,25 @@ public class Dictionary{
         return false;
     }
 
+
+    HashMap<Integer , String > tempMap = new HashMap<>();
+
     private Integer getDictionaryIntKey(char [] chars ) {
         //char [] chars = key.toCharArray();
-        int r = chars.length*10000;
+
+        int r = 7;
         for(int i = 0 ; i < chars.length ; i++){
             int n = chars[i];
-            r = r+n*i;
+            r = r*31 +n;
         }
-        System.out.println(r);
+
+      /*  String g = new String(chars);
+        if(tempMap.containsKey(r) ){
+           // if(!collissionMap.containsKey(g) && !g.equals(tempMap.get(r)))
+               // collistionCount++;
+        }else{
+            tempMap.put(r , g);
+        }*/
         return r;
     }
 
@@ -169,6 +181,8 @@ public class Dictionary{
     public void put(String key, Integer value) {
        // normalMap.put(key,value);
         if(collissionMap.containsKey(key)){
+            if(collissionMap.get(key) != -1)
+                return;
             collissionMap.put(key,value);
             this.reverseCollissionMap.put(value,key);
             return;
@@ -248,6 +262,8 @@ public class Dictionary{
 
 
     public boolean containsKey(String key, boolean building) {
+        if(collissionMap.containsKey(key))
+            return true;
         boolean res = containsKey(key);
         if(!building){
             return res;
@@ -260,6 +276,7 @@ public class Dictionary{
             for(int j =0 ; j < val2.length ;j++){
                 if(val2[j] != keyArr[j]){
                     String val2Str = new String(val2);
+                    collistionCount++;
                     collissionMap.put(key,-1);
                     return false;
                     //collissionMap.put(key,)

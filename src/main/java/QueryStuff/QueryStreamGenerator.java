@@ -100,7 +100,7 @@ public class QueryStreamGenerator extends Thread {
     }
 
     private String generartNext() {
-        int nextLength = getNextLength();
+         int nextLength = getNextLength();
         Random qualityRandom = new Random();
         int ch = qualityRandom.nextInt(100);
         String query;
@@ -142,8 +142,11 @@ public class QueryStreamGenerator extends Thread {
     private String getNewRandomQuery(int nextLength){
         if(newHeaveyQueries == null || newHeaveyQueries.size() == 0)
             newHeaveyQueries = QueryGenrator.buildFastHeavyQueryZero(reverseDictionary , OPS , 1 , nextLength);
-        if(newHeaveyQueries.size() > 0)
-            return newHeaveyQueries.remove(0);
+        if(newHeaveyQueries.size() > 0) {
+            String q = newHeaveyQueries.get(0);
+            newHeaveyQueries.clear();
+            return q;
+        }
         System.err.print("error:");
         System.out.println("not possible to find query of depth:"+nextLength+" within the data set");
         return null;

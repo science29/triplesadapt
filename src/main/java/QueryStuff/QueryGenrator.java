@@ -306,12 +306,58 @@ public class QueryGenrator {
                     predicates = "?x"+jj +" "+ reverseDicitionary.get(triple.triples[1]) + " ?x"+(jj+1) +" . "+ predicates;
                 predicatesFull = reverseDicitionary.get(triple.triples[0])+" " + reverseDicitionary.get(triple.triples[1]) + " "+reverseDicitionary.get(triple.triples[2]) +"." + predicatesFull;
             }
-            String SPARQL = "select " + vars + " where {" + predicates + "}";
+            String SPARQL = "select " + vars + " where {" + getPredicateVars(resIn ,reverseDicitionary) + "}";
+
             String SPARQLfull = "select " + vars + " where {" + predicatesFull + "}";
             quereisStrList.add(SPARQL);
             quereisStrList.add(SPARQLfull);
         }
         return quereisStrList;
+    }
+
+    private static String getPredicateVars(ArrayList<Triple> triples, Dictionary reverseDicitionary) {
+        HashMap<Integer, Integer > varMap = new HashMap<>();
+        HashMap<Integer, Integer > countMap = new HashMap<>();
+        int code = 0;
+        for(int i = 0 ; i < triples.size() ; i++){
+            if(!varMap.containsKey(triples.get(i).triples[0])){
+                varMap.put(triples.get(i).triples[0] , code++);
+            }
+            if(!varMap.containsKey(triples.get(i).triples[2])){
+                varMap.put(triples.get(i).triples[2] , code++);
+            }
+
+            if(countMap.containsKey(triples.get(i).triples[0])){
+                countMap.put(triples.get(i).triples[0] , countMap.get(triples.get(i).triples[0])+1);
+            }else{
+                countMap.put(triples.get(i).triples[0] , 1);
+            }
+
+            if(countMap.containsKey(triples.get(i).triples[2])){
+                countMap.put(triples.get(i).triples[2] , countMap.get(triples.get(i).triples[2])+1);
+            }else{
+                countMap.put(triples.get(i).triples[2] , 1);
+            }
+        }
+
+
+        String predicates = "";
+        for(int i = 0 ; i < triples.size() ; i++){
+            Triple triple = triples.get(i);
+            String pred = "?x"+varMap.get(triple.triples[0])+" " + reverseDicitionary.get(triple.triples[1]) + " ";
+            if(countMap.get(triples.get(i).triples[2]) == 1){
+                pred = pred+reverseDicitionary.get(triple.triples[2]);
+            }else{
+                pred = pred+"?x"+varMap.get(triple.triples[2])  ;
+            }
+            if( i == 0)
+                predicates = pred;
+            else
+                predicates = pred +"."+predicates;
+        }
+
+        return predicates;
+
     }
 
     public static String translateDeepQuery(ArrayList<Triple> triples,Dictionary reverseDicitionary ){
