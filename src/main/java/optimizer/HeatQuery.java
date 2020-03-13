@@ -73,8 +73,6 @@ public class HeatQuery {
 
         }
 
-
-
         /*  Query lastConnectedQuery = null;
         for(int i = 0; i < connectedQueriesList.size() ; i++){
             Integer[] code = new Integer[3];

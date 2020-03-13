@@ -79,7 +79,6 @@ public class QueryWorkersPool {
     public synchronized void addQuery(Query query) {
         try {
             sharedWorkQueue.put(query);
-            optimiser.addQuery(query);
            /* int min_size = sharedWorkQueues.get(0).size();
             int min_index = 0;
             for (int i = 0; i < NO_OF_THREADS; i++) {
@@ -279,6 +278,7 @@ public class QueryWorkersPool {
                         //TODO print..
                         //TODO how to know if the query is really done??
                         pendingQuery.remove(query);
+                        optimiser.addQuery(query);
                         query.printAnswers(dictionary);
                     }
                 } catch (InterruptedException e) {
