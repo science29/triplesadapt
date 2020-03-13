@@ -556,7 +556,7 @@ public class Query {
                     index = 0;
                     code[0] = (int)0;code[1] = (int)0;code[2] = (int)0;
                     if(!res)
-                        return false;
+                        return parse2(s,dictionary);
                     break;
 
                 case '_':
@@ -582,8 +582,8 @@ public class Query {
                     }
             }
         }
-        System.err.println("error parsing query");
-        return false;
+        //System.err.println("error parsing query");
+        return parse2(s,dictionary);
         /*
         String[] patterns = s.split("\\.");
         for (int j = 0; j < patterns.length; j++) {
@@ -629,6 +629,34 @@ public class Query {
             temp += s.charAt(j);
         }
         return null;
+    }
+
+    private boolean parse2(String whereClause, index.Dictionary dictionary){
+        HashMap<String , Integer> varMap = new HashMap<>();
+        triplePatterns.clear();
+        triplePatterns2.clear();
+        int code = 1;
+        //split on .
+        String[] patternStrs = whereClause.split("\\.");
+        for(int i = 0 ; i < patternStrs.length ; i++){
+            String[] items = patternStrs[i].split(" ");
+            Integer [] codeArr = new Integer[3];
+            for(int j = 0 ; j < items.length ; j++){
+                if(items[j].startsWith("?")) {
+                    codeArr[j] = varMap.get(items[j]);
+                    if (codeArr[j] == null) {
+                        codeArr[j] = TriplePattern2.thisIsVariable(code++);
+                        varMap.put(items[j], codeArr[j]);
+                    }
+                }
+                codeArr[j] = dictionary.get(items[j]);
+            }
+            if(!addToTriplePatterns(codeArr,null)) {
+                System.err.println("error parsing query");
+                return false;
+            }
+        }
+        return true;
     }
 
 

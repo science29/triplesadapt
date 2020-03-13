@@ -236,11 +236,13 @@ public class QueryWorkersPool {
         @Override
         public void run() {
             // boolean pending = false;
-            System.out.println("worker qury Thread " + threadID + " is started ..");
+            System.out.println("worker query Thread " + threadID + " is started ..");
             while (!stop) {
                 try {
                    // Query query = sharedWorkQueues.get(threadID).take();
                     final Query query = sharedWorkQueue.take();
+                    if(query.knownEmpty)
+                        continue;
                     if (stop)
                         return;
                     if(session != null && session.isDone(query.ID))

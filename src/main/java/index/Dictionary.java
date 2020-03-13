@@ -179,6 +179,8 @@ public class Dictionary{
     }
 
     public void put(String key, Integer value) {
+        if(key.matches("\\[C@a299fc1") )
+            key = "[C@a299fc1";
        // normalMap.put(key,value);
         if(collissionMap.containsKey(key)){
             if(collissionMap.get(key) != -1)
