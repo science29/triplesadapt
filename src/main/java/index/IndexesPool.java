@@ -30,6 +30,8 @@ public class IndexesPool {
 
     public final static byte SPo_r = 13;
 
+    public final static byte PSo_aggregate = 14;
+
     private final Dictionary dictionary;
 
 
@@ -221,6 +223,20 @@ public class IndexesPool {
     }
 
 
+    public void addToIndex(byte indexType , byte aggegateIndex, Triple tripleObj, boolean aggregate) {
+        MyHashMap<Integer, ArrayList<Triple>> index = pool.get(indexType);
+        if(index == null){
+            index = new MyHashMap<>(indexType+"");
+            pool.put(indexType , index);
+        }
+        int key = getHashedIndex(indexType);
+        if (index.containsKey(tripleObj.triples[key])) {
+
+        }
+    }
+
+
+
     public void addToIndex(byte indexType, Triple tripleObj) {
         MyHashMap<Integer, ArrayList<Triple>> index = pool.get(indexType);
         if(index == null){
@@ -240,6 +256,8 @@ public class IndexesPool {
             index.put(codeObj, list);
         }
     }
+
+
 
     public void addToReplication(Triple triple) {
         addToIndex(SPo_r , triple);
@@ -505,6 +523,7 @@ public class IndexesPool {
         }
         return -1;
     }
+
 
 
 }

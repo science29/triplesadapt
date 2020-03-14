@@ -96,7 +96,7 @@ public class QueryStreamGenerator extends Thread {
 
     //TODO to be fixed
     private double getNextPeriod() {
-        return sleepPeroidRan.nextGaussian()*period+period;
+        return Math.abs(sleepPeroidRan.nextGaussian()*period+period);
     }
 
     private String generartNext() {

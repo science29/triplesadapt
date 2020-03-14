@@ -300,11 +300,13 @@ public class QueryGenrator {
             for (int jj = 0; jj < resIn.size(); jj++) {
                 //   int ch = new Random().nextInt(quereis.size()) + 1;
                 Triple triple = resIn.get(jj);
+                if(reverseDicitionary.get(triple.triples[1]) == null)
+                    reverseDicitionary.get(triple.triples[1]);
                 if(jj == resIn.size() - 1)
-                    predicates = "?x"+jj +" "+ reverseDicitionary.get(triple.triples[1]) + " " + reverseDicitionary.get(triple.triples[2]) +"." +predicates;
+                    predicates = "?x"+jj +" "+ new String(reverseDicitionary.get(triple.triples[1])) + " " + reverseDicitionary.get(triple.triples[2]) +"." +predicates;
                 else
-                    predicates = "?x"+jj +" "+ reverseDicitionary.get(triple.triples[1]) + " ?x"+(jj+1) +" . "+ predicates;
-                predicatesFull = reverseDicitionary.get(triple.triples[0])+" " + reverseDicitionary.get(triple.triples[1]) + " "+reverseDicitionary.get(triple.triples[2]) +"." + predicatesFull;
+                    predicates = "?x"+jj +" "+ new String(reverseDicitionary.get(triple.triples[1])) + " ?x"+(jj+1) +" . "+ predicates;
+                predicatesFull = new String(reverseDicitionary.get(triple.triples[0]))+" " + new String(reverseDicitionary.get(triple.triples[1])) + " "+new String(reverseDicitionary.get(triple.triples[2])) +"." + predicatesFull;
             }
             String SPARQL = "select " + vars + " where {" + getPredicateVars(resIn ,reverseDicitionary) + "}";
 
@@ -344,9 +346,9 @@ public class QueryGenrator {
         String predicates = "";
         for(int i = 0 ; i < triples.size() ; i++){
             Triple triple = triples.get(i);
-            String pred = "?x"+varMap.get(triple.triples[0])+" " + reverseDicitionary.get(triple.triples[1]) + " ";
+            String pred = "?x"+varMap.get(triple.triples[0])+" " + new String(reverseDicitionary.get(triple.triples[1])) + " ";
             if(countMap.get(triples.get(i).triples[2]) == 1){
-                pred = pred+reverseDicitionary.get(triple.triples[2]);
+                pred = pred+ new String(reverseDicitionary.get(triple.triples[2]));
             }else{
                 pred = pred+"?x"+varMap.get(triple.triples[2])  ;
             }

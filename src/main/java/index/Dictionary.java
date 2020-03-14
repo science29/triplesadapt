@@ -179,8 +179,7 @@ public class Dictionary{
     }
 
     public void put(String key, Integer value) {
-        if(key.matches("\\[C@a299fc1") )
-            key = "[C@a299fc1";
+
        // normalMap.put(key,value);
         if(collissionMap.containsKey(key)){
             if(collissionMap.get(key) != -1)
@@ -262,8 +261,41 @@ public class Dictionary{
     }
 
 
+    public boolean check(){
+        int s1 = cache.size() + collissionMap.size();
+        int s2 = reverseCache.size() + reverseCollissionMap.size();
+        if(s1 != s1){
+            System.err.println("not equal dicotnary values"+s1+","+s2);
+            return false;
+        }
+        int count = 0;
+        Iterator<Map.Entry<Integer, Integer>> iterator = cache.entrySet().iterator();
+        Iterator<Map.Entry<String, Integer>> iterator2 = collissionMap.entrySet().iterator();
+        while (iterator.hasNext()){
+            count++;
+            Map.Entry<Integer, Integer> item = iterator.next();
+            Integer val = item.getValue();
+            char[] reveseVal = get(val);
+            if(reveseVal == null){
+                System.err.println("error mathcing dicotnary values"+val);
+                return false;
+            }
+            Integer again = get(new String(reveseVal));
+            if(again == null){
+                System.err.println("error mathcing dicotnary values"+val+" again:,"+again);
+                return false;
+            }
+        }
+        System.out.println("dictonary is fine .. checked:"+count);
+        return true;
+    }
+
+
 
     public boolean containsKey(String key, boolean building) {
+        if(key.contains("a299fc1") )
+            key.contains(" ");
+
         if(collissionMap.containsKey(key))
             return true;
         boolean res = containsKey(key);
