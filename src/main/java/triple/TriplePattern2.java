@@ -81,6 +81,8 @@ public class TriplePattern2 {
 
         withinIndex = new WithinIndex(0);
         Pso = indexesPool.getIndex(IndexesPool.Pso);
+        if(Pso == null || Pso.size() == 0)
+            Pso = indexesPool.getIndex(IndexesPool.PSo);
         SPo = indexesPool.getIndex(IndexesPool.SPo);
         OPs = indexesPool.getIndex(IndexesPool.OPs);
         this.indexesPool = indexesPool;
