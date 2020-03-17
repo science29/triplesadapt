@@ -94,8 +94,8 @@ public class MainUinAdapt {
 
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
-    //filePaths.add("/home/keg/Desktop/BTC/yago.n3");
-    filePaths.add("/Users/apple/Downloads/yago.n3");
+    filePaths.add("/home/keg/Desktop/BTC/yago.n3");
+    //filePaths.add("/Users/apple/Downloads/yago.n3");
 
     //o.openIndexes(); disable the disk map
     try {

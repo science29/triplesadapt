@@ -481,6 +481,10 @@ public class Query {
         triplePatterns2 = new ArrayList<TriplePattern2>();
         String [] proj = spaql.split(" ");
         String s = spaql.split("\\{")[1];
+        System.out.println("parsing query:"+spaql);
+/*//Debug only
+        if(triplePatterns2.size() == 0)
+            return parse2(s,dictionary);*/
         // s = s.replace("}", "");
         boolean build = false, varStart = false;
         String last = "";
@@ -632,6 +636,7 @@ public class Query {
     }
 
     private boolean parse2(String whereClause, index.Dictionary dictionary){
+        System.out.println(whereClause);
         HashMap<String , Integer> varMap = new HashMap<>();
         triplePatterns.clear();
         triplePatterns2.clear();
@@ -644,12 +649,21 @@ public class Query {
             for(int j = 0 ; j < items.length ; j++){
                 if(items[j].startsWith("?")) {
                     codeArr[j] = varMap.get(items[j]);
+                    int fact = 1;
+                    if( j == 2)
+                        fact = -1;
                     if (codeArr[j] == null) {
                         codeArr[j] = TriplePattern2.thisIsVariable(code++);
-                        varMap.put(items[j], codeArr[j]);
+                        varMap.put(items[j], fact*codeArr[j]);
+                    }else{
+                        if(varMap.get(items[j]) * fact > 0){
+                            //cycle detected
+                            return false;
+                        }
+                        codeArr[j] = Math.abs(codeArr[j]);
                     }
-                }
-                codeArr[j] = dictionary.get(items[j]);
+                }else
+                    codeArr[j] = dictionary.get(items[j]);
             }
             if(!addToTriplePatterns(codeArr,null)) {
                 System.err.println("error parsing query");

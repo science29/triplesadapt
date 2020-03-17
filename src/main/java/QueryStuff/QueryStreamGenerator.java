@@ -102,14 +102,14 @@ public class QueryStreamGenerator extends Thread {
     private String generartNext() {
          int nextLength = getNextLength();
         Random qualityRandom = new Random();
-        int ch = qualityRandom.nextInt(100);
+        int ch = qualityRandom.nextInt(100)+100;
         String query;
         if(ch > quality)
-            query = getNewRandomQuery(nextLength);
+            return getNewRandomQuery(nextLength);
         else
             query = getSeenQuery(nextLength);
         if(query == null)
-            query = getNewRandomQuery(nextLength);
+            return getNewRandomQuery(nextLength);
         return query;
     }
 

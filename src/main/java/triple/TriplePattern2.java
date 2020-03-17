@@ -177,6 +177,10 @@ public class TriplePattern2 {
             rights = new ArrayList<TriplePattern2>();
             lefts = new ArrayList<TriplePattern2>();
         }
+        //debug only
+        if(rights.size() > 2)
+            rights.size();
+
         if (right) {
             rights.add(triplePattern);
             return true;

@@ -293,6 +293,8 @@ public class QueryGenrator {
         ArrayList<String> quereisStrList = new ArrayList();
         for(int i = 0 ; i < finalRes.size() ; i++) {
             ArrayList<Triple> resIn = finalRes.get(i);
+            if(resIn.size() == 0)
+                continue;
             String predicates ="";
             String predicatesFull ="";
             String vars = "?x1 ?x2 ?x3 ?x4 ";
@@ -318,6 +320,10 @@ public class QueryGenrator {
     }
 
     private static String getPredicateVars(ArrayList<Triple> triples, Dictionary reverseDicitionary) {
+       /* for(int i = 0 ; i < triples.size() ; i++){
+            for(int j = 0 ;)
+            if(triples.get(i).triples[0] == )
+        }*/
         HashMap<Integer, Integer > varMap = new HashMap<>();
         HashMap<Integer, Integer > countMap = new HashMap<>();
         int code = 0;
@@ -347,6 +353,10 @@ public class QueryGenrator {
         for(int i = 0 ; i < triples.size() ; i++){
             Triple triple = triples.get(i);
             String pred = "?x"+varMap.get(triple.triples[0])+" " + new String(reverseDicitionary.get(triple.triples[1])) + " ";
+            //debug only
+            if(countMap.get(triple.triples[0]) > 2){
+                varMap.get(triple.triples[0]);
+            }
             if(countMap.get(triples.get(i).triples[2]) == 1){
                 pred = pred+ new String(reverseDicitionary.get(triple.triples[2]));
             }else{
@@ -389,7 +399,9 @@ public class QueryGenrator {
             return res;
         for(int i =0 ; i<list.size() ; i++){
            res.add(list.get(i));
-            getDeepStep(list.get(i).triples[0] , OPS ,res,requiredDepth);
+           //avoid self cycle here
+            if(list.get(i).triples[0] != list.get(i).triples[2])
+                getDeepStep(list.get(i).triples[0] , OPS ,res,requiredDepth);
             if(res.size() >= requiredDepth)
                 return res;
             res.remove(list.get(i));
