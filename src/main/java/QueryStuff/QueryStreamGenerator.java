@@ -81,6 +81,8 @@ public class QueryStreamGenerator extends Thread {
                     continue;
                 int queryNo = queryWorkersPool.addSingleQuery(query);
                 transporter.sendQuery(query, queryNo);
+                //debug only
+                return;
             }catch (Exception e){
                 e.printStackTrace();
             }

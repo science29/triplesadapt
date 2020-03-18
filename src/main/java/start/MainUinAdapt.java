@@ -256,7 +256,7 @@ try {
     private void iniTransporter() {
         System.out.println("starting transporter ..");
         ArrayList<String> hosts = new ArrayList<>();
-        hosts.add("192.168.1.195");
+       // hosts.add("192.168.1.195");
         hosts.add("172.20.32.8");
         hosts.add("172.20.32.7");
         Transporter.RemoteQueryListener remoteQueryListener = new Transporter.RemoteQueryListener() {

@@ -38,12 +38,12 @@ public class OptimizerGUI {
 
 
     public static OptimizerGUI createForm(QueryStreamGenerator queryStreamGenerator , Optimizer2 optimizer) {
-        JFrame frame = new JFrame("OptimizerGUI");
+       // JFrame frame = new JFrame("OptimizerGUI");
         OptimizerGUI t = new OptimizerGUI(queryStreamGenerator , optimizer);
-        frame.setContentPane(t.panel1);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
+      //  frame.setContentPane(t.panel1);
+      //  frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+       // frame.pack();
+      //  frame.setVisible(true);
         return t;
     }
 
