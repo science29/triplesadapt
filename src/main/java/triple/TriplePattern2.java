@@ -552,7 +552,8 @@ public class TriplePattern2 {
                 evaluatedStarted = true;
                 if(optimiser != null)
                     optimiser.informGenralIndexUsage(index.poolRefType,1);
-                return;
+                //TODO to be checked the remove of the return here 18-3-2020
+              //  return;
             }
             if (!isVariable(triples[2])) {
                 index = OPs;
@@ -565,7 +566,8 @@ public class TriplePattern2 {
                 evaluatedStarted = true;
                 if(optimiser != null)
                     optimiser.informGenralIndexUsage(index.poolRefType,1);
-                return;
+                //TODO to be checked the remove of the return here 18-3-2020
+               // return;
             }
             ArrayList<Triple> list = predicateEvaluate(!deep);
             if (deep) {

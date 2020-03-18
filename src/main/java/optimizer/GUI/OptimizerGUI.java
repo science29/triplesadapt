@@ -37,13 +37,16 @@ public class OptimizerGUI {
     private JLabel POs;
 
 
-    public static OptimizerGUI createForm(QueryStreamGenerator queryStreamGenerator , Optimizer2 optimizer) {
-       // JFrame frame = new JFrame("OptimizerGUI");
+    public static OptimizerGUI createForm(QueryStreamGenerator queryStreamGenerator , Optimizer2 optimizer , boolean GUISupport) {
         OptimizerGUI t = new OptimizerGUI(queryStreamGenerator , optimizer);
-      //  frame.setContentPane(t.panel1);
-      //  frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-       // frame.pack();
-      //  frame.setVisible(true);
+        if(!GUISupport){
+            return t;
+        }
+        JFrame frame = new JFrame("OptimizerGUI");
+       frame.setContentPane(t.panel1);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
         return t;
     }
 

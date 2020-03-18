@@ -286,7 +286,7 @@ try {
         iniTransporter();
         iniIndexPool();
         queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool);
-        optimizer = new Optimizer2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap);
+        optimizer = new Optimizer2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap , transporter.isGUISupported());
         queryWorkersPool.setOptimiser(optimizer);
     }
 

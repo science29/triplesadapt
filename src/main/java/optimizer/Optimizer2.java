@@ -34,7 +34,7 @@ public class Optimizer2 extends  Optimiser{
 
     private OptimizerGUI GUI;
 
-    public Optimizer2(QueryWorkersPool queryWorkersPool, IndexesPool indexesPool, Dictionary dictionary, Transporter transporter, HashMap<Integer, Boolean> borderTripleMap){
+    public Optimizer2(QueryWorkersPool queryWorkersPool, IndexesPool indexesPool, Dictionary dictionary, Transporter transporter, HashMap<Integer, Boolean> borderTripleMap , boolean GUIsupport){
         super(dictionary,indexesPool);
         this.transporter = transporter;
         generalRule = new ArrayList<>();
@@ -56,7 +56,7 @@ public class Optimizer2 extends  Optimiser{
         evictor = new Evictor2(queryWorkersPool , indexesPool, dictionary , this);
         replication = new Replication(this.transporter, borderTripleMap, indexesPool , this);
         this.queryGenerator = QueryStreamGenerator.getDefault(transporter,queryWorkersPool,dictionary,indexesPool, heatQuery,this);
-        GUI = OptimizerGUI.createForm(queryGenerator , this);
+        GUI = OptimizerGUI.createForm(queryGenerator , this , GUIsupport);
     }
 
 

@@ -55,6 +55,10 @@ public class Transporter implements Receiver.RecieverReadyListener {
         senderPool.get(to).sendFullIndex(index , indexType);
     }
 
+    public boolean isGUISupported() {
+       return myIP.matches("172.20.32.8");
+    }
+
 
     public interface DataReceivedListener{
         void gotData(SendItem sendItem);
