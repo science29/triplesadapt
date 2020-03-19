@@ -70,6 +70,8 @@ public class TriplePattern2 {
 
     private Optimizer2 optimiser;
 
+    private boolean seen = false;
+
     public TriplePattern2(TriplePattern triplePattern, IndexesPool indexesPool, Transporter transporter, Query query , Optimizer2 optimiser) {
         triples = new int[3];
         triples[0] = triplePattern.triples[0];
@@ -804,6 +806,7 @@ public class TriplePattern2 {
 
 
     private ResultTriple joinLeftRigth(Triple t, TriplePattern2 callPattern) {
+        seen = true;
         //result.add(t);
         ResultTriple myResultTriple = null;
         ResultTriple deepLeftTripleResult = null, deepRightTripleResult = null;
@@ -811,6 +814,8 @@ public class TriplePattern2 {
         ResultTriple headLeft = null, headRight = null;
         boolean addedToBorderFlag = false;
         for (int i = 0; lefts != null && i < lefts.size(); i++) {
+            if(lefts.get(i).seen)
+                continue;
             if(lefts.get(i).cachedPattern != null)
                 continue;
             TriplePattern2 pattern = lefts.get(i);
@@ -848,6 +853,8 @@ public class TriplePattern2 {
                 myResultTriple.setRequireBorder(true);
         }
         for (int i = 0; rights != null && i < rights.size(); i++) {
+            if(rights.get(i).seen)
+                continue;
             if(rights.get(i).cachedPattern != null)//xx
                 continue;
             TriplePattern2 pattern = rights.get(i);
