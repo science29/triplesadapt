@@ -842,7 +842,7 @@ public class TriplePattern2 {
             if (i == 0) {
                 myResultTriple.left = deepLeftTripleResult;
                 headLeft = deepLeftTripleResult;
-            } else {
+            } else if(myResultTriple.left != null){ //this condition causes problems
                 myResultTriple.left.extraDown = deepLeftTripleResult;
                 myResultTriple.left = myResultTriple.left.extraDown;
             }

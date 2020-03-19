@@ -35,6 +35,7 @@ public class OptimizerGUI {
     private JLabel SOp;
     private JLabel OSp;
     private JLabel POs;
+    private JButton genQBatchButton;
 
 
     public static OptimizerGUI createForm(QueryStreamGenerator queryStreamGenerator , Optimizer2 optimizer , boolean GUISupport) {
@@ -66,16 +67,35 @@ public class OptimizerGUI {
             }
         });
 
+
+
+        genQBatchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(!queryStreamGenerator.working) {
+                    queryStreamGenerator.setModeBatch();
+                    queryStreamGenerator.startThread();
+                    genQBatchButton.setText("generating queries");
+                }
+                else {
+                    queryStreamGenerator.stopGenearaingThread();
+                    startGeneratingQueriesStreamButton.setText("gen. q. batch");
+                }
+            }
+        });
+
+
         startGeneratingQueriesStreamButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(!queryStreamGenerator.working) {
+                    queryStreamGenerator.setModeStream();
                     queryStreamGenerator.startThread();
                     startGeneratingQueriesStreamButton.setText("stop generating queries");
                 }
                 else {
                     queryStreamGenerator.stopGenearaingThread();
-                    startGeneratingQueriesStreamButton.setText("start generating queries");
+                    startGeneratingQueriesStreamButton.setText("generate q. stream");
                 }
             }
         });

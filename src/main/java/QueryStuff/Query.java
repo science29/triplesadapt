@@ -481,7 +481,7 @@ public class Query {
         triplePatterns2 = new ArrayList<TriplePattern2>();
         String [] proj = spaql.split(" ");
         String s = spaql.split("\\{")[1];
-        System.out.println("parsing query:"+spaql);
+      //  System.out.println("parsing query:"+spaql);
 /*//Debug only
         if(triplePatterns2.size() == 0)
             return parse2(s,dictionary);*/

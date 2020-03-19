@@ -17,6 +17,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class QueryStreamGenerator extends Thread {
 
 
+    private static final int STREAM_MODE = 0;
+    private static final int BATCH_MODE = 1;
+    private static final int DEFAULT_BATCH_SIZE = 1000 ;
     private final QueryWorkersPool queryWorkersPool;
     private final IndexesPool indexPool;
     private int averageLength;
@@ -34,6 +37,8 @@ public class QueryStreamGenerator extends Thread {
     private boolean stop = false;
     public boolean working;
     private ArrayBlockingQueue<Object> queue ;
+    private  int mode = STREAM_MODE;
+    private int batchSize = DEFAULT_BATCH_SIZE;
 
 
     public QueryStreamGenerator(int averageLength, int maxLength, int meanFrequency, int quality, int period, Transporter transporter,
@@ -59,6 +64,15 @@ public class QueryStreamGenerator extends Thread {
     }
 
 
+    public void setModeStream(){
+        this.mode = STREAM_MODE;
+    }
+
+    public void setModeBatch(){
+        this.mode = BATCH_MODE;
+    }
+
+
     public void stopGenearaingThread(){
         stop = true;
     }
@@ -76,11 +90,20 @@ public class QueryStreamGenerator extends Thread {
             }
             working = true;
             try {
-                String query = generartNext();
-                if(query == null)
+                if(mode == STREAM_MODE) {
+                    String query = generartNext();
+                    if (query == null)
+                        continue;
+                    int queryNo = queryWorkersPool.addSingleQuery(query);
+                    transporter.sendQuery(query, queryNo);
+                }
+                if(mode == BATCH_MODE){
+                    ArrayList<String> queries = generateNextBatch();
+                    if(queries == null)
+                        continue;
+                    queryWorkersPool.addManyQueries(queries);
                     continue;
-                int queryNo = queryWorkersPool.addSingleQuery(query);
-                transporter.sendQuery(query, queryNo);
+                }
                 //debug only
                 return;
             }catch (Exception e){
@@ -92,6 +115,18 @@ public class QueryStreamGenerator extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    private ArrayList<String> generateNextBatch() {
+        ArrayList<String> list = new ArrayList<>();
+        for(int i =0 ; i < batchSize ; i++){
+            String q = generartNext();
+            if(q != null)
+                list.add(q);
+            else
+                i--;
+        }
+        return list;
     }
 
     Random sleepPeroidRan = new Random();
@@ -149,8 +184,10 @@ public class QueryStreamGenerator extends Thread {
             newHeaveyQueries.clear();
             return q;
         }
-        System.err.print("error:");
-        System.out.println("not possible to find query of depth:"+nextLength+" within the data set");
+        if(mode != BATCH_MODE) {
+            System.err.print("error:");
+            System.out.println("not possible to find query of depth:" + nextLength + " within the data set");
+        }
         return null;
     }
 
