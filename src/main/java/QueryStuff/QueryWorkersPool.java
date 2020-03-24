@@ -115,12 +115,12 @@ public class QueryWorkersPool {
 
     ArrayList<Query> pointless = new ArrayList<>();
 
-    public int addSingleQuery(String query){
+    public Query addSingleQuery(String query){
         session = null;
         singleStartTime = System.nanoTime();
         Query spQuery = new Query(dictionary, query, indexPool, transporter , optimiser);
         addQuery(spQuery);
-        return spQuery.ID;
+        return spQuery;
     }
 
 /*    public int addManyQueries(String query , boolean last ) {
@@ -169,6 +169,7 @@ public class QueryWorkersPool {
         }
         else{
             System.out.println("single Query done time :"+(System.nanoTime() - singleStartTime)/1000000.0 + " ms ");
+
         }
     }
 
@@ -188,8 +189,9 @@ public class QueryWorkersPool {
         if(query.getBatch() != null){
             if(query.getBatch().queryDone(query.ID))
                 batchDone(query.getBatch());
-        }else if(session == null || session.queryDone(query.ID))
+        }else if(session == null || session.queryDone(query.ID)) {
             sessionDone();
+        }
     }
 
 

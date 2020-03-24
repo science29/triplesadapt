@@ -542,10 +542,11 @@ public class TriplePattern2 {
 
 
         if (callerPattern == null) {
+            ArrayList<Triple> list;
             if (!isVariable(triples[0])) {
                 index = SPo;
                 withinIndex.index = 0;
-                List<Triple> list = index.get(triples[0], triples[1], 1, withinIndex);
+                list = index.get(triples[0], triples[1], 1, withinIndex);
                 if (list != null && list.size() > 0) {
                     //     result = list;
                     headResultTriple = new ResultTriple(list);
@@ -555,12 +556,12 @@ public class TriplePattern2 {
                 if(optimiser != null)
                     optimiser.informGenralIndexUsage(index.poolRefType,1);
                 //TODO to be checked the remove of the return here 18-3-2020
-              //  return;
+               // return;
             }
             if (!isVariable(triples[2])) {
                 index = OPs;
                 withinIndex.index = 0;
-                List<Triple> list = index.get(triples[2], triples[1], 1, withinIndex);
+                list = index.get(triples[2], triples[1], 1, withinIndex);
                 if (list != null && list.size() > 0) {
                     headResultTriple = new ResultTriple(list);
                     resultTriple = headResultTriple;
@@ -569,9 +570,10 @@ public class TriplePattern2 {
                 if(optimiser != null)
                     optimiser.informGenralIndexUsage(index.poolRefType,1);
                 //TODO to be checked the remove of the return here 18-3-2020
-               // return;
+                //return;
             }
-            ArrayList<Triple> list = predicateEvaluate(!deep);
+            else
+                list = predicateEvaluate(!deep);
             if (deep) {
                 if (executerPool == null)
                     startDeepEvaluation(list);
@@ -814,8 +816,8 @@ public class TriplePattern2 {
         ResultTriple headLeft = null, headRight = null;
         boolean addedToBorderFlag = false;
         for (int i = 0; lefts != null && i < lefts.size(); i++) {
-            if(lefts.get(i).seen)
-                continue;
+           // if(lefts.get(i).seen)
+          //      continue;
             if(lefts.get(i).cachedPattern != null)
                 continue;
             TriplePattern2 pattern = lefts.get(i);
@@ -842,7 +844,7 @@ public class TriplePattern2 {
             if (i == 0) {
                 myResultTriple.left = deepLeftTripleResult;
                 headLeft = deepLeftTripleResult;
-            } else if(myResultTriple.left != null){ //this condition causes problems
+            } else /*if(myResultTriple.left != null)*/{ //this condition causes problems
                 myResultTriple.left.extraDown = deepLeftTripleResult;
                 myResultTriple.left = myResultTriple.left.extraDown;
             }
@@ -853,8 +855,8 @@ public class TriplePattern2 {
                 myResultTriple.setRequireBorder(true);
         }
         for (int i = 0; rights != null && i < rights.size(); i++) {
-            if(rights.get(i).seen)
-                continue;
+        ///    if(rights.get(i).seen)
+         ///       continue;
             if(rights.get(i).cachedPattern != null)//xx
                 continue;
             TriplePattern2 pattern = rights.get(i);

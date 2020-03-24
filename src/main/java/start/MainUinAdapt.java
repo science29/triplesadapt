@@ -869,7 +869,7 @@ try {
                 return;
             }
             try {
-                while (it.hasNext() && count < 1000000) {
+                while (it.hasNext() /*&& count < 1000000*/) {
                     if (count % 100000 == 0 || count == 2082) {
                         File stopFile = new File("/home/ahmed/stop");
                         if(stopFile.exists()){
@@ -1029,6 +1029,10 @@ try {
         SPO = indexPool.getIndex(IndexesPool.SPo);
         POS = indexPool.getIndex(IndexesPool.POs);
         tripleGraph = indexPool.getIndex(IndexesPool.SPo);
+
+        PredicatesAsSubject.clear();
+        tempop_S.clear();
+//        op_S.close();
 
        /* System.out.println("spo");
         OPS.sort(1,0);
@@ -2173,8 +2177,14 @@ try {
                     continue;
                 }
                 //StringBuilder extTime = new StringBuilder();
-                int queryNo = queryWorkersPool.addSingleQuery(query);  ;
-                transporter.sendQuery(query , queryNo);
+                Query queryObj = queryWorkersPool.addSingleQuery(query);  ;
+                queryObj.setDoneListener(new Query.QueryDoneListener() {
+                    @Override
+                    public void done() {
+                   //     queryObj.printAnswers(reverseDictionary);
+                    }
+                });
+                transporter.sendQuery(query , queryObj.ID);
 
 
                /*long startTime = System.nanoTime();

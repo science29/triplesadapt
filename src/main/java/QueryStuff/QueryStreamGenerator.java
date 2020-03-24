@@ -60,7 +60,8 @@ public class QueryStreamGenerator extends Thread {
     public static QueryStreamGenerator getDefault(Transporter transporter, QueryWorkersPool queryWorkersPool, Dictionary reverseDictionary
             , IndexesPool indexesPool, HeatQuery heatMap , Optimizer2 optimizer2) {
 
-        return new QueryStreamGenerator(2,4 , 10 , 50,10,transporter,queryWorkersPool,reverseDictionary,indexesPool,heatMap,optimizer2);
+       // return new QueryStreamGenerator(2,4 , 10 , 50,10,transporter,queryWorkersPool,reverseDictionary,indexesPool,heatMap,optimizer2);
+        return new QueryStreamGenerator(2,2 , 10 , 50,10,transporter,queryWorkersPool,reverseDictionary,indexesPool,heatMap,optimizer2);
     }
 
 
@@ -94,7 +95,8 @@ public class QueryStreamGenerator extends Thread {
                     String query = generartNext();
                     if (query == null)
                         continue;
-                    int queryNo = queryWorkersPool.addSingleQuery(query);
+                    System.out.println(query);
+                    int queryNo = queryWorkersPool.addSingleQuery(query).ID;
                     transporter.sendQuery(query, queryNo);
                 }
                 if(mode == BATCH_MODE){
@@ -102,7 +104,7 @@ public class QueryStreamGenerator extends Thread {
                     if(queries == null)
                         continue;
                     queryWorkersPool.addManyQueries(queries);
-                    continue;
+                    return;
                 }
                 //debug only
                 return;
