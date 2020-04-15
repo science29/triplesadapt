@@ -30,7 +30,11 @@ public class IndexesPool {
 
     public final static byte SPo_r = 13;
 
+
     public final static byte PSo_aggregate = 14;
+
+    public final static byte SP_o = 15;
+    public final static byte OP_s = 16;
 
     private final Dictionary dictionary;
 

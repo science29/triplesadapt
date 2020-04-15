@@ -6,8 +6,15 @@ import optimizer.SourceSelection;
 public class GeneralRule extends Rule{
 
     double generalBenefit = 0 ;
+
     double relativeUsage;
+
+
+
     double generalAbsoulteBenefit;
+
+
+    boolean baseLineIndex = false;
 
     public double getGeneralBenefit(){
         return generalBenefit;
@@ -31,6 +38,18 @@ public class GeneralRule extends Rule{
         generalBenefit = relativeUsage * generalAbsoulteBenefit;
     }
 
+
+    public boolean isBaseLineIndex() {
+        return baseLineIndex;
+    }
+    public void setBaseLineIndex(boolean baseLineIndex) {
+        this.baseLineIndex = baseLineIndex;
+    }
+
+
+    public void setRelativeUsage(double relativeUsage) {
+        this.relativeUsage = relativeUsage;
+    }
 
 
 }
