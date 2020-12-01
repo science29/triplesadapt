@@ -554,7 +554,7 @@ public class TriplePattern2 {
                 }
                 evaluatedStarted = true;
                 if(optimiser != null)
-                    optimiser.informGenralIndexUsage(index.poolRefType,1);
+                    optimiser.informGenralIndexUsage(index.poolRefType,1 , this , withinIndex.potentailFilterCost);
                 //TODO to be checked the remove of the return here 18-3-2020
                // return;
             }
@@ -568,7 +568,7 @@ public class TriplePattern2 {
                 }
                 evaluatedStarted = true;
                 if(optimiser != null)
-                    optimiser.informGenralIndexUsage(index.poolRefType,1);
+                    optimiser.informGenralIndexUsage(index.poolRefType,1 , this, withinIndex.potentailFilterCost);
                 //TODO to be checked the remove of the return here 18-3-2020
                 //return;
             }
@@ -612,7 +612,7 @@ public class TriplePattern2 {
                 continue;
             List<Triple> list = index.get(hisVal, p, 1, withinIndex);
             if(optimiser != null)
-                optimiser.informGenralIndexUsage(index.poolRefType,1);
+                optimiser.informGenralIndexUsage(index.poolRefType,1 , this, withinIndex.potentailFilterCost);
             if (list != null && list.size() > 0) {
                 if (headResultTriple == null) {
                     headResultTriple = new ResultTriple(list.get(withinIndex.index));
@@ -911,7 +911,7 @@ public class TriplePattern2 {
     /**
      * to connet the resultTriples down at each triple pattern as an extra fleixbliyt
      *
-     * @param myResultTriple
+     * @param
      */
    /* private void connectExtraDown(ResultTriple myResultTriple) {
         if(extraHeadResultTriple == null) {
@@ -1267,6 +1267,7 @@ public class TriplePattern2 {
     public class WithinIndex {
         public int index;
         public int cost;
+        public int potentailFilterCost;
         public WithinIndex(int index) {
             this.index = index;
         }

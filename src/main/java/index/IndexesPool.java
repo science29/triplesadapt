@@ -36,6 +36,8 @@ public class IndexesPool {
     public final static byte SP_o = 15;
     public final static byte OP_s = 16;
 
+    public final static byte PPx = 17;
+
     private final Dictionary dictionary;
 
 
@@ -100,7 +102,7 @@ public class IndexesPool {
         return selectivity.get(index);
     }
 
-    public ArrayList<Triple> get(byte optimalIndexType , Integer first , Integer second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser ){
+    public ArrayList<Triple> get(byte optimalIndexType , Integer first , Integer second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser , TriplePattern2 triplePattern ){
         //first try the optimal
         MyHashMap<Integer,ArrayList<Triple>> optimal = pool.get(optimalIndexType);
         ArrayList<Triple> list;
@@ -111,7 +113,7 @@ public class IndexesPool {
             list = optimal.get(first , second ,sortedIndex ,withinIndex);
         if(list != null) {
             if(optimiser != null)
-                optimiser.informOptimalIndexUsage(optimal , first , second );
+                optimiser.informOptimalIndexUsage(optimal , first , second  ,triplePattern , withinIndex.potentailFilterCost);
             return list;
         }
 
@@ -315,6 +317,25 @@ public class IndexesPool {
         }
         rule.setMoreToBuild(false);
         return it;
+    }
+
+
+    public static String getIndexName(byte indexType){
+        String indexName = null ;
+        switch (indexType){
+            case IndexesPool.SPo: indexName ="SPo"; break;
+            case IndexesPool.SOp: indexName ="SOp"; break;
+            case IndexesPool.POs: indexName ="POs"; break;
+            case IndexesPool.PSo: indexName ="PSo"; break;
+            case IndexesPool.OPs: indexName ="OPs"; break;
+            case IndexesPool.OSp: indexName ="OSp"; break;
+
+            case IndexesPool.SP_o: indexName ="SP_o"; break;
+            case IndexesPool.OP_s: indexName ="OP_s"; break;
+            case IndexesPool.PPx:indexName ="PPx"; break;
+
+        }
+        return indexName;
     }
 
 

@@ -3,12 +3,11 @@ package optimizer;
 import QueryStuff.Query;
 import index.IndexesPool;
 import index.MyHashMap;
-import org.mapdb.Atomic;
+import optimizer.Rules.IndexUsage;
 import triple.Triple;
 import triple.TriplePattern;
 import triple.TriplePattern2;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class HeatQuery {
@@ -19,6 +18,8 @@ public class HeatQuery {
     private HashMap<Integer, QueryElement> predicateHeatElmentMap = new HashMap<>();
 
     private ArrayList<QueryElement> predicateList = new ArrayList<>();
+
+    private HashMap<TriplePattern2, HashMap<Byte,IndexUsage>> indexUsageHashMap = new HashMap<>();
 
 
     private HashMap<Integer, HashMap<Integer, HeatElement2>> heatGraph = new HashMap<>(); // first key is the (from predicate) , the value is map that have (to predicate) as key.
@@ -65,10 +66,70 @@ public class HeatQuery {
     }
 
 
+
+
+    public IndexUsage getIndexUsage(TriplePattern2 triplePattern , byte indexType){
+        HashMap<Byte, IndexUsage> indexMap = indexUsageHashMap.get(triplePattern);
+        return indexMap.get(indexType);
+    }
+
+    public HashMap<Byte, ArrayList<TriplePattern2>> serialize(byte indexType){
+        Iterator it =  indexUsageHashMap.entrySet().iterator();
+        ArrayList<TriplePattern2> patterns = new ArrayList<>();
+        HashMap<Byte , ArrayList<TriplePattern2>> indexCluster = new HashMap<>();
+        //ArrayList<IndexUsage> indexUsages = new ArrayList<>();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            HashMap<Byte,IndexUsage> innerMap = (HashMap<Byte,IndexUsage>)pair.getValue();
+            Iterator innerIt = innerMap.entrySet().iterator();
+            while (innerIt.hasNext()) {
+                Map.Entry innerPair = (Map.Entry)innerIt.next();
+                if((Byte)innerPair.getKey() != indexType)
+                    continue;
+                //patterns.add((TriplePattern2) pair.getKey());
+                IndexUsage indexUsage = (IndexUsage) innerPair.getValue();
+                if (!indexCluster.containsKey(indexUsage.indexType))
+                    indexCluster.put(indexUsage.indexType, new ArrayList<>());
+                indexCluster.get(indexUsage.indexType).add((TriplePattern2) pair.getKey());
+            }
+        }
+
+        it =  indexCluster.entrySet().iterator();
+        while (it.hasNext()){
+            Map.Entry pair = (Map.Entry)it.next();
+            //Byte indexType = (Byte) pair.getKey();
+            ArrayList<TriplePattern2> pattern2s = (ArrayList<TriplePattern2>) pair.getKey();
+            HashMap<Byte, IndexUsage> map = (HashMap<Byte, IndexUsage>) pair.getValue();
+            Collections.sort(pattern2s, new Comparator<TriplePattern2>() {
+
+                public int compare(TriplePattern2 lhs, TriplePattern2 rhs) {
+                    // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                    if ( indexUsageHashMap.get(lhs).get(indexType).getEffectiveBenefit() < indexUsageHashMap.get(rhs).get(indexType).getEffectiveBenefit() )
+                        return 1;
+                    if ( indexUsageHashMap.get(lhs).get(indexType).getEffectiveBenefit() > indexUsageHashMap.get(rhs).get(indexType).getEffectiveBenefit() )
+                        return -1;
+                    return 0;
+                }
+            });
+        }
+
+        return indexCluster;
+    }
+
+    public void updatePatternUsage(TriplePattern2 triplePattern , IndexUsage indexUsage  , byte indexType){
+        HashMap<Byte, IndexUsage> mapp = indexUsageHashMap.get(triplePattern);
+        if(mapp != null){
+            mapp.put(indexType,indexUsage);
+        }
+        //if(!indexUsageHashMap.containsKey(triplePattern))
+          //  indexUsageHashMap.put(triplePattern , indexUsage);
+        addQuery(triplePattern , indexUsage);
+    }
+
     public void addQuery(Query query) {
         for (int i = 0; i < query.triplePatterns2.size(); i++) {
             TriplePattern2 pattern = query.triplePatterns2.get(i);
-            addQuery(pattern);
+            addQuery(pattern , null);
             addRightLeft(null, pattern);
 
         }
@@ -102,18 +163,22 @@ public class HeatQuery {
         }
     }*/
 
-    private void addQuery(TriplePattern2 triplePattern) {
+    private void addQuery(TriplePattern2 triplePattern , IndexUsage indexUsage) {
         QueryElement queryElement = predicateHeatElmentMap.get(triplePattern.getTriples()[1]);
         if (queryElement == null) {
             queryElement = new QueryElement(triplePattern);
             predicateHeatElmentMap.put(triplePattern.getTriples()[1], queryElement);
             predicateList.add(queryElement);
         }
+        if(indexUsage != null)
+            queryElement.combineIndexUsage(indexUsage);
         for (int i = 0; i < triplePattern.getLefts().size(); i++) {
             HeatElement leftHeat = queryElement.left.get(triplePattern.getLefts().get(i).getTriples()[1]);
             if (leftHeat == null)
                 leftHeat = queryElement.newHeat(triplePattern.getLefts().get(i).getTriples()[1], true);
             leftHeat.totalFreq++;
+            if(triplePattern.getLefts().get(i).pendingBorder)
+                leftHeat.totalBorderUsage++;
             Integer freqForThatConst = leftHeat.constantsFreqMap.get(triplePattern.getLefts().get(i).getTriples()[0]);
             if (freqForThatConst == null) {
                 leftHeat.constantsFreqMap.put(triplePattern.getLefts().get(i).getTriples()[0], 1);
@@ -129,6 +194,8 @@ public class HeatQuery {
             if (rightHeat == null)
                 rightHeat = queryElement.newHeat(triplePattern.getRights().get(i).getTriples()[1], false);
             rightHeat.totalFreq++;
+            if(triplePattern.getLefts().get(i).pendingBorder)
+                rightHeat.totalBorderUsage++;
             Integer freqForThatConst = rightHeat.constantsFreqMap.get(triplePattern.getRights().get(i).getTriples()[2]);
             if (freqForThatConst == null) {
                 rightHeat.constantsFreqMap.put(triplePattern.getRights().get(i).getTriples()[2], 1);
@@ -277,6 +344,17 @@ public class HeatQuery {
         public final TriplePattern2 triplePattern;
         public HashMap<Integer, HeatElement> right;
         public HashMap<Integer, HeatElement> left;
+        public HashMap<Byte,IndexUsage> indexUsageMap  = new HashMap<>();
+
+        private void combineIndexUsage(IndexUsage indexUsage){
+            if(!indexUsageMap.containsKey(indexUsage.indexType)){
+                indexUsageMap.put(indexUsage.indexType, indexUsage);
+                return;
+            }
+            IndexUsage current = indexUsageMap.get(indexUsage);
+            current.performancesBenefit += indexUsage.performancesBenefit;
+            current.usage += indexUsage.usage;
+        }
 
         public QueryElement(TriplePattern2 triplePattern2) {
             this.triplePattern = triplePattern2;
@@ -296,10 +374,12 @@ public class HeatQuery {
 
     public class HeatElement {
         int totalFreq;
+        int totalBorderUsage;
         HashMap<Integer, Integer> constantsFreqMap;
 
         public HeatElement() {
             totalFreq = 0;
+            totalBorderUsage = 0;
             constantsFreqMap = new HashMap<>();
         }
     }

@@ -4,12 +4,12 @@ import QueryStuff.*;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.*;
+import info.uniadapt.api.DeepOptim;
 import optimizer.GUI.StarterGUI;
-import optimizer.Optimiser;
 import optimizer.Optimizer2;
+import optimizer.Simu;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
-import org.mapdb.Atomic;
 import triple.Triple;
 import triple.Vertex;
 
@@ -90,17 +90,18 @@ public class MainUinAdapt {
             o.startGUI();
         }catch (Exception e){
             System.err.println("no GUI started..");
+            e.printStackTrace();
         }
 
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
-    filePaths.add("/home/keg/Desktop/BTC/yago.n3");
-    //filePaths.add("/Users/apple/Downloads/yago.n3");
+    //filePaths.add("/home/keg/Desktop/BTC/yago.n3");
+    filePaths.add("/Users/apple/Downloads/yago.n3");
 
     //o.openIndexes(); disable the disk map
     try {
 
-        o.porcess(filePaths, quad);
+   //     o.porcess(filePaths, quad);
 
     }catch (Exception e){
         e.printStackTrace();
@@ -166,6 +167,11 @@ try {
 
 
     private void startGUI(){
+        Simu simu = new Simu(10 , 723);
+        simu.buildGeneralRules(160*1000*1000,0.1,0.01,2,0.9, 0.9,
+                0.3 , 0.1, 80);
+        System.exit(0);
+
         starterGUI = new StarterGUI(new StarterGUI.ButtonsListener() {
             @Override
             public void makeIntialMetisFile() {
@@ -181,7 +187,12 @@ try {
                readMetisOutFile();
             }
         });
+
+
     }
+
+
+
 
     private void readMetisOutFile() {
         File file = new File("metisFile_new.part." + PARTITION_COUNT);
@@ -256,7 +267,7 @@ try {
     private void iniTransporter() {
         System.out.println("starting transporter ..");
         ArrayList<String> hosts = new ArrayList<>();
-       // hosts.add("192.168.1.195");
+        hosts.add("192.168.1.195");
         hosts.add("172.20.32.8");
         hosts.add("172.20.32.7");
         Transporter.RemoteQueryListener remoteQueryListener = new Transporter.RemoteQueryListener() {
@@ -286,8 +297,10 @@ try {
         iniTransporter();
         iniIndexPool();
         queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool);
-        optimizer = new Optimizer2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap , transporter.isGUISupported());
+        DeepOptim deepOptim = new DeepOptim(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap );
+        optimizer = new Optimizer2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap , transporter.isGUISupported(), deepOptim);
         queryWorkersPool.setOptimiser(optimizer);
+        deepOptim.setOptimizerRelax(optimizer);
     }
 
 
@@ -869,7 +882,7 @@ try {
                 return;
             }
             try {
-                while (it.hasNext() /*&& count < 1000000*/) {
+                while (it.hasNext() && count < 4000000) {
                     if (count % 100000 == 0 || count == 2082) {
                         File stopFile = new File("/home/ahmed/stop");
                         if(stopFile.exists()){
@@ -1056,6 +1069,9 @@ try {
         writeTempIndex(tempop_S,op_S);
         tempop_S = new HashMap<String, ArrayList<Triple>>();
         indexCollection = new IndexCollection();
+
+        calculateNormalDist();
+
         //TODO remove ..
         /*if(transporter.getHost().matches("172.20.32.7")) {
             genereteTestBorder2("<Marilyn_Quayle>", "<Barbara_Bush>");
@@ -1074,6 +1090,42 @@ try {
   //      indexCollection.addIndex(OPS, new IndexType(1,1,0));
   //      indexCollection.addIndex(POS, new IndexType(1,1,1));
   //      indexCollection.addIndexStringKey(op_S, new IndexType(1,0,1));
+    }
+
+
+    private void calculateNormalDist(){
+        Iterator<Map.Entry<Integer, ArrayList<Triple>>> iterator = SPO.entrySet().iterator();
+        int [] arr = new int[SPO.size()];
+        int i = 0;
+        double mean = 0;
+        HashMap<Integer , Integer> edgesDistMap = new HashMap<>();
+        while (iterator.hasNext()){
+            ArrayList<Triple> edgesList = iterator.next().getValue();
+            arr[i] = edgesList.size();
+            mean += arr[i];
+            if(edgesDistMap.containsKey(arr[i]))
+                edgesDistMap.put(arr[i] , edgesDistMap.get(arr[i])+1);
+            else
+                edgesDistMap.put(arr[i] , 1);
+            i++;
+        }
+        mean = mean/i;
+
+        double sum = 0;
+        for(int j =0 ; j < arr.length ; j++){
+            sum += Math.pow((arr[j] - mean) , 2);
+        }
+
+        double devaiton = Math.sqrt(sum / arr.length);
+
+        System.out.println("the mean is:"+mean+", deviation is :"+devaiton);
+
+        Iterator<Map.Entry<Integer, Integer>> iterator2 = edgesDistMap.entrySet().iterator();
+        while (iterator2.hasNext()){
+            Map.Entry<Integer, Integer> pair = iterator2.next();
+            System.out.println(pair.getKey() +","+ pair.getValue());
+        }
+
     }
 
 

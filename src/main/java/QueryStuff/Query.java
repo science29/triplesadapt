@@ -6,6 +6,7 @@ import index.Dictionary;
 import index.IndexesPool;
 import optimizer.Optimiser;
 import optimizer.Optimizer2;
+import optimizer.Rules.IndexUsage;
 import triple.ResultTriple;
 import triple.Triple;
 import triple.TriplePattern;
@@ -51,6 +52,7 @@ public class Query {
     private QueryDoneListener queryDoneListener;
 
 
+    public IndexUsage indexUsage;
 
 
     public interface QueryDoneListener{

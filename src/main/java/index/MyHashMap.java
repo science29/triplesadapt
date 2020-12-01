@@ -300,6 +300,8 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
         if (cost == -1)
             return null;
         withinIndex.cost = cost;
+        if(key2 > 0)
+            withinIndex.potentailFilterCost = triples.size();
         return (V) triples;
     }
 

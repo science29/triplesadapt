@@ -4,7 +4,9 @@ import QueryStuff.Query;
 import index.Dictionary;
 import index.IndexesPool;
 import index.MyHashMap;
+import optimizer.Rules.IndexUsage;
 import triple.Triple;
+import triple.TriplePattern2;
 
 import java.util.*;
 
@@ -29,11 +31,13 @@ public class Optimiser {
     }
 
 
-    public void informGenralIndexUsage(byte index , int count){
-        memoryMap.informIndexUsage(index , count);
+    public void informGenralIndexUsage(byte index , int count , TriplePattern2 triplePattern , int potentialFilterCost){
+        IndexUsage indexUsage = new IndexUsage(index,count,potentialFilterCost);
+        heatQuery.updatePatternUsage(triplePattern,indexUsage , index);
+        memoryMap.informIndexUsage(index , count,triplePattern);
     }
 
-    public void informIndexUsage(byte index , int count , Integer first , Integer second){
+    public void informIndexUsage(byte index , int count , Integer first , Integer second, TriplePattern2 triplePattern , int potentialFilterCost){
         memoryMap.informSpecificIndexUsage(index , count , first ,second);
     }
 
@@ -42,9 +46,9 @@ public class Optimiser {
 
     }
 
-    public void informOptimalIndexUsage(MyHashMap<Integer, ArrayList<Triple>> optimal, Integer first, Integer second) {
-        informGenralIndexUsage(optimal.poolRefType ,1);
-        informIndexUsage(optimal.poolRefType ,1,first , second);
+    public void informOptimalIndexUsage(MyHashMap<Integer, ArrayList<Triple>> optimal, Integer first, Integer second , TriplePattern2 triplePattern , int potentialFilterCost) {
+        informGenralIndexUsage(optimal.poolRefType ,1 , triplePattern , potentialFilterCost);
+        informIndexUsage(optimal.poolRefType ,1,first , second , triplePattern , potentialFilterCost );
     }
 
     public void informSubOptIndexUsage(MyHashMap<Integer, ArrayList<Triple>> index, MyHashMap<Integer, ArrayList<Triple>> optimal, int first, int second , int benefit) {
@@ -119,7 +123,7 @@ public class Optimiser {
             }
         }
 
-        public void informIndexUsage(byte index , int count) {
+        public void informIndexUsage(byte index , int count , TriplePattern2 triplePattern) {
             ArrayList<GeneralRule_old> rules = generalRulesMap.get(index);
             if(rules == null) {
                 GeneralRule_old rule = new GeneralRule_old(index , null) ;
@@ -265,7 +269,7 @@ public class Optimiser {
         @Override
         public void evictUp(int quantity) {
             //TODO it needs to be done all togather becuse it could require scanning the whole data from one index
-           ArrayList<Triple> list = indexesPool.get(indexType , first ,-1,null, null);
+           ArrayList<Triple> list = indexesPool.get(indexType , first ,-1,null, null , null);
            if(list == null){
                evictor.addToFullScan(this);
            }

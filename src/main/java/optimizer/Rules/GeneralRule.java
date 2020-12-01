@@ -1,9 +1,15 @@
 package optimizer.Rules;
 
-import QueryStuff.Query;
 import optimizer.SourceSelection;
 
 public class GeneralRule extends Rule{
+
+    private final IndexOperationalRule indexOperationalRule;
+    public int expectedSize;
+
+    public void setGeneralAbsoulteBenefit(double generalAbsoulteBenefit) {
+        this.generalAbsoulteBenefit = generalAbsoulteBenefit;
+    }
 
     double generalBenefit = 0 ;
 
@@ -22,6 +28,12 @@ public class GeneralRule extends Rule{
 
     public GeneralRule(byte indexType , SourceSelection sourceSelection)  {
         super(indexType, sourceSelection);
+        indexOperationalRule = new IndexOperationalRule(indexType);
+    }
+
+
+    public OperationalRule.TripleBlock getNextBlock(){
+        return indexOperationalRule.getNextTriplesBlock();
     }
 
 

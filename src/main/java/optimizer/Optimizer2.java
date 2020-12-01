@@ -6,6 +6,7 @@ import distiributed.Transporter;
 import index.Dictionary;
 import index.IndexesPool;
 import index.MyHashMap;
+import info.uniadapt.api.DeepOptim;
 import optimizer.GUI.OptimizerGUI;
 import optimizer.Replication.BorderReplicationSource;
 import optimizer.Replication.Replication;
@@ -34,7 +35,7 @@ public class Optimizer2 extends Optimiser {
 
     private OptimizerGUI GUI;
 
-    public Optimizer2(QueryWorkersPool queryWorkersPool, IndexesPool indexesPool, Dictionary dictionary, Transporter transporter, HashMap<Integer, Boolean> borderTripleMap, boolean GUIsupport) {
+    public Optimizer2(QueryWorkersPool queryWorkersPool, IndexesPool indexesPool, Dictionary dictionary, Transporter transporter, HashMap<Integer, Boolean> borderTripleMap, boolean GUIsupport , DeepOptim deepOptim) {
         super(dictionary, indexesPool);
         this.transporter = transporter;
         generalRule = new ArrayList<>();
@@ -48,7 +49,7 @@ public class Optimizer2 extends Optimiser {
         generalReplicationRules = new ArrayList<>();
         genralReplicationInfo = new GeneralReplicationInfo(transporter.getSendingItemCostMB());
         SourceSelection source = SourceSelection.getBorderReplicationInstance(new BorderReplicationSource());
-        generalReplicationRules.add(new GeneralReplicationRule(IndexesPool.SPo, genralReplicationInfo, source));
+        generalReplicationRules.add(new GeneralReplicationRule(IndexesPool.SPo, genralReplicationInfo, source,deepOptim));
 
 
         this.borderTripleMap = borderTripleMap;
@@ -241,39 +242,6 @@ public class Optimizer2 extends Optimiser {
         }
     }
 
-
-    private void simTestResults() {
-        ArrayList<GeneralRule> generalRules;
-        ArrayList<SpecificRule> genralizedRules;
-        ArrayList<SpecificRule> specificRules;
-
-
-    }
-
-    private void buildGeneralRules(double qualityRatio, double localityRatio, double s_boundedRatio, double boundedRatio) {
-        ArrayList<GeneralRule> generalRules = new ArrayList<>();
-        GeneralRule baseRuleBounded;
-        GeneralRule basePredicateRule;
-        GeneralRule secondRuleBounded;
-        if (s_boundedRatio >= 0.5) {
-            baseRuleBounded = new GeneralRule(IndexesPool.SPo, null);
-            basePredicateRule = new GeneralRule(IndexesPool.PSo, null);
-            secondRuleBounded = new GeneralRule(IndexesPool.OPs , null);
-            secondRuleBounded.setRelativeUsage((1-s_boundedRatio)*boundedRatio + (1-boundedRatio)/2);
-        } else {
-            baseRuleBounded = new GeneralRule(IndexesPool.OP_s, null);
-            basePredicateRule = new GeneralRule(IndexesPool.POs, null);
-            secondRuleBounded = new GeneralRule(IndexesPool.SPo , null);
-            secondRuleBounded.setRelativeUsage((s_boundedRatio)*boundedRatio + (1-boundedRatio)/2);
-        }
-        basePredicateRule.setBaseLineIndex(true);
-        baseRuleBounded.setBaseLineIndex(true);
-
-
-        generalRules.add(baseRuleBounded);
-        generalRules.add(basePredicateRule);
-        generalRules.add(secondRuleBounded);
-    }
 
 
 
