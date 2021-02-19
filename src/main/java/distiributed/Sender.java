@@ -35,14 +35,18 @@ public class Sender{
         this.host = host;
         this.hostID = toHostID;
         this.myHost = myIp;
-        String [] arr = myIp.split("\\.");
-        port = Integer.valueOf(arr[arr.length-1])+BASE_PORT;
         this.threads = new ArrayList<>();
         this.transporter = transporter;
-        for(int i = 0 ; i < THREAD_COUNT_PER_HOST ; i++){
-            SenderThread senderThread = new SenderThread();
-            threads.add(senderThread);
-            senderThread.start();
+        try {
+            String[] arr = myIp.split("\\.");
+            port = Integer.valueOf(arr[arr.length - 1]) + BASE_PORT;
+            for (int i = 0; i < THREAD_COUNT_PER_HOST; i++) {
+                SenderThread senderThread = new SenderThread();
+                threads.add(senderThread);
+                senderThread.start();
+            }
+        }catch (Exception e){
+            System.err.println("Sender failed to start..");
         }
 
     }

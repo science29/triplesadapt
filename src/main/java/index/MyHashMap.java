@@ -80,7 +80,7 @@ public class MyHashMap<K, V> extends HashMap<K, V> implements Serializable {
     }
 
 
-    public void sortArray(ArrayList<Triple> tripleList , int index1 , int index2){
+    public static void sortArray(ArrayList<Triple> tripleList , int index1 , int index2){
 
         Collections.sort(tripleList, new Comparator<Triple>() {
             // @Override

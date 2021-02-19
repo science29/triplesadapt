@@ -1,9 +1,10 @@
 package index;
 
-import optimizer.Optimiser;
-import optimizer.Optimizer2;
+import optimizer.EngineRotater;
+import optimizer.EngineRotater2;
 import start.MainUinAdapt;
 import triple.Triple;
+import triple.TriplePattern;
 import triple.TriplePattern2;
 
 import java.util.ArrayList;
@@ -102,7 +103,7 @@ public class IndexesPool {
         return selectivity.get(index);
     }
 
-    public ArrayList<Triple> get(byte optimalIndexType , Integer first , Integer second , TriplePattern2.WithinIndex withinIndex , Optimiser optimiser , TriplePattern2 triplePattern ){
+    public ArrayList<Triple> get(byte optimalIndexType , Integer first , Integer second , TriplePattern2.WithinIndex withinIndex , EngineRotater engineRotater, TriplePattern2 triplePattern ){
         //first try the optimal
         MyHashMap<Integer,ArrayList<Triple>> optimal = pool.get(optimalIndexType);
         ArrayList<Triple> list;
@@ -112,8 +113,8 @@ public class IndexesPool {
         else
             list = optimal.get(first , second ,sortedIndex ,withinIndex);
         if(list != null) {
-            if(optimiser != null)
-                optimiser.informOptimalIndexUsage(optimal , first , second  ,triplePattern , withinIndex.potentailFilterCost);
+            if(engineRotater != null)
+                engineRotater.informOptimalIndexUsage(optimal , first , second  ,triplePattern , withinIndex.potentailFilterCost);
             return list;
         }
 
@@ -129,14 +130,14 @@ public class IndexesPool {
             sortedIndex = 2;
         }
         if(index == null || second < 0) {
-            if(optimiser != null)
-                optimiser.informSubOptIndexUsage(index,optimal, first , second , Optimiser.FULL_DATA_COST);
+            if(engineRotater != null)
+                engineRotater.informSubOptIndexUsage(index,optimal, first , second , EngineRotater.FULL_DATA_COST);
             return null;
         }
         list = index.get(second , first ,sortedIndex ,withinIndex);
         int benefit = (int)(withinIndex.cost - Math.log(getSelectivity(first))) ;
-        if(optimiser != null)
-            optimiser.informSubOptIndexUsage(index,optimal, first , second , benefit);
+        if(engineRotater != null)
+            engineRotater.informSubOptIndexUsage(index,optimal, first , second , benefit);
         if(list != null)
             return list;
         return null;
@@ -144,7 +145,7 @@ public class IndexesPool {
 
 
     public ArrayList<Triple> get(Integer first , Integer second , int firstIndex, int secondIndex ,
-                                 Optimizer2.OperationCost operationCost){
+                                 EngineRotater2.OperationCost operationCost){
         byte optimalIndex = getOptimalIndex(firstIndex , secondIndex);
         byte nearestIndex = getNearestIndex(optimalIndex , true);
         if(nearestIndex == -1) {
@@ -175,7 +176,7 @@ public class IndexesPool {
     }
 
     private ArrayList<Triple> filter(ArrayList<Triple> triples, Integer filterItem, int filterIndex ,
-                                     Optimizer2.OperationCost operationCost) {
+                                     EngineRotater2.OperationCost operationCost) {
         ArrayList<Triple> res = new ArrayList<>();
         for(int i = 0 ; i < triples.size() ; i++){
             if(triples.get(i).triples[filterIndex] == filterItem)
@@ -254,7 +255,9 @@ public class IndexesPool {
        // int sortedKey = getSortedIndex(indexType);
 
         if (index.containsKey(tripleObj.triples[key])) {
-            index.get(tripleObj.triples[key]).add(tripleObj);
+            ArrayList<Triple> list  = index.get(tripleObj.triples[key]);
+            list.add(tripleObj);
+            //binaryAdd(list, key ,tripleObj);
         } else {
             ArrayList<Triple> list = new ArrayList();
             list.add(tripleObj);
@@ -262,6 +265,43 @@ public class IndexesPool {
             index.put(codeObj, list);
         }
     }
+
+
+
+    private static void binaryAdd(ArrayList<Triple> arr, int index, Triple toAdd) {
+
+        /*for(int i = 0; i < arr.size() && arr.size() > 1 ; i++){
+            if(i == arr.size()-1)
+                break;
+            if(arr.get(i).triples[index] > arr.get(i+1).triples[index]){
+                System.err.println("errrror");
+            }
+        }*/
+        int key = toAdd.triples[index];
+        int last = arr.size() - 1;
+        int first = 0;
+        int mid = (first + last) / 2;
+        while (first <= last) {
+            if (arr.get(mid).triples[index] < key) {
+                first = mid + 1;
+            } else if (arr.get(mid).triples[index] == key) {
+                // System.out.println("Element is found at index: " + mid);
+                int found = arr.get(mid).triples[index];
+                int t = mid;
+                while (t > 0 && arr.get(t - 1).triples[index] == found) {
+                    t--;
+                }
+                arr.add(mid,toAdd);
+                return ;
+            } else {
+                last = mid - 1;
+            }
+            mid = (first + last) / 2;
+        }
+        arr.add(mid,toAdd);
+        return ;
+    }
+
 
 
 
@@ -298,7 +338,7 @@ public class IndexesPool {
         return true;
     }
 
-    public Iterator buildIndex(byte startIndexType, byte indexType, Iterator prevoiusIterator, int quantity , Optimiser.Rule rule) {
+    public Iterator buildIndex(byte startIndexType, byte indexType, Iterator prevoiusIterator, int quantity , EngineRotater.Rule rule) {
         Iterator it = prevoiusIterator;
         if(it == null )
             it = getIndex(startIndexType).entrySet().iterator();

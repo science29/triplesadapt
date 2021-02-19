@@ -4,9 +4,9 @@ import distiributed.SendItem;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.IndexesPool;
-import optimizer.Optimiser;
-import optimizer.Optimizer2;
+import optimizer.EngineRotater2;
 import optimizer.Rules.IndexUsage;
+import optimizer.stat.ClassesStat;
 import triple.ResultTriple;
 import triple.Triple;
 import triple.TriplePattern;
@@ -37,7 +37,7 @@ public class Query {
 
     private HashMap<String, Integer> varNameMap = new HashMap();
 
-    private Dictionary dictionary ;
+    private Dictionary dictionary;
     private IndexesPool indexPool;
     private ArrayList<ResultTriple> results;
     private InterExecutersPool executersPool;
@@ -48,11 +48,12 @@ public class Query {
     private boolean silent = false;
     private QueryCache queryCache;
     private QueryWorkersPool.Session batch;
-    private Optimizer2 optimizer;
+    private EngineRotater2 optimizer;
     private QueryDoneListener queryDoneListener;
 
 
     public IndexUsage indexUsage;
+    private boolean bounded;
 
 
     public interface QueryDoneListener{
@@ -73,25 +74,25 @@ public class Query {
     }
 
 
-    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , Optimizer2 optimizer) {
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , EngineRotater2 optimizer) {
         this.transporter = transporter;
         ID = new Random().nextInt();
         this.dictionary = dictionary;
         this.indexPool = indexPool;
         this.optimizer = optimizer;
-        knownEmpty = !parseSparqlChain(SPARQL, dictionary);
+        knownEmpty = !generalParser(SPARQL, dictionary);
     }
 
-    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , int queryNo , Optimizer2 optimizer) {
+    public Query(Dictionary dictionary, String SPARQL , IndexesPool indexPool , Transporter transporter , int queryNo , EngineRotater2 optimizer) {
         this.transporter = transporter;
         ID = queryNo;
         this.dictionary = dictionary;
         this.indexPool = indexPool;
         this.optimizer = optimizer;
-        knownEmpty = !parseSparqlChain(SPARQL, dictionary);
+        knownEmpty = !generalParser(SPARQL, dictionary); //!parseSparqlChain(SPARQL, dictionary);
     }
 
-    public Query(Dictionary dictionary, TriplePattern2 first , IndexesPool indexPool , Transporter transporter , int queryNo , Optimizer2 optimizer) {
+    public Query(Dictionary dictionary, TriplePattern2 first , IndexesPool indexPool , Transporter transporter , int queryNo , EngineRotater2 optimizer) {
         this.transporter = transporter;
         ID = queryNo;
         this.dictionary = dictionary;
@@ -308,21 +309,70 @@ public class Query {
 
 
 
-    public void findQueryAnswer(InterExecutersPool executersPool , QueryWorkersPool queryWorkersPool , int allowedThreadCount , TriplePattern2.ExecuterCompleteListener executerCompleteListener  , QueryCache queryCache){
+    public void findQueryAnswerChain(InterExecutersPool executersPool , QueryWorkersPool queryWorkersPool , int allowedThreadCount , TriplePattern2.ExecuterCompleteListener executerCompleteListener  , QueryCache queryCache, ClassesStat classesStat){
         this.executersPool = executersPool;
         this.queryWorkersPool = queryWorkersPool;
         this.allowedThreadCount = allowedThreadCount;
         this.queryCache = queryCache;
         executersPool.setFinalListener(executerCompleteListener);
-        findQueryAnswer();
+        //findQueryAnswerChain();
+        plan(classesStat);
     }
 
-    public void findQueryAnswer(QueryWorkersPool queryWorkersPool){
+    public void findQueryAnswerChain(QueryWorkersPool queryWorkersPool){
         this.queryWorkersPool = queryWorkersPool;
-        findQueryAnswer();
+        findQueryAnswerChain();
     }
 
-    public ArrayList<ResultTriple> findQueryAnswer(){
+    public void plan(ClassesStat classesStat){
+        long start = System.nanoTime();
+        long end = 0;
+        //is bounded
+        bounded = false;
+        for(TriplePattern2 triplePattern: triplePatterns2){
+            triplePattern.setTypeID(dictionary.getTypeID());
+            if(triplePattern.isBounded())
+                bounded = true;
+        }
+        int minCost = -1;
+        TriplePattern2 startPattern = null;
+
+        boolean status = false;
+        if(!bounded){
+            //evaluate the abstract triple
+            for(TriplePattern2 triplePattern: triplePatterns2){
+               int cost = triplePattern.evaluateType(classesStat);
+               if(cost < minCost || minCost < 0) {
+                   minCost = cost;
+                   startPattern = triplePattern;
+               }
+            }
+            if(minCost > 0){
+                status = abstractJoin(startPattern, classesStat);
+            }
+            end = System.nanoTime();
+            if(status)
+                startPattern.printVarCount();
+        }
+        if(!status)
+            findQueryAnswerChain();
+        if(end == 0)
+            end = System.nanoTime();
+        System.err.println("caus. measuring time:"+(end-start)/1000000.0);
+    }
+
+    private boolean abstractJoin(TriplePattern2 startPattern, ClassesStat classesStat){
+        boolean res = startPattern.abstractJoin(null,classesStat,true);
+        if(res) {
+            for (TriplePattern2 pattern : triplePatterns2) {
+                pattern.postMergeComplete();
+            }
+        }
+        return res;
+    }
+
+
+    public ArrayList<ResultTriple> findQueryAnswerChain(){
       //find the triplePattern to start with
       //start executing and let it propogate.
 
@@ -474,6 +524,71 @@ public class Query {
     }
 
 
+
+    public boolean generalParser(String spaql, index.Dictionary dictionary){
+
+        triplePatterns = new ArrayList();
+        triplePatterns2 = new ArrayList<TriplePattern2>();
+
+        //remove any new line
+        spaql.replaceAll("\\r?\\n" , "");
+        //first get the prefix list
+        HashMap<String, String> prefixMap = new HashMap<>();
+        spaql.replaceAll("prefix" , "PREFIX");
+        String [] prefixes = spaql.split("PREFIX");
+        for(int i = 1 ; i < prefixes.length ; i++){
+            if(i == prefixes.length - 1) {
+                String [] a = prefixes[i].split("SELECT");
+                if(a.length != 2)
+                    a = prefixes[i].split("select");
+                if(a.length != 2)
+                    return false;
+                prefixes[i] = a[0];
+            }
+            String pre = prefixes[i].substring(0,prefixes[i].indexOf(':'));
+            String valPre = prefixes[i].substring(prefixes[i].indexOf(':')+1);
+            prefixMap.put(pre,valPre);
+        }
+        //second get the where part
+        String patternsStr = spaql.substring(spaql.indexOf('{')+1, spaql.indexOf('}'));
+        //String patternsStr = spaql.split("\\{")[1];
+        String [] patternsStrArr = patternsStr.split("\\. ");
+        for(int i = 0 ; i < patternsStrArr.length ; i++){
+            try {
+                addToTriplePatterns(parsePattern(patternsStrArr[i], prefixMap, dictionary) , new boolean[3], patternsStrArr[i]);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Integer [] parsePattern(String patternStr, HashMap<String, String> prefixMap ,Dictionary dictionary) throws Exception {
+        String [] arr = patternStr.trim().replaceAll(" +", " ").split(" ");
+        Integer [] code = new Integer[3];
+        if(arr.length == 3){
+            //things are fine
+            for(int j = 0 ; j < arr.length ; j++){
+                if(arr[j].startsWith("?")){
+                    code[j] = TriplePattern.thisIsVariable(getNunqieVarID(arr[j]));
+                    continue;
+                }
+                String [] p = arr[j].split(":");
+                if(p.length == 2 && prefixMap.containsKey(p[0])){
+                    code[j] = dictionary.get(arr[j] , prefixMap.get(p[0]));
+                }else {
+                    code[j] = dictionary.get(arr[j]);
+                }
+                if (code[j] == null || code[j] == 0)
+                    throw new Exception();
+            }
+        }
+        return code;
+
+    }
+
+
     public boolean parseSparqlChain(String spaql, index.Dictionary dictionary) {
         /*" select  ?x1 ?x3 ?x5 ?x7 where " +
                 "{?x1 <http://mpii.de/yago/resource/describes> ?x3.?x3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?x5." +
@@ -520,7 +635,7 @@ public class Query {
                         code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
                     if(blackNode)
                         code[index++] = dictionary.get(last);
-                    return addToTriplePatterns(code,projectedFlags);
+                    return addToTriplePatterns(code,projectedFlags,null);
                 case '?':
                     if(!build) {
                         varStart = true;
@@ -558,7 +673,7 @@ public class Query {
                     code[index++] = TriplePattern.thisIsVariable(getNunqieVarID(last));
                     varStart = false;
                     last = "";
-                    boolean res = addToTriplePatterns(code,projectedFlags);
+                    boolean res = addToTriplePatterns(code,projectedFlags,null);
                     index = 0;
                     code[0] = (int)0;code[1] = (int)0;code[2] = (int)0;
                     if(!res)
@@ -667,7 +782,7 @@ public class Query {
                 }else
                     codeArr[j] = dictionary.get(items[j]);
             }
-            if(!addToTriplePatterns(codeArr,null)) {
+            if(!addToTriplePatterns(codeArr,null,null)) {
                 System.err.println("error parsing query");
                 return false;
             }
@@ -676,7 +791,7 @@ public class Query {
     }
 
 
-    public boolean addToTriplePatterns(Integer[] code , boolean[] projected){
+    public boolean addToTriplePatterns(Integer[] code , boolean[] projected, String tripleStr){
 
         if (code[0] == null || code[1] == null || code[2] == null) {
             System.err.println("query answer is empty");
@@ -689,6 +804,7 @@ public class Query {
         TriplePattern2 triplePattern2 = new TriplePattern2(triplePattern ,indexPool ,transporter,this , optimizer);
         connectTriplePatterns(triplePattern2);
         triplePatterns2.add(triplePattern2);
+        triplePattern2.setTripleStr(tripleStr); //TODO this is for debug puropse
 
 
         return true;
@@ -856,6 +972,7 @@ public class Query {
     }
 
     public boolean isPendingBorder() {
+        //TODO triplePatterns or triplePatterns2 ?
         for(int i = 0 ; i < triplePatterns.size() ; i++){
             if(triplePatterns2.get(i).pendingBorder)
                 return true;

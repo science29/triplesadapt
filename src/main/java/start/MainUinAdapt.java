@@ -4,10 +4,12 @@ import QueryStuff.*;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.*;
+//import info.uniadapt.api.DeepOptim;
 import info.uniadapt.api.DeepOptim;
 import optimizer.GUI.StarterGUI;
-import optimizer.Optimizer2;
+import optimizer.EngineRotater2;
 import optimizer.Simu;
+import optimizer.stat.ClassesStat;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import triple.Triple;
@@ -39,6 +41,7 @@ public class MainUinAdapt {
     private static final int PARTITION_COUNT = 2;
 
     private MyHashMap<Integer, ArrayList<Triple>> POS;
+    private MyHashMap<Integer, ArrayList<Triple>> PSO;
     private MyHashMap<Integer, ArrayList<Triple>> SPO;
     private MyHashMap<Integer, ArrayList<Triple>> OPS;
     private MyHashMap<String, ArrayList<Triple>> sp_O;
@@ -71,12 +74,14 @@ public class MainUinAdapt {
     private HashMap<Integer,Boolean> borderTripleMap = new HashMap<>();
 
     private QueryWorkersPool queryWorkersPool;
-    private Optimizer2 optimizer;
+    private EngineRotater2 optimizer;
 
     private StarterGUI starterGUI;
 
     private int vertexCount = 0;
 
+
+    ClassesStat classesStat;
 
     public static void main(String[] args) {
 
@@ -87,7 +92,7 @@ public class MainUinAdapt {
         MainUinAdapt o = new MainUinAdapt();
 
         try{
-            o.startGUI();
+          //  o.startGUI();
         }catch (Exception e){
             System.err.println("no GUI started..");
             e.printStackTrace();
@@ -96,12 +101,13 @@ public class MainUinAdapt {
 try {
     ArrayList<String> filePaths = new ArrayList<String>();
     //filePaths.add("/home/keg/Desktop/BTC/yago.n3");
-    filePaths.add("/Users/apple/Downloads/yago.n3");
+    //filePaths.add("/Users/apple/Downloads/yago.n3");
+    filePaths.add("/Users/apple/IdeaProjects/LUBM temp/data/University1_.nt");
 
     //o.openIndexes(); disable the disk map
     try {
 
-   //     o.porcess(filePaths, quad);
+        o.porcess(filePaths, quad);
 
     }catch (Exception e){
         e.printStackTrace();
@@ -282,7 +288,7 @@ try {
                 queryWorkersPool.remoteQueryDone(queryNo);
             }
         };
-        transporter = new Transporter(hosts, remoteQueryListener , optimizer , new Transporter.TransporterReadyListener() {
+        transporter = new Transporter(hosts, remoteQueryListener, optimizer, new Transporter.TransporterReadyListener() {
             @Override
             public void ready() {
 
@@ -298,7 +304,7 @@ try {
         iniIndexPool();
         queryWorkersPool = new QueryWorkersPool(dictionary ,transporter , indexPool);
         DeepOptim deepOptim = new DeepOptim(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap );
-        optimizer = new Optimizer2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap , transporter.isGUISupported(), deepOptim);
+        optimizer = new EngineRotater2(queryWorkersPool ,indexPool , dictionary  , transporter ,borderTripleMap , transporter.isGUISupported(), deepOptim);
         queryWorkersPool.setOptimiser(optimizer);
         deepOptim.setOptimizerRelax(optimizer);
     }
@@ -860,6 +866,9 @@ try {
     HashMap<String, String> prefix = new HashMap<String, String>();
     ArrayList<String> header;
 
+
+    ArrayList<Triple> fullTempList = new ArrayList<>();
+
     public void porcess(ArrayList<String> filePathList, boolean quad) {
         int test = 0;
         tripleToPartutPartitionMap = new HashMap();
@@ -909,6 +918,10 @@ try {
                         header.add(line);
                         continue;
                     }
+                    //dummy line
+                    if(line.contains("http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair"))
+                        line.trim();
+
                     String[] triple;
                     if (quad) {
                         triple = getTripleFromQuadLine(line , header , prefix);
@@ -918,6 +931,8 @@ try {
                         }
                     } else {
                         triple = getTripleFromTripleLine(line, errCount, errSolved , header , prefix);
+                        if(line.contains("#Person"))
+                            line.contains("");
 
 
                     }
@@ -930,7 +945,7 @@ try {
                     boolean ignoreFlag = false;
                     for (int i = 0; i < 3; i++) {
                         if (dictionary.containsKey(triple[i] , true)) {
-                            code[i] = dictionary.get(triple[i]);
+                            code[i] = dictionary.get(triple[i],true);
                             if (i != 1 && code[i] >= BASE_PREDICATE_CODE) {
                                 //ignoreFlag = true; //just ignore the predicate which came as subj or obj
                                 if (!PredicatesAsSubject.containsKey(code[i])) {
@@ -1002,6 +1017,7 @@ try {
                     }
                     //build the tripe graph
                     Triple tripleObj = new Triple(code[0], code[1], code[2]);
+
                /* if (!tripleGraph.containsKey(code[0]))    seems like tripleGraph is the same as SPO, thus we dont need it
                     tripleGraph.put(code[0], new ArrayList<Triple>());
                 tripleGraph.get(code[0]).add(tripleObj);*/
@@ -1011,6 +1027,20 @@ try {
 
 
                     optimizer.addStartTripleToIndex(tripleObj , count);
+
+                    fullTempList.add(tripleObj);
+
+             /*       if(classesStat == null){
+                        dictionary.setIDLiteral("rdf:type" ,"<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" );
+                        Integer typeID = dictionary.get("rdf:type" ,"<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" );
+                        if(typeID != null)
+                            classesStat = new ClassesStat(indexPool, typeID);
+                    }
+                    if(classesStat != null)
+                       classesStat.addToStat(tripleObj , true);
+
+                       */
+
                    /* addToPOSIndex(tripleObj);xx
                     addToOPSIndex(tripleObj);
                     addToSPOIndex(tripleObj);*/
@@ -1022,26 +1052,46 @@ try {
                    // if(test == 0)
                      //   test = code[2];
                   //  ArrayList<Triple> test3 = OPS.get(test);
-                    //addTosp_OIndex(tripleObj);
+                    //addTosp_OIndex(tripleObj);new MyHashMap
 
                    // addToOp_SIndex(tripleObj);
                 }
             } finally {
                 LineIterator.closeQuietly(it);
             }
+
+            /*if(classesStat != null)
+                classesStat.done();
+            optimizer.setClassesStat(classesStat);*/
         }
+
 
 
      //
 
        // op_S.close();
 
-       // System.out.println("building and sorting indexes.. ");
+        System.out.println("sorting indexes.. ");
       ///  optimizer.dataReadDone();
         OPS = indexPool.getIndex(IndexesPool.OPs);
         SPO = indexPool.getIndex(IndexesPool.SPo);
         POS = indexPool.getIndex(IndexesPool.POs);
+        PSO = indexPool.getIndex(IndexesPool.PSo);
         tripleGraph = indexPool.getIndex(IndexesPool.SPo);
+        OPS.sort(1,0);
+        SPO.sort(1,2);
+        PSO.sort(0,2);
+        POS.sort(2,0);
+
+        System.out.println("creating classes indexes ...");
+        buildClassesStat();
+        /*for(Triple triple: fullTempList){
+            classesStat.addToStat(triple , true);
+        }
+        if(classesStat != null)
+            classesStat.done();*/
+        optimizer.setClassesStat(classesStat);
+
 
         PredicatesAsSubject.clear();
         tempop_S.clear();
@@ -1092,6 +1142,26 @@ try {
   //      indexCollection.addIndexStringKey(op_S, new IndexType(1,0,1));
     }
 
+
+    private void buildClassesStat(){
+        if(classesStat == null){
+            dictionary.setIDLiteral("rdf:type" ,"<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" );
+            Integer typeID = dictionary.get("rdf:type" ,"<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" );
+            if(typeID != null)
+                classesStat = new ClassesStat(indexPool, typeID);
+        }
+        if(classesStat == null)
+            return;
+        Iterator<Map.Entry<Integer, ArrayList<Triple>>> it = SPO.entrySet().iterator();
+        while (it.hasNext()){
+            Map.Entry<Integer, ArrayList<Triple>> pair = it.next();
+            ArrayList<Triple> list = pair.getValue();
+            for(Triple triple: list){
+                classesStat.addToStat(triple , true);
+            }
+        }
+        classesStat.done();
+    }
 
     private void calculateNormalDist(){
         Iterator<Map.Entry<Integer, ArrayList<Triple>>> iterator = SPO.entrySet().iterator();
@@ -2194,12 +2264,33 @@ try {
     private void listenToQuery() {
 
         String testquery = "select ?x1 ?x2 ?x3 ?x4  where {?x3 y:describes ?x2.?x2 y:created ?x1.?x1 y:hasSuccessor ?x4.?x4 rdfs:label ?x5}";
-        new Query(dictionary, testquery,indexPool , transporter , null);//warm up!!
+        testquery = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
+                "PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>" +
+                "SELECT ?X, ?Y, ?Z" +
+                "WHERE" +
+                "{?X rdf:type ub:GraduateStudent ." +
+                "  ?Y rdf:type ub:University ." +
+                "  ?Z rdf:type ub:Department ." +
+                "  ?X ub:memberOf ?Z ." +
+                "  ?Z ub:subOrganizationOf ?Y ." +
+                "  ?X ub:undergraduateDegreeFrom ?Y}";
+
+        //Query queryObj1 = new Query(dictionary, testquery,indexPool , transporter , null);//warm up!!
+
+        Query queryObj1 = queryWorkersPool.addSingleQuery(testquery);  ;
+        queryObj1.setDoneListener(new Query.QueryDoneListener() {
+            @Override
+            public void done() {
+                   queryObj1.printAnswers(reverseDictionary);
+            }
+        });
+
+
         Scanner scanner = new Scanner(System.in);
         InterExecutersPool executersPool = new InterExecutersPool(7);
         while (true) {
             try {
-                System.out.println("Please enter Sparql QueryStuff.Query:");
+                System.out.println("Please enter Sparql:");
                 String query = scanner.nextLine();
                 if (query.matches("e")) {
                     System.out.println("Exiting query system..");
@@ -2242,7 +2333,7 @@ try {
                /*long startTime = System.nanoTime();
                 Query spQuery = new Query(dictionary, query,indexPool,transporter);
                 long parseTime = System.nanoTime();
-                spQuery.findQueryAnswer();
+                spQuery.findQueryAnswerChain();
                 long stopTime = System.nanoTime();
                 long elapsedTimeS = (stopTime - startTime) / 1000;
 

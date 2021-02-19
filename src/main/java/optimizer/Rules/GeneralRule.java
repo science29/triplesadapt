@@ -4,7 +4,7 @@ import optimizer.SourceSelection;
 
 public class GeneralRule extends Rule{
 
-    private final IndexOperationalRule indexOperationalRule;
+    private final XRuleXOpHandler xRuleXOpHandler;
     public int expectedSize;
 
     public void setGeneralAbsoulteBenefit(double generalAbsoulteBenefit) {
@@ -28,12 +28,12 @@ public class GeneralRule extends Rule{
 
     public GeneralRule(byte indexType , SourceSelection sourceSelection)  {
         super(indexType, sourceSelection);
-        indexOperationalRule = new IndexOperationalRule(indexType);
+        xRuleXOpHandler = new XRuleXOpHandler(indexType);
     }
 
 
     public OperationalRule.TripleBlock getNextBlock(){
-        return indexOperationalRule.getNextTriplesBlock();
+        return xRuleXOpHandler.getNextTriplesBlock();
     }
 
 

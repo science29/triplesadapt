@@ -3,7 +3,7 @@ package optimizer.GUI;
 import QueryStuff.QueryStreamGenerator;
 import index.IndexesPool;
 import index.MyHashMap;
-import optimizer.Optimizer2;
+import optimizer.EngineRotater2;
 import triple.Triple;
 
 import javax.swing.*;
@@ -38,7 +38,7 @@ public class OptimizerGUI {
     private JButton genQBatchButton;
 
 
-    public static OptimizerGUI createForm(QueryStreamGenerator queryStreamGenerator , Optimizer2 optimizer , boolean GUISupport) {
+    public static OptimizerGUI createForm(QueryStreamGenerator queryStreamGenerator , EngineRotater2 optimizer , boolean GUISupport) {
         OptimizerGUI t = new OptimizerGUI(queryStreamGenerator , optimizer);
         if(!GUISupport){
             return t;
@@ -52,13 +52,13 @@ public class OptimizerGUI {
     }
 
 
-    public OptimizerGUI(QueryStreamGenerator queryStreamGenerator , Optimizer2 optimizer){
+    public OptimizerGUI(QueryStreamGenerator queryStreamGenerator , EngineRotater2 optimizer){
         setListener(queryStreamGenerator, optimizer);
     }
 
 
 
-    private void setListener(QueryStreamGenerator queryStreamGenerator , Optimizer2 optimizer){
+    private void setListener(QueryStreamGenerator queryStreamGenerator , EngineRotater2 optimizer){
 
         optimizerStart.addActionListener(new ActionListener() {
             @Override

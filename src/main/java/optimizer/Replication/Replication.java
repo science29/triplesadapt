@@ -3,7 +3,7 @@ package optimizer.Replication;
 import distiributed.SendItem;
 import distiributed.Transporter;
 import index.IndexesPool;
-import optimizer.Optimizer2;
+import optimizer.EngineRotater2;
 import optimizer.Rules.GeneralReplicationInfo;
 import triple.Triple;
 
@@ -11,7 +11,7 @@ import java.util.*;
 
 public class Replication {
 
-    private final Optimizer2 optimizer;
+    private final EngineRotater2 optimizer;
     Transporter transporter ;
     FullReplicationManger fullReplicationManger;
     private final HashMap<Integer,Boolean> borderTripleMap;
@@ -28,7 +28,7 @@ public class Replication {
         void done();
     }
 
-    public Replication(Transporter transporter, HashMap<Integer, Boolean> borderTripleMap, IndexesPool indexesPool , Optimizer2 optimizer) {
+    public Replication(Transporter transporter, HashMap<Integer, Boolean> borderTripleMap, IndexesPool indexesPool , EngineRotater2 optimizer) {
         this.transporter = transporter;
         this.borderTripleMap = borderTripleMap;
         this.indexesPool = indexesPool;

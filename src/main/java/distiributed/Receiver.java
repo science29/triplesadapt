@@ -1,14 +1,12 @@
 package distiributed;
 
-import optimizer.Optimizer2;
-import org.omg.PortableServer.POA;
+import optimizer.EngineRotater2;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URLConnection;
 
 public class Receiver extends Thread {
 
@@ -21,7 +19,7 @@ public class Receiver extends Thread {
     private ServerSocket serverSocket;
     private final int id;
     private boolean testMode  =false;
-    private final Optimizer2 optimizer;
+    private final EngineRotater2 optimizer;
     public Transporter.DataReceivedListener replicationListener;
 
     private RecieverReadyListener recieverReadyListener;
@@ -30,7 +28,7 @@ public class Receiver extends Thread {
     }
 
 
-    public Receiver(Transporter transporter, String host, int id ,Optimizer2 optimizer , RecieverReadyListener recieverReadyListener) {
+    public Receiver(Transporter transporter, String host, int id , EngineRotater2 optimizer , RecieverReadyListener recieverReadyListener) {
         this.transporter = transporter;
         this.host = host;
         String[] arr = host.split("\\.");

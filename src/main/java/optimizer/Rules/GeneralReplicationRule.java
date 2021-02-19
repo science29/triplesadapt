@@ -1,13 +1,14 @@
 package optimizer.Rules;
 
-import QueryStuff.Query;
 import info.uniadapt.api.Assistance;
 import info.uniadapt.api.DeepOptim;
 import info.uniadapt.api.StatHandler;
 import optimizer.SourceSelection;
 
 import java.util.ArrayList;
+
 import static info.uniadapt.api.StatHandler.getgeneralBorderAccessRate;
+////import static info.uniadapt.api.StatHandler.getgeneralBorderAccessRate;
 
 public class GeneralReplicationRule extends  GeneralRule {
 
@@ -17,15 +18,16 @@ public class GeneralReplicationRule extends  GeneralRule {
     public double stepSize;
     private final GeneralReplicationInfo generalReplicationInfo;
 
-    public ArrayList<BorderOperationalRule> borderOperationalRules;
+    public ArrayList<BRuleOpHandler> bRuleOpHandlers;
     public DeepOptim deepOptim ;
 
 
     public GeneralReplicationRule(byte indexType , GeneralReplicationInfo generalReplicationInfo ,SourceSelection sourceSelection , DeepOptim deepOptim) {
         super(indexType , sourceSelection);
         this.generalReplicationInfo = generalReplicationInfo;
+        bRuleOpHandlers = new ArrayList<>();
         for(int i = 0; i < StatHandler.getMaxBorderDistance(); i++){
-            borderOperationalRules.add( new BorderOperationalRule(i,getgeneralBorderAccessRate(),indexType));
+            bRuleOpHandlers.add( new BRuleOpHandler(i,getgeneralBorderAccessRate(),indexType));
         }
         this.deepOptim = deepOptim;
         deepOptim.setGeneralReplicationRule(this);

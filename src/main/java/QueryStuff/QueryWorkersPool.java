@@ -1,13 +1,10 @@
 package QueryStuff;
 
-import distiributed.SendItem;
 import distiributed.Transporter;
 import index.Dictionary;
 import index.IndexesPool;
-import optimizer.HeatQuery;
-import optimizer.Optimiser;
-import optimizer.Optimizer2;
-import optimizer.Threading;
+import optimizer.EngineRotater2;
+import optimizer.ThreadingHelper;
 import triple.TriplePattern2;
 
 import java.util.ArrayList;
@@ -39,7 +36,7 @@ public class QueryWorkersPool {
 
     private final QueryCache queryCache;
 
-    private  Optimizer2 optimiser;
+    private EngineRotater2 optimiser;
 
 
     public QueryWorkersPool(Dictionary dictionary, Transporter transporter, IndexesPool indexesPool) {
@@ -58,12 +55,12 @@ public class QueryWorkersPool {
 
         queryCache = new QueryCache();
         /*if(optimiser == null)
-            this.optimiser = new Optimizer2(this , indexesPool ,dictionary , transporter , border);
+            this.optimiser = new EngineRotater2(this , indexesPool ,dictionary , transporter , border);
         else*/
 
     }
 
-    public void setOptimiser(Optimizer2 optimiser){
+    public void setOptimiser(EngineRotater2 optimiser){
         this.optimiser = optimiser;
     }
 
@@ -255,8 +252,8 @@ public class QueryWorkersPool {
                     pending = true;*/
                     //  query.setBorderChangeListener();
                     if (!query.isPendingBorder()) {
-                        int numberOfThreads = Threading.getOptimalQueryThread(sharedWorkQueue.size(), interExecutersPool.getAvailableThreadCount());
-                        query.findQueryAnswer(interExecutersPool, queryWorkersPool, numberOfThreads, new TriplePattern2.ExecuterCompleteListener() {
+                        int numberOfThreads = ThreadingHelper.getOptimalQueryThread(sharedWorkQueue.size(), interExecutersPool.getAvailableThreadCount());
+                        query.findQueryAnswerChain(interExecutersPool, queryWorkersPool, numberOfThreads, new TriplePattern2.ExecuterCompleteListener() {
                             @Override
                             public void onComplete(Query queryProcessed) {
                                 if (!queryProcessed.isPendingBorder()) {
@@ -265,8 +262,8 @@ public class QueryWorkersPool {
                                         sessionDone();
                                         return;
                                     }*/
-                    //                System.out.print(" printing query numbered: "+queryProcessed.ID+" at thread "+threadID+" ");
-///                                    queryProcessed.printAnswers(dictionary);
+                                    //queryProcessed.printAnswers(dictionary);
+                                    System.out.print(" printing query numbered: "+queryProcessed.ID+" at thread "+threadID+" ");
                                 } else {
                                     pendingQuery.put(queryProcessed.ID, queryProcessed);
                                     transporter.receive(queryProcessed);
@@ -274,8 +271,8 @@ public class QueryWorkersPool {
                                     transporter.sendToAll(queryProcessed.getToSendItem());
                                 }
                             }
-                        } , null);
-                        //query.findQueryAnswer(queryWorkersPool);
+                        } , null,optimiser.getClassesStat());
+                        //query.findQueryAnswerChain(queryWorkersPool);
 
                     } else {
                         query.borderEvaluation();

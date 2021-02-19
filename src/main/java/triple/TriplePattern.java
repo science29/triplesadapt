@@ -15,6 +15,7 @@ public class TriplePattern {
     public boolean pendingBorder = false;
 
 
+
     //int varaibles[] = new int[3];
 
     public TriplePattern(int s ,int p , int o){
@@ -52,4 +53,5 @@ public class TriplePattern {
             return false;
         return true;
     }
+
 }

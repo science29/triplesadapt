@@ -13,11 +13,12 @@ import optimizer.Replication.Replication;
 import optimizer.Rules.GeneralReplicationInfo;
 import optimizer.Rules.GeneralReplicationRule;
 import optimizer.Rules.GeneralRule;
+import optimizer.stat.ClassesStat;
 import triple.Triple;
 
 import java.util.*;
 
-public class Optimizer2 extends Optimiser {
+public class EngineRotater2 extends EngineRotater {
 
     //private final IndexesPool indexesPool;
     public final GeneralReplicationInfo genralReplicationInfo;
@@ -34,8 +35,9 @@ public class Optimizer2 extends Optimiser {
     private final Transporter transporter;
 
     private OptimizerGUI GUI;
+    private ClassesStat classesStat;
 
-    public Optimizer2(QueryWorkersPool queryWorkersPool, IndexesPool indexesPool, Dictionary dictionary, Transporter transporter, HashMap<Integer, Boolean> borderTripleMap, boolean GUIsupport , DeepOptim deepOptim) {
+    public EngineRotater2(QueryWorkersPool queryWorkersPool, IndexesPool indexesPool, Dictionary dictionary, Transporter transporter, HashMap<Integer, Boolean> borderTripleMap, boolean GUIsupport , DeepOptim deepOptim) {
         super(dictionary, indexesPool);
         this.transporter = transporter;
         generalRule = new ArrayList<>();
@@ -67,6 +69,7 @@ public class Optimizer2 extends Optimiser {
         indexesPool.addToIndex(IndexesPool.SPo, tripleObj);
         indexesPool.addToIndex(IndexesPool.OPs, tripleObj);
         indexesPool.addToIndex(IndexesPool.PSo, tripleObj);
+        indexesPool.addToIndex(IndexesPool.POs, tripleObj);//extra
         if (cnt % 1000 == 0 || cnt == -1)
             GUI.setIndexes(indexesPool);
     }
@@ -226,6 +229,13 @@ public class Optimizer2 extends Optimiser {
                 alreadyList.add(list.get(j));
             }
         }
+    }
+
+    public void setClassesStat(ClassesStat classesStat) {
+        this.classesStat = classesStat;
+    }
+    public ClassesStat getClassesStat(){
+        return classesStat;
     }
 
 

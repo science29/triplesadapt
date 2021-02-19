@@ -12,17 +12,17 @@ public class Evictor{
     //optimizer.get
 
     private boolean fullScanWorking = false;
-    private  final BlockingQueue <Optimiser.SpecificRule> fullScanQueue;
+    private  final BlockingQueue <EngineRotater.SpecificRule> fullScanQueue;
 
     public Evictor(IndexesPool indexesPool){
         this.indexPool = indexesPool;
-        fullScanQueue = new ArrayBlockingQueue<Optimiser.SpecificRule>(100);
+        fullScanQueue = new ArrayBlockingQueue<EngineRotater.SpecificRule>(100);
 
     }
 
-   public void addToFullScan(Optimiser.SpecificRule rule){
+   public void addToFullScan(EngineRotater.SpecificRule rule){
        try {
-           if(rule.source.host == Optimiser.LOCALHOST)  //TODO consider other sources..
+           if(rule.source.host == EngineRotater.LOCALHOST)  //TODO consider other sources..
                fullScanQueue.put(rule);
        } catch (InterruptedException e) {
            e.printStackTrace();

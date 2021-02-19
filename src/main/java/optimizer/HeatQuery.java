@@ -172,7 +172,7 @@ public class HeatQuery {
         }
         if(indexUsage != null)
             queryElement.combineIndexUsage(indexUsage);
-        for (int i = 0; i < triplePattern.getLefts().size(); i++) {
+        for (int i = 0; triplePattern.getLefts() != null && i < triplePattern.getLefts().size(); i++) {
             HeatElement leftHeat = queryElement.left.get(triplePattern.getLefts().get(i).getTriples()[1]);
             if (leftHeat == null)
                 leftHeat = queryElement.newHeat(triplePattern.getLefts().get(i).getTriples()[1], true);
@@ -189,12 +189,12 @@ public class HeatQuery {
         }
 
 
-        for (int i = 0; i < triplePattern.getRights().size(); i++) {
+        for (int i = 0;  triplePattern.getRights() != null && i < triplePattern.getRights().size(); i++) {
             HeatElement rightHeat = queryElement.right.get(triplePattern.getRights().get(i).getTriples()[1]);
             if (rightHeat == null)
                 rightHeat = queryElement.newHeat(triplePattern.getRights().get(i).getTriples()[1], false);
             rightHeat.totalFreq++;
-            if(triplePattern.getLefts().get(i).pendingBorder)
+            if(triplePattern.getRights().get(i).pendingBorder)
                 rightHeat.totalBorderUsage++;
             Integer freqForThatConst = rightHeat.constantsFreqMap.get(triplePattern.getRights().get(i).getTriples()[2]);
             if (freqForThatConst == null) {
@@ -351,7 +351,7 @@ public class HeatQuery {
                 indexUsageMap.put(indexUsage.indexType, indexUsage);
                 return;
             }
-            IndexUsage current = indexUsageMap.get(indexUsage);
+            IndexUsage current = indexUsageMap.get(indexUsage.indexType);
             current.performancesBenefit += indexUsage.performancesBenefit;
             current.usage += indexUsage.usage;
         }

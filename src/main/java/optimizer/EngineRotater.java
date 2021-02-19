@@ -10,7 +10,7 @@ import triple.TriplePattern2;
 
 import java.util.*;
 
-public class Optimiser {
+public class EngineRotater {
 
 
     public static final int FULL_DATA_COST = 1000000000; //TODO consider adjusting it
@@ -22,7 +22,7 @@ public class Optimiser {
 
     private final Evictor evictor;
 
-    public Optimiser(Dictionary dictionary , IndexesPool indexesPool) {
+    public EngineRotater(Dictionary dictionary , IndexesPool indexesPool) {
         memoryMap = new MemoryMap();
         heatQuery = new HeatQuery();
         this.indexesPool = indexesPool;//new IndexesPool(null , dictionary );
@@ -110,7 +110,7 @@ public class Optimiser {
         public void informGenBenefitOfOptimal(byte requiredIndex , byte sourceIndex , int benefit ){
             ArrayList<GeneralRule_old> rules = generalRulesMap.get(requiredIndex);
             if(rules == null) {
-                SourceItem sourceItem = new SourceItem(sourceIndex , Optimiser.LOCALHOST);
+                SourceItem sourceItem = new SourceItem(sourceIndex , EngineRotater.LOCALHOST);
                 GeneralRule_old rule = new GeneralRule_old(requiredIndex , sourceItem) ;
                 rules = new ArrayList<>();
                 rules.add(rule);

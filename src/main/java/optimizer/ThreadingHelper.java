@@ -1,6 +1,6 @@
 package optimizer;
 
-public class Threading {
+public class ThreadingHelper {
 
 
 

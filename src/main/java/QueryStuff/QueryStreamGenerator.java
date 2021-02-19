@@ -4,13 +4,12 @@ import distiributed.Transporter;
 import index.Dictionary;
 import index.IndexesPool;
 import index.MyHashMap;
+import optimizer.EngineRotater2;
 import optimizer.HeatQuery;
-import optimizer.Optimizer2;
 import triple.Triple;
 import triple.TriplePattern2;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -32,7 +31,7 @@ public class QueryStreamGenerator extends Thread {
     private final MyHashMap<Integer, ArrayList<Triple>> OPS;
     private ArrayList<String> newHeaveyQueries;
     private HeatQuery heatMap;
-    private Optimizer2 optimizer;
+    private EngineRotater2 optimizer;
     private int queryNoSequence = 84734;
     private boolean stop = false;
     public boolean working;
@@ -42,7 +41,7 @@ public class QueryStreamGenerator extends Thread {
 
 
     public QueryStreamGenerator(int averageLength, int maxLength, int meanFrequency, int quality, int period, Transporter transporter,
-                                QueryWorkersPool queryWorkersPool, Dictionary reverseDictionary , IndexesPool indexesPool, HeatQuery heatMap , Optimizer2 optimizer2) {
+                                QueryWorkersPool queryWorkersPool, Dictionary reverseDictionary , IndexesPool indexesPool, HeatQuery heatMap , EngineRotater2 engineRotater2) {
         this.averageLength = averageLength;
         this.maxLength = maxLength;
         this.meanFrequency = meanFrequency;
@@ -54,14 +53,14 @@ public class QueryStreamGenerator extends Thread {
         this.OPS = indexesPool.getIndex(IndexesPool.OPs);
         this.indexPool = indexesPool;
         this.heatMap = heatMap;
-        this.optimizer = optimizer2;
+        this.optimizer = engineRotater2;
     }
 
     public static QueryStreamGenerator getDefault(Transporter transporter, QueryWorkersPool queryWorkersPool, Dictionary reverseDictionary
-            , IndexesPool indexesPool, HeatQuery heatMap , Optimizer2 optimizer2) {
+            , IndexesPool indexesPool, HeatQuery heatMap , EngineRotater2 engineRotater2) {
 
-       // return new QueryStreamGenerator(2,4 , 10 , 50,10,transporter,queryWorkersPool,reverseDictionary,indexesPool,heatMap,optimizer2);
-        return new QueryStreamGenerator(2,2 , 10 , 50,10,transporter,queryWorkersPool,reverseDictionary,indexesPool,heatMap,optimizer2);
+       // return new QueryStreamGenerator(2,4 , 10 , 50,10,transporter,queryWorkersPool,reverseDictionary,indexesPool,heatMap,engineRotater2);
+        return new QueryStreamGenerator(2,2 , 10 , 50,10,transporter,queryWorkersPool,reverseDictionary,indexesPool,heatMap, engineRotater2);
     }
 
 

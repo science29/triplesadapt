@@ -13,8 +13,8 @@ public class Simu {
 
     public Simu(double relpcationCostSave , int totalCapacity) {
         ArrayList<GeneralRule> generalRules;
-        ArrayList<Optimiser.SpecificRule> genralizedRules;
-        ArrayList<Optimiser.SpecificRule> specificRules;
+        ArrayList<EngineRotater.SpecificRule> genralizedRules;
+        ArrayList<EngineRotater.SpecificRule> specificRules;
         this.relpcationCostSave = relpcationCostSave;
         this.totalCapacity = totalCapacity*1000*1000;
     }

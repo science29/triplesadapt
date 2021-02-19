@@ -3,7 +3,7 @@ package distiributed;
 
 import QueryStuff.Query;
 import index.MyHashMap;
-import optimizer.Optimizer2;
+import optimizer.EngineRotater2;
 import triple.Triple;
 import triple.TriplePattern2;
 
@@ -56,7 +56,8 @@ public class Transporter implements Receiver.RecieverReadyListener {
     }
 
     public boolean isGUISupported() {
-       return myIP.matches("172.20.32.8");
+       //return myIP.matches("172.20.32.8");
+        return false;
     }
 
 
@@ -77,7 +78,7 @@ public class Transporter implements Receiver.RecieverReadyListener {
 
 
 
-    public Transporter(ArrayList<String> hosts, RemoteQueryListener remoteQueryListener , Optimizer2 optimizer , TransporterReadyListener transporterReadyListener) {
+    public Transporter(ArrayList<String> hosts, RemoteQueryListener remoteQueryListener , EngineRotater2 optimizer , TransporterReadyListener transporterReadyListener) {
         myIP = removeMySelf(hosts);
         this.remoteQueryListener = remoteQueryListener;
         this.hosts = hosts;
@@ -98,6 +99,8 @@ public class Transporter implements Receiver.RecieverReadyListener {
         this.transporterReadyListener = transporterReadyListener;
         setSedingCost();
     }
+
+
 
 
     public double getSendingItemCostMB() {

@@ -36,6 +36,9 @@ public class Dictionary{
     private final String HOME_DIR = "/home/ahmed/";
     private boolean cacheEnabled = true;
     public int collistionCount = 0;
+    private HashMap<String, String> prefixKeyMap = new HashMap<>();
+    private HashMap<String, String> prefixValMap = new HashMap<>();
+    private int prefixIndex = 1;
 
 
     public void open() {
@@ -178,8 +181,32 @@ public class Dictionary{
 
     }
 
-    public void put(String key, Integer value) {
 
+    public void addToPrefix(String prefix1 , String prefix2){
+        prefixKeyMap.put(prefix1, prefix2);
+        prefixValMap.put(prefix2, prefix1);
+    }
+
+    public String addPrefixFromString(String key){
+        String [] arr = key.split("#");
+        if(arr.length == 1)
+            return key;
+        String prefixVal = arr[0]+"#>";
+        //String prefix2 = arr[1].replace(">","");
+        String foundPrefix = prefixValMap.get(prefixVal);
+        if(foundPrefix == null) {
+            foundPrefix = ""+prefixIndex++;
+            prefixValMap.put(prefixVal, foundPrefix);
+            prefixKeyMap.put(foundPrefix, prefixVal);
+
+        }
+        key = foundPrefix + ":" + arr[1].replace(">", "");
+        return key;
+    }
+
+    public void put(String key, Integer value) {
+        //line added in afterdef version
+        key = addPrefixFromString(key);
        // normalMap.put(key,value);
         if(collissionMap.containsKey(key)){
             if(collissionMap.get(key) != -1)
@@ -200,7 +227,27 @@ public class Dictionary{
     }
 
 
+    public Integer get(String key, String prefixVal) {
+        //look for the stored prefix key
+        String prefixStored = this.prefixValMap.get(prefixVal);
+        if(prefixStored != null){
+            key = prefixStored + ":"+key.split(":")[1];
+        }else {
+            key = prefixVal.replace(">",key+">");
+        }
+        return get(key);
+    }
 
+
+    public Integer get(String key, boolean findPrefix){
+        if(findPrefix)
+            key = addPrefixFromString(key);
+        Integer val = getFromCache(key);
+        if(ONLY_MEMORY || val != null) {
+            return val;
+        }else
+            return (Integer) fastMap.get(key);
+    }
 
     public Integer get(String key){
         Integer val = getFromCache(key);
@@ -292,13 +339,24 @@ public class Dictionary{
 
 
 
+
+    public Integer getTypeID(){
+        if(pre == null || literal == null)
+            return null;
+        return  get(pre,literal);
+    }
+
+
     public boolean containsKey(String key, boolean building) {
-        if(key.contains("a299fc1") )
-            key.contains(" ");
+
 
         if(collissionMap.containsKey(key))
             return true;
         boolean res = containsKey(key);
+        if(!res && key.contains("#")){
+            key = addPrefixFromString(key);
+            res = containsKey(key);
+        }
         if(!building){
             return res;
         }
@@ -381,6 +439,16 @@ public class Dictionary{
 
     public Iterator<Map.Entry<Integer, char[]>> getIterator() {
         return this.reverseCache.entrySet().iterator();
+    }
+
+
+    private String pre;
+    private String literal;
+
+
+    public void setIDLiteral(String pre, String literal) {
+        this.pre = pre;
+        this.literal = literal;
     }
 
 

@@ -15,18 +15,18 @@ public class Evictor2 {
 
     private static final int ALLOCATE_STEP = 1000000;
     private final Dictionary dictionary;
-    private final Optimizer2 optimizer;
+    private final EngineRotater2 optimizer;
     private  EvictorThread evictorThread;
     private QueryWorkersPool queryWorkersPool;
     private IndexesPool indexPool;
 
-    public Evictor2(QueryWorkersPool queryWorkersPool , IndexesPool indexesPool , Dictionary dictionary ,Optimizer2 optimizer2){
+    public Evictor2(QueryWorkersPool queryWorkersPool , IndexesPool indexesPool , Dictionary dictionary , EngineRotater2 engineRotater2){
         evictorThread = new EvictorThread();
         evictorThread.start();
         this.queryWorkersPool = queryWorkersPool;
         this.indexPool = indexesPool;
         this.dictionary = dictionary ;
-        this.optimizer = optimizer2;
+        this.optimizer = engineRotater2;
     }
 
     private PriorityQueue<EvictQueueElement> highQBlock = new PriorityQueue<>(new Comparator<EvictQueueElement>() {
