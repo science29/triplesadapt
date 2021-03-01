@@ -3,6 +3,7 @@ package optimizer;
 import QueryStuff.QueryStreamGenerator;
 import QueryStuff.QueryWorkersPool;
 import distiributed.Transporter;
+import index.CacheMergeJoinRes;
 import index.Dictionary;
 import index.IndexesPool;
 import index.MyHashMap;
@@ -14,6 +15,8 @@ import optimizer.Rules.GeneralReplicationInfo;
 import optimizer.Rules.GeneralReplicationRule;
 import optimizer.Rules.GeneralRule;
 import optimizer.stat.ClassesStat;
+import triple.MergeJoinResList;
+import triple.MergeJoinResTotal;
 import triple.Triple;
 
 import java.util.*;
@@ -36,6 +39,7 @@ public class EngineRotater2 extends EngineRotater {
 
     private OptimizerGUI GUI;
     private ClassesStat classesStat;
+    CacheMergeJoinRes cacheMergeJoinRes = new CacheMergeJoinRes();
 
     public EngineRotater2(QueryWorkersPool queryWorkersPool, IndexesPool indexesPool, Dictionary dictionary, Transporter transporter, HashMap<Integer, Boolean> borderTripleMap, boolean GUIsupport , DeepOptim deepOptim) {
         super(dictionary, indexesPool);
@@ -236,6 +240,20 @@ public class EngineRotater2 extends EngineRotater {
     }
     public ClassesStat getClassesStat(){
         return classesStat;
+    }
+
+
+
+    public MergeJoinResTotal getFromMergeCache(Triple abstractTriple1, Triple abstractTriple2) {
+       return cacheMergeJoinRes.get(abstractTriple1, abstractTriple2);
+       /*if(mergeJoinResTotal == null){
+           //try the reverse
+           mergeJoinResTotal =  cacheMergeJoinRes.get(abstractTriple2, abstractTriple1);
+       }*/
+    }
+
+    public void informMergeRes(MergeJoinResTotal mergeJoinResTotal) {
+        cacheMergeJoinRes.put(mergeJoinResTotal);
     }
 
 

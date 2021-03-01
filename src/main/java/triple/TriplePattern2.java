@@ -1500,11 +1500,27 @@ public class TriplePattern2 {
                 if (joinHisIndex >= 0 && joinMeIndex >= 0) {
                     ArrayList<Triple> myAbstractList = evaluateAbstract(classesStat, joinMeIndex);
                     ArrayList<Triple> hisAbstractList = callerPattern.evaluateAbstract(classesStat, joinHisIndex);
+                    //check the cache
+
                     if (myAbstractList != null && hisAbstractList != null) {
                         MergeJoinResList myMergeJoinRes = getMergeJoinResultList(callerPattern, myAbstractList, joinMeIndex);
                         MergeJoinResList hisMergeJoinRes = getMergeJoinResultList(this, hisAbstractList, joinHisIndex);
-
-                        boolean status = mergeJoin(myAbstractList, hisAbstractList, joinMeIndex, joinHisIndex, myMergeJoinRes, hisMergeJoinRes);
+                        MergeJoinResTotal cachedResTotal = optimiser.getFromMergeCache(abstractTriple, callerPattern.abstractTriple);
+                        boolean status = false;
+                        if(cachedResTotal != null){
+                            myMergeJoinRes = cachedResTotal.leftRes;
+                            hisMergeJoinRes = cachedResTotal.rightRes;
+                            status = true;
+                        }else {
+                            cachedResTotal = optimiser.getFromMergeCache(callerPattern.abstractTriple, abstractTriple);
+                            if(cachedResTotal != null) {
+                                myMergeJoinRes = cachedResTotal.rightRes;
+                                hisMergeJoinRes = cachedResTotal.leftRes;
+                                status = true;
+                            }
+                        }
+                        if(!status)
+                            status = mergeJoin(myAbstractList, hisAbstractList, joinMeIndex, joinHisIndex, myMergeJoinRes, hisMergeJoinRes);
                         if (status) {
                             donePatterns.put(callerPattern, myMergeJoinRes);
                             if (varsResults == null)
@@ -1516,6 +1532,7 @@ public class TriplePattern2 {
                             varsResults.put(triples[2], myMergeJoinRes);
                             varsResults.put(callerPattern.triples[0], hisMergeJoinRes);
                             varsResults.put(callerPattern.triples[2], hisMergeJoinRes);
+                            optimiser.informMergeRes(new MergeJoinResTotal(abstractTriple, callerPattern.abstractTriple,myMergeJoinRes,hisMergeJoinRes));
                             statusRes = true;
                         }
                         callerPattern.informMergeJoinDone(this, hisMergeJoinRes);

@@ -354,11 +354,11 @@ public class Query {
             if(status)
                 startPattern.printVarCount();
         }
-        if(!status)
-            findQueryAnswerChain();
         if(end == 0)
             end = System.nanoTime();
-        System.err.println("caus. measuring time:"+(end-start)/1000000.0);
+        System.err.println(" measuring time:"+(end-start)/1000000.0);
+        if(!status)
+            findQueryAnswerChain();
     }
 
     private boolean abstractJoin(TriplePattern2 startPattern, ClassesStat classesStat){
