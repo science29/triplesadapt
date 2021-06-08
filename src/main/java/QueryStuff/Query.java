@@ -356,7 +356,7 @@ public class Query {
         }
         if(end == 0)
             end = System.nanoTime();
-        System.err.println(" measuring time:"+(end-start)/1000000.0);
+        System.err.println(" measuring time:"+(end-start)/16000000.0);
         if(!status)
             findQueryAnswerChain();
     }
@@ -547,7 +547,7 @@ public class Query {
             }
             String pre = prefixes[i].substring(0,prefixes[i].indexOf(':'));
             String valPre = prefixes[i].substring(prefixes[i].indexOf(':')+1);
-            prefixMap.put(pre,valPre);
+            prefixMap.put(pre.trim(),valPre.trim());
         }
         //second get the where part
         String patternsStr = spaql.substring(spaql.indexOf('{')+1, spaql.indexOf('}'));
@@ -575,6 +575,7 @@ public class Query {
                     continue;
                 }
                 String [] p = arr[j].split(":");
+                p[0] = p[0].trim();
                 if(p.length == 2 && prefixMap.containsKey(p[0])){
                     code[j] = dictionary.get(arr[j] , prefixMap.get(p[0]));
                 }else {

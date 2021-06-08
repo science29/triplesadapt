@@ -15,10 +15,7 @@ import org.apache.commons.io.LineIterator;
 import triple.Triple;
 import triple.Vertex;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
@@ -64,7 +61,7 @@ public class MainUinAdapt {
     final static boolean weighting = false;
     final static boolean includeFragments = true;
     final static boolean quad = false;
-    //final static String dataSetPath = "/home/ahmed/download/btc-data-3.nq";
+    //final static String dataSetPath = baseDir+"download/btc-data-3.nq";
     final static String dataSetPath = "/home/keg/Desktop/BTC/btc-2009-filtered.n3";// "/home/keg/Desktop/BTC/btc_small.n3";   ////"../RDFtoMetis/btc-2009-small.n3";//"/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
     // final static String dataSetPath = "/home/keg/Downloads/rexo.nq";
     final static String outPutDirName = "bioportal";
@@ -81,13 +78,23 @@ public class MainUinAdapt {
     private int vertexCount = 0;
 
 
+
+    private String baseDir = "/home/ahmed/";
     ClassesStat classesStat;
 
     public static void main(String[] args) {
 
 
+
+
         System.out.println();
-        System.out.println("starting ..");
+        System.out.println("Starting UniAdapt..");
+
+
+        System.out.println("Please enter the a path to .nt data file..");
+
+        Scanner scanner = new Scanner(System.in);
+        String fileName = scanner.nextLine();
 
         MainUinAdapt o = new MainUinAdapt();
 
@@ -102,12 +109,14 @@ try {
     ArrayList<String> filePaths = new ArrayList<String>();
     //filePaths.add("/home/keg/Desktop/BTC/yago.n3");
     //filePaths.add("/Users/apple/Downloads/yago.n3");
-    filePaths.add("/Users/apple/IdeaProjects/LUBM temp/data/University1_.nt");
+    filePaths.add(fileName);
+
+    ///filePaths.add("/Users/apple/IdeaProjects/LUBM temp/data/University1_.nt");
 
     //o.openIndexes(); disable the disk map
     try {
 
-        o.porcess(filePaths, quad);
+        o.process(filePaths, quad);
 
     }catch (Exception e){
         e.printStackTrace();
@@ -172,7 +181,7 @@ try {
     }
 
 
-    private void startGUI(){
+    public void startGUI(){
         Simu simu = new Simu(10 , 723);
         simu.buildGeneralRules(160*1000*1000,0.1,0.01,2,0.9, 0.9,
                 0.3 , 0.1, 80);
@@ -271,11 +280,8 @@ try {
     }
 
     private void iniTransporter() {
-        System.out.println("starting transporter ..");
-        ArrayList<String> hosts = new ArrayList<>();
-        hosts.add("192.168.1.195");
-        hosts.add("172.20.32.8");
-        hosts.add("172.20.32.7");
+        System.out.println("starting transporter ...");
+        ArrayList<String> hosts = readHosts();
         Transporter.RemoteQueryListener remoteQueryListener = new Transporter.RemoteQueryListener() {
             @Override
             public void gotQuery(String query, int queryNo , int count , int batchID) {
@@ -296,6 +302,23 @@ try {
         });
     }
 
+
+    private ArrayList<String> readHosts(){
+        ArrayList<String> hosts = new ArrayList<>();
+        try {
+            File myObj = new File("hosts");
+            Scanner myReader = new Scanner(myObj);
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                hosts.add(data);
+            }
+            myReader.close();
+        } catch (FileNotFoundException e) {
+            System.out.println(" no hosts file found");
+            e.printStackTrace();
+        }
+        return hosts;
+    }
 
     public MainUinAdapt(){
         dictionary = new Dictionary("dictionary_int");
@@ -380,7 +403,7 @@ try {
         // FileWriter []  outfw_ext = new FileWriter[partitionCount];
         try {
             for (int i = 0; i < partitionCount; i++) {
-                outfw[i] = new FileWriter("/home/ahmed/rdfToMetisoutput/out/" + outPutDirName + i + ".n3");
+                outfw[i] = new FileWriter(baseDir+"rdfToMetisoutput/out/" + outPutDirName + i + ".n3");
                 outBuff[i] = new BufferedWriter(outfw[i]);
                 out_ext_list[i] = new ArrayList();
                 compressed_ext_list[i] = new ArrayList();
@@ -869,7 +892,7 @@ try {
 
     ArrayList<Triple> fullTempList = new ArrayList<>();
 
-    public void porcess(ArrayList<String> filePathList, boolean quad) {
+    public void process(ArrayList<String> filePathList, boolean quad) {
         int test = 0;
         tripleToPartutPartitionMap = new HashMap();
         header = new ArrayList();
@@ -891,9 +914,9 @@ try {
                 return;
             }
             try {
-                while (it.hasNext() && count < 4000000) {
+                while (it.hasNext() ) {
                     if (count % 100000 == 0 || count == 2082) {
-                        File stopFile = new File("/home/ahmed/stop");
+                        File stopFile = new File(baseDir+"stop");
                         if(stopFile.exists()){
                             System.out.println("stop file detected, stopping ..");
                             finish();
@@ -903,7 +926,7 @@ try {
                             printBuffer(0, k+" processing line " + count / 1000 + " k");
                         else
                             printBuffer(1, k+" processing line " + count / 1000 + " k");
-                        checkMemory(true);
+                        checkMemory(false);
 
                     }
                     count++;
@@ -918,9 +941,6 @@ try {
                         header.add(line);
                         continue;
                     }
-                    //dummy line
-                    if(line.contains("http://swat.cse.lehigh.edu/onto/univ-bench.owl#Chair"))
-                        line.trim();
 
                     String[] triple;
                     if (quad) {
@@ -1406,7 +1426,7 @@ try {
         FileWriter fw = null;
         Iterator it = dictionary.entrySet().iterator();
         try {
-            fw = new FileWriter("/home/ahmed/download/dictionary_temp.n3");
+            fw = new FileWriter(baseDir+"download/dictionary_temp.n3");
             bw = new BufferedWriter(fw);
             while (it.hasNext()) {
                 Map.Entry pair = (Map.Entry) it.next();
@@ -1432,7 +1452,7 @@ try {
         System.out.println("reading dictionary from temp file");
         dictionary = new Dictionary("dictionary_int");
     //    reverseDictionary = new HashMap();
-        File file = new File("/home/ahmed/download/dictionary_temp.n3");
+        File file = new File(baseDir+"download/dictionary_temp.n3");
         LineIterator it = null;
         try {
             it = FileUtils.lineIterator(file);
@@ -1853,7 +1873,7 @@ try {
             cnt++;
             if(cnt % 100000 == 0) {
                 System.out.print(" , " + cnt * 100 / totalSize);
-                checkMemory(true);
+                checkMemory(false);
             }
         }
         //then iterate over OPS disk
@@ -1866,7 +1886,7 @@ try {
             cnt++;
             if(cnt % 100000 == 0){
                 System.out.print(" , "+cnt*100/totalSize);
-                checkMemory(true);
+                checkMemory(false);
 
             }
         }
@@ -1903,7 +1923,7 @@ try {
                         System.out.println();
                     System.out.flush();
                     System.out.println("adding triple "+oppsCurrentCount/1000 +" k, writting buffer size = " + OPxP.getWritingThreadBufferSize()/1000 +" k");
-                    File stopFile = new File("/home/ahmed/stop");
+                    File stopFile = new File(baseDir+"stop");
                     if (stopFile.exists()) {
                         System.out.println("stop file detected, stopping ..");
                         finish();
@@ -1985,7 +2005,7 @@ try {
         // FileWriter []  outfw_ext = new FileWriter[partitionCount];
         try {
             for (int i = 0; i < partitionCount; i++) {
-                outfw[i] = new FileWriter("/home/ahmed/rdfToMetisoutput/out_partut" + i + ".n3");
+                outfw[i] = new FileWriter(baseDir+"rdfToMetisoutput/out_partut" + i + ".n3");
                 outBuff[i] = new BufferedWriter(outfw[i]);
                 out_ext_list[i] = new ArrayList();
             }
@@ -2261,19 +2281,10 @@ try {
 
 
 
-    private void listenToQuery() {
+    public void listenToQuery() {
 
         String testquery = "select ?x1 ?x2 ?x3 ?x4  where {?x3 y:describes ?x2.?x2 y:created ?x1.?x1 y:hasSuccessor ?x4.?x4 rdfs:label ?x5}";
-        testquery = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
-                "PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>" +
-                "SELECT ?X, ?Y, ?Z" +
-                "WHERE" +
-                "{?X rdf:type ub:GraduateStudent ." +
-                "  ?Y rdf:type ub:University ." +
-                "  ?Z rdf:type ub:Department ." +
-                "  ?X ub:memberOf ?Z ." +
-                "  ?Z ub:subOrganizationOf ?Y ." +
-                "  ?X ub:undergraduateDegreeFrom ?Y}";
+        testquery = "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>PREFIXub:<http://swat.cse.lehigh.edu/onto/univ-bench.owl#>SELECT ?X, ?Y, ?Z WHERE {?X rdf:type ub:GraduateStudent . ?Y rdf:type ub:University . ?Z rdf:type ub:Department . ?X ub:memberOf ?Z . ?Z ub:subOrganizationOf ?Y. ?X ub:undergraduateDegreeFrom ?Y}";
 
         //Query queryObj1 = new Query(dictionary, testquery,indexPool , transporter , null);//warm up!!
 
@@ -2350,7 +2361,7 @@ try {
         }
     }
 
-    private void finish() {
+    public void finish() {
         if(OPS != null)
             OPS.close();
         if(OPxP != null)
@@ -2370,7 +2381,8 @@ try {
             System.out.println(" app used memory: " + rem / 1000 + " KB");
         }
         if((max-rem)/1000 < 2000000) {
-            System.out.println(" Low memory detected, exiting ... ");
+            System.out.println(" Low memory detected... ");
+            //System.out.println("exiting...");
             //finish();
            // System.exit(1);
         }

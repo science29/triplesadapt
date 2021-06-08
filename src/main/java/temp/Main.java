@@ -1,3 +1,5 @@
+package temp;
+
 import triple.Triple;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -45,7 +47,7 @@ public class Main {
 
 
         System.out.println("starting ..");
-        Main o = new Main();
+        temp.Main o = new temp.Main();
         o.convertNqToN3("/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/btc-2009-small.nq", "btc-2009-small.n3");
         System.out.println("done converting..");
         byte[] a =  new byte[1000];
@@ -58,7 +60,7 @@ public class Main {
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
 
-        o.porcess(dataSetPath, quad);
+        o.process(dataSetPath, quad);
         System.out.println("generating queries .. ");
         ArrayList<QueryStuff.Query> queries = o.generateQueries();
 
@@ -581,7 +583,7 @@ public class Main {
     HashMap<String, String> prefix = new HashMap<String, String>();
     ArrayList<String> header;
 
-    public void porcess(String filePath, boolean quad) {
+    public void process(String filePath, boolean quad) {
         tripleToPartutPartitionMap = new HashMap();
         header = new ArrayList();
         if (verticies == null)

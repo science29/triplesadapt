@@ -330,12 +330,12 @@ public class Sender{
                     outToServer = new ObjectOutputStream(socket.getOutputStream());
                     socketOpened = true;
                 } catch (IOException e) {
-                    System.err.println("socket to " + host + " is not yet opened, trying in 10 sec");
+                    //System.err.println("socket to " + host + " is not yet opened, trying in 30 sec");
                 } catch (Exception e) {
-                    System.err.println("socket to " + host + " is not yet opened, trying in 10 sec");
+                    //System.err.println("socket to " + host + " is not yet opened, trying in 30 sec");
                 }
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(30000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

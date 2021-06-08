@@ -1,3 +1,5 @@
+package temp;
+
 import index.IndexCollection;
 import index.IndexType;
 import index.MyHashMap;
@@ -60,7 +62,7 @@ public class Main3 {
 
 
         System.out.println("starting ..");
-        Main3 o = new Main3();
+        temp.Main3 o = new temp.Main3();
        o.convertNqToN3("/home/keg/Desktop/BTC/data.nq-0-30", "/home/keg/Desktop/BTC/btc_small.n3" , false);
         System.out.println("done converting..");
         byte[] a = new byte[1000];
@@ -74,7 +76,7 @@ public class Main3 {
         // "/home/ahmed/download/yago2_core_20101206.n3"
         //String dataSetPath = "/afs/informatik.uni-goettingen.de/user/a/aalghez/Desktop/RDF3X netbean/rdf3x-0.3.7/bin/yago_utf.n3";
 
-        o.porcess(dataSetPath, quad);
+        o.process(dataSetPath, quad);
         //System.out.println("building extra indexes .. ");
         //o.buildSppIndex();
         System.out.println("building extra indexes OPxPs .. ");
@@ -631,7 +633,7 @@ public class Main3 {
     HashMap<String, String> prefix = new HashMap<String, String>();
     ArrayList<String> header;
 
-    public void porcess(String filePath, boolean quad) {
+    public void process(String filePath, boolean quad) {
         tripleToPartutPartitionMap = new HashMap();
         header = new ArrayList();
         if (verticies == null)
