@@ -20,21 +20,21 @@ public class ExecutionStep {
     }
 
 
-    public void setLeftHand(TriplePattern2 pattern, MyHashMap<Integer, ArrayList<Triple>> index, int firstTripleIndex, int secondTripleIndex){
-        this.leftHand = new HandStep(pattern,index,firstTripleIndex,secondTripleIndex);
+    public void setLeftHand(TriplePattern2 pattern, byte indexType, int firstTripleIndex, int secondTripleIndex){
+        this.leftHand = new HandStep(pattern,indexType,firstTripleIndex,secondTripleIndex);
     }
 
 
 
     public class HandStep{
         protected TriplePattern2 pattern;
-        private MyHashMap<Integer, ArrayList<Triple>> index;
+        private byte indexType;
         private int firstTripleIndex;
         private int secondTripleIndex;
 
-        public HandStep(TriplePattern2 pattern, MyHashMap<Integer, ArrayList<Triple>> index, int firstTripleIndex, int secondTripleIndex) {
+        public HandStep(TriplePattern2 pattern, byte indexType, int firstTripleIndex, int secondTripleIndex) {
             this.pattern = pattern;
-            this.index = index;
+            this.indexType = indexType;
             this.firstTripleIndex = firstTripleIndex;
             this.secondTripleIndex = secondTripleIndex;
         }
