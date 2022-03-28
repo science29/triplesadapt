@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Class-Path: kotlin-stdlib-common-1.2.71.jar error_prone_annotations-2.
+ 3.4.jar jsr305-3.0.2.jar kotlin-stdlib-1.2.71.jar listenablefuture-99
+ 99.0-empty-to-avoid-conflict-with-guava.jar lz4-1.3.0.jar mapdb-3.0.7
+ .jar annotations-13.0.jar eclipse-collections-forkjoin-11.0.0.M1.jar 
+ failureaccess-1.0.1.jar elsa-3.0.0-M5.jar j2objc-annotations-1.3.jar 
+ checker-qual-3.5.0.jar guava-30.1-jre.jar eclipse-collections-11.0.0.
+ M1.jar forms-1.2.1.jar eclipse-collections-api-11.0.0.M1.jar commons-
+ io-2.5.jar
+temp.Main-Class: start.MainUinAdapt
+
