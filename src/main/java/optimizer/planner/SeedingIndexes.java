@@ -12,7 +12,41 @@ public class SeedingIndexes {
 	private Integer IndexesVariable1[];
 	private Integer IndexesVariable2[];
 	private ArrayList<Integer> variables;
-	private Integer Sorted;
+	private ArrayList<Integer> sorted;
+
+	
+	public SeedingIndexes(ArrayList<Integer> iDs, Integer[] indexesVariable1, Integer[] indexesVariable2,
+			ArrayList<Integer> variables, ArrayList<Integer> sorted) {
+		super();
+		this.IDs = iDs;
+		this.IndexesVariable1 = indexesVariable1;
+		this.IndexesVariable2 = indexesVariable2;
+		this.variables = variables;
+		this.sorted = sorted;
+	}
+
+	public SeedingIndexes() {
+		
+	}
+	
+
+	@Override
+	protected SeedingIndexes clone() throws CloneNotSupportedException {
+		
+		SeedingIndexes clonedSeedingIndexes = null;
+		try {
+			   clonedSeedingIndexes = (SeedingIndexes) super.clone();
+	           clonedSeedingIndexes.setIDs((ArrayList<Integer>)this.IDs.clone());
+	           clonedSeedingIndexes.setIndexesVariable1((Integer [])this.IndexesVariable1.clone()); 
+	           clonedSeedingIndexes.setIndexesVariable2((Integer [])this.IndexesVariable2.clone()); 
+	           clonedSeedingIndexes.setVariables((ArrayList<Integer>)this.variables.clone());
+	        //   clonedSeedingIndexes.setSorted((Integer[])this.Sorted.clone());;
+		} catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+		}
+
+		return clonedSeedingIndexes;
+	}
 
 
 	public ArrayList<Integer> getIDs() {
@@ -39,11 +73,10 @@ public class SeedingIndexes {
 	public void setVariables(ArrayList<Integer> variables) {
 		this.variables = variables;
 	}
-	public Integer getSorted() {
-		return Sorted;
+	public ArrayList<Integer> getSorted() {
+		return sorted;
 	}
-	public void setSorted(Integer sorted) {
-		Sorted = sorted;
+	public void setSorted(ArrayList<Integer> sorted) {
+		this.sorted = sorted;
 	}
-
 }

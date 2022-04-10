@@ -14,4 +14,28 @@ public class HandStep {
         this.indexType = indexType;
         this.IDs = IDs; 
     }
+
+	public ArrayList<TriplePattern2> getPattern() {
+		return pattern;
+	}
+
+	public void setPattern(ArrayList<TriplePattern2> pattern) {
+		this.pattern = pattern;
+	}
+
+	public Integer getIndexType() {
+		return indexType;
+	}
+
+	public void setIndexType(Integer indexType) {
+		this.indexType = indexType;
+	}
+
+	public ArrayList<Integer> getIDs() {
+		return IDs;
+	}
+
+	public void setIDs(ArrayList<Integer> iDs) {
+		IDs = iDs;
+	}
 }
