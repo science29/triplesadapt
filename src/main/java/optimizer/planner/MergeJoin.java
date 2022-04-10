@@ -18,7 +18,6 @@ public class MergeJoin {
 		 * steps, so that every possible step starting by i is saved
 		 */
 		if (!MergeTemp.isEmpty()) {
-			System.out.println("new run");
 			int listSizeBeforeLoop = MergeTemp.size();
 			for (int i = 0; i < listSizeBeforeLoop; i++) {
 				loopingPlans(MergeTemp.get(i), tripleList, MergeTemp, execution);
@@ -27,10 +26,13 @@ public class MergeJoin {
 			if (MergeTemp.get(0).get(0).getIDs().size() < MergeTemp.get(0).size()) {
 				return MergePlans(merge, tripleList, execution, MergeTemp);
 			}
+			int count = 0; // deletes the old plans.
+			while (count < listSizeBeforeLoop) {
+				MergeTemp.remove(0);
+				count ++;
+			}
 		} else {
-			System.out.println("first run");
 			loopingPlans(merge, tripleList, MergeTemp, execution);
-			System.out.println(MergeTemp.size());
 			return MergePlans(merge, tripleList, execution, MergeTemp);
 		}
 
