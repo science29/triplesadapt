@@ -5,11 +5,10 @@ import triple.TriplePattern2;
 
 public class Plan {
 
-	private ArrayList<ExecutionStep> steps; // Join Types needed
 	private SeedingIndexes tripleIndexElement;
 
 	// Chooses the possible Indexes and the variables for the needed Dynamic
-	// Programming. As well as an ID to identify the Pattern, and set Sorted to null
+	// Programming. As well as an ID to identify the Pattern, and set Sorted to -1
 	// == false.
 	public SeedingIndexes SeedingDPTable(Integer i, TriplePattern2 triple) {
 		// The first two fields are seeded with the usable Indexes, the last two fields
@@ -80,7 +79,7 @@ public class Plan {
 		boolean Index10InList = false;
 		boolean Index11InList = false;
 		boolean Index2InList = false;
-		int[] usedIndexes = { 0, 4, 6, 7, 9, 12 };
+		int[] usedIndexes = { 2, 10, 8 };
 		for (int j = 0; j < usedIndexes.length; j++) {
 			if (tripleIndexElement.getIndexesVariable1()[0] == usedIndexes[j]) {
 				Index10InList = true;
@@ -93,22 +92,23 @@ public class Plan {
 			}
 		}
 		if (Index10InList == false) {
-			tripleIndexElement.getIndexesVariable1()[0] = null;
+			tripleIndexElement.getIndexesVariable1()[0] = -1;
 			if (tripleIndexElement.getIndexesVariable1().length > 1) {
 				tripleIndexElement.getIndexesVariable1()[0] = tripleIndexElement.getIndexesVariable1()[1];
 			}
 
 		}
 		if (Index11InList == false && tripleIndexElement.getIndexesVariable1().length > 1) {
-			tripleIndexElement.getIndexesVariable1()[1] = null;
+			tripleIndexElement.getIndexesVariable1()[1] = -1;
 		}
 		if (Index2InList == false) {
-			tripleIndexElement.getIndexesVariable2()[0] = null;
+			tripleIndexElement.getIndexesVariable2()[0] = -1;
 		}
 		if (Index10InList == false && Index11InList == false && Index2InList == false) {
 			System.out.println("The query can not be solved, because indexes that are needed are missing.");
 		}
 		return tripleIndexElement;
 	}
+
 
 }

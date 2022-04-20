@@ -2,7 +2,7 @@ package optimizer.planner;
 
 import java.util.ArrayList;
 
-public class SeedingIndexes {
+public class SeedingIndexes implements Cloneable{
 	/**
 	 * Class that gives the ArrayList tripleIndexes the values of the possible
 	 * Indexes and used variables.
